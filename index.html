@@ -307,7 +307,7 @@
             <th>Тема</th>
             <th>Оценки</th>
             <th>ДЗ</th>
-            <th>Отчёты</th>
+            <th>Отчёты / Действия</th>
           </tr>
         </thead>
         <tbody id="historyTable"></tbody>
@@ -760,7 +760,10 @@
           <td>Опрос: ${data.pollGrade || '-'} | Оценка: ${data.totalGrade || '-'}</td>
           <td>${filledHw.length > 0 ? `${doneHw} из ${filledHw.length}` : 'Без ДЗ'}</td>
           <td>
-            <button class="btn-action" onclick="generateLessonReport('${data.id}')">Отчёт за урок</button>
+            <div style="display:flex; gap:5px; flex-wrap:wrap;">
+              <button class="btn-action" onclick="generateLessonReport('${data.id}')">Отчёт</button>
+              <button class="btn-action" style="color:#ef4444; background:#fee2e2;" onclick="deleteHistoryLesson('${data.id}')">🗑️</button>
+            </div>
           </td>
         `;
         tbody.appendChild(tr);
@@ -814,12 +817,35 @@
         </div>
         <div style="display:flex; gap:5px; flex-wrap:wrap; margin-top:8px;">
           <button class="btn-action" onclick="openStudentCardModal('${sId}')">✏️ Редактировать</button>
-          <button class="btn-action" style="background:#059669; color:white;" onclick="copyGuestLink('${sId}')">🔗 Ссылка для родителя</button>
+          <button class="btn-action" style="background:#059669; color:white;" onclick="copyGuestLink('${sId}')">🔗 Ссылка</button>
+          <button class="btn-action" style="color:#ef4444; background:#fee2e2;" onclick="deleteStudentCard('${sId}', '${s.name}')">🗑️ Удалить</button>
         </div>
       `;
       container.appendChild(card);
     });
   }
+
+  // Функция удаления ученика из картотеки
+  window.deleteStudentCard = async (studentId, studentName) => {
+    if (confirm(`Вы уверены, что хотите удалить карточку ученика "${studentName}"?`)) {
+      try {
+        await deleteDoc(doc(db, "students", studentId));
+      } catch (err) {
+        alert("Ошибка при удалении ученика: " + err.message);
+      }
+    }
+  };
+
+  // Функция удаления записи из истории проведенных уроков
+  window.deleteHistoryLesson = async (historyId) => {
+    if (confirm("Вы действительно хотите удалить эту запись из истории уроков?")) {
+      try {
+        await deleteDoc(doc(db, "history", historyId));
+      } catch (err) {
+        alert("Ошибка при удалении записи: " + err.message);
+      }
+    }
+  };
 
   function updateHwTemplatesDropdowns() {
     const planSelect = document.getElementById('planHwTemplateSelect');
@@ -954,7 +980,7 @@
         <td>${repeatText}</td>
         <td><small>${data.assignedHw || '—'}</small></td>
         <td>
-          <button class="btn-action" onclick="openCompleteModal('${id}')">✅ Завершить урок</button>
+          <button class="btn-action" onclick="openCompleteModal('${id}')">✅ Завершить</button>
           <button class="btn-action" style="background:#fef3c7; color:#d97706;" onclick="openEditModal('${id}')">✏️</button>
           <button class="btn-action" style="color:#ef4444; background:#fee2e2;" onclick="cancelLesson('${id}')">❌</button>
         </td>
