@@ -445,7 +445,6 @@
       modalHwList.appendChild(div);
     }
 
-    // Изолированные запросы (только для текущего userId)
     const qSchedule = query(collection(db, "schedule"), where("userId", "==", currentUserId));
     const qHistory = query(collection(db, "history"), where("userId", "==", currentUserId));
 
@@ -453,9 +452,21 @@
       const tbody = document.getElementById('upcomingTable');
       tbody.innerHTML = '';
       upcomingMap = {};
+
+      const scheduleItems = [];
       snapshot.forEach(docSnap => {
-        const data = docSnap.data();
-        const id = docSnap.id;
+        scheduleItems.push({
+          id: docSnap.id,
+          data: docSnap.data()
+        });
+      });
+
+      // Сортировка расписания от ближайших к поздним
+      scheduleItems.sort((a, b) => new Date(a.data.dateTime) - new Date(b.data.dateTime));
+
+      scheduleItems.forEach(item => {
+        const data = item.data;
+        const id = item.id;
         upcomingMap[id] = data;
 
         const formattedDate = new Date(data.dateTime).toLocaleString('ru-RU', { dateStyle: 'short', timeStyle: 'short' });
