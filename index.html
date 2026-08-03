@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Кабинет Репетитора</title>
+  <!-- Библиотека для создания скриншотов HTML-элементов -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <style>
     :root {
       --primary: #4f46e5;
@@ -48,7 +50,7 @@
     .error-msg { background: #fee2e2; color: #dc2626; font-size: 13px; padding: 10px; border-radius: 8px; margin-top: 15px; display: none; text-align: center; }
 
     #app-screen, #guest-screen { display: none; }
-    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 10px; }
     header h1 { font-size: 24px; font-weight: 800; color: #1e1b4b; }
 
     .grid-2 { display: grid; grid-template-columns: 1fr; gap: 20px; }
@@ -96,7 +98,6 @@
     .report-section-title { font-size: 13px; font-weight: bold; text-transform: uppercase; background-color: #000080; color: #ffffff; padding: 4px 8px; border-radius: 4px; margin-bottom: 8px; display: inline-block; }
     .stat-box { background: #f0f4f8; border: 1px solid #000080; border-radius: 6px; padding: 8px 12px; display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 14px; }
     
-    /* Стили для системы Колб */
     .flask-badge { background: #e0e7ff; color: #4338ca; font-weight: 700; padding: 2px 8px; border-radius: 12px; font-size: 12px; display: inline-flex; align-items: center; gap: 4px; }
     .shop-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-top: 10px; }
     .shop-item { background: #ffffff; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
@@ -207,7 +208,10 @@
         <h1>🎓 Кабинет Репетитора</h1>
         <p id="userWelcomeText">Управление расписанием</p>
       </div>
-      <button class="btn-logout" id="logoutBtn">Выйти 🚪</button>
+      <div style="display:flex; align-items:center; gap:10px;">
+        <input type="text" id="myTelegramChatId" placeholder="Ваш TG Chat ID" style="width:140px; font-size:12px; padding:6px;" title="Введите ваш Telegram Chat ID из @userinfobot">
+        <button class="btn-logout" id="logoutBtn">Выйти 🚪</button>
+      </div>
     </header>
 
     <div class="grid-2">
@@ -482,6 +486,7 @@
       </div>
     </div>
 
+    <!-- КАРТОЧКА ОТЧЕТА ПО УРОКУ -->
     <div class="report-card" id="lessonReportCard">
       <div class="report-header"><h2>Карточка отчёта родителю</h2></div>
       <div class="report-section">
@@ -503,9 +508,14 @@
         <p style="margin-top:5px;"><strong>Комментарий / Рекомендация:</strong></p>
         <p id="repComment" style="font-style:italic; background:#f0f4f8; padding:8px; border-radius:4px; margin-top:4px;"></p>
       </div>
-      <button class="btn-action" style="width:100%; margin-top:10px;" onclick="window.print()">🖨️ Распечатать / Сохранить в PDF</button>
+      
+      <div style="display: flex; gap: 10px; margin-top: 10px;">
+        <button class="btn-action" style="flex:1;" onclick="window.print()">🖨️ Печать / PDF</button>
+        <button class="btn-action" style="flex:1; background:#0088cc; color:white;" onclick="sendLessonReportToTelegram()">✈️ Отправить фото в TG</button>
+      </div>
     </div>
 
+    <!-- КАРТОЧКА ОТЧЕТА ЗА ПЕРИОД -->
     <div class="report-card" id="periodReportCard">
       <div class="report-header">
         <h2>Отчёт об успеваемости за период</h2>
@@ -522,7 +532,11 @@
         <div class="report-section-title">Итоговый комментарий преподавателя</div>
         <p id="pRepComment" style="background:#f0f4f8; padding:10px; border-radius:4px; font-style:italic;"></p>
       </div>
-      <button class="btn-action" style="width:100%; margin-top:10px;" onclick="window.print()">🖨️ Распечатать / Сохранить в PDF</button>
+
+      <div style="display: flex; gap: 10px; margin-top: 10px;">
+        <button class="btn-action" style="flex:1;" onclick="window.print()">🖨️ Печать / PDF</button>
+        <button class="btn-action" style="flex:1; background:#0088cc; color:white;" onclick="sendPeriodReportToTelegram()">✈️ Отправить фото в TG</button>
+      </div>
     </div>
 
   </div>
@@ -546,6 +560,72 @@
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db = getFirestore(app);
+
+  // Настройки Telegram
+  const TELEGRAM_BOT_TOKEN = '8522803708:AAGKTIzLz0FR8g-oeBK5TMjgqTfpyCqqWsY';
+
+  // Сохранение и получение Chat ID из localStorage
+  const telegramChatInput = document.getElementById('myTelegramChatId');
+  if (localStorage.getItem('myTelegramChatId')) {
+    telegramChatInput.value = localStorage.getItem('myTelegramChatId');
+  }
+  telegramChatInput.addEventListener('change', () => {
+    localStorage.setItem('myTelegramChatId', telegramChatInput.value.trim());
+  });
+
+  // Функция создания снимка и отправки в Telegram
+  async function sendElementAsPhotoToTelegram(elementId, captionText) {
+    const chatId = telegramChatInput.value.trim();
+    if (!chatId) {
+      alert('Пожалуйста, введите ваш Telegram Chat ID в шапке системы (узнать его можно через бот @userinfobot)!');
+      return;
+    }
+
+    const element = document.getElementById(elementId);
+    if (!element) return;
+
+    try {
+      // Создаём скриншот элемента с высоким качеством
+      const canvas = await html2canvas(element, { scale: 2 });
+      
+      canvas.toBlob(async (blob) => {
+        const formData = new FormData();
+        formData.append('chat_id', chatId);
+        formData.append('photo', blob, 'report.png');
+        formData.append('caption', captionText);
+        formData.append('parse_mode', 'HTML');
+
+        const response = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendPhoto`, {
+          method: 'POST',
+          body: formData
+        });
+
+        const result = await response.json();
+        if (result.ok) {
+          alert('Отчёт успешно отправлен в ваш Telegram! ✈️');
+        } else {
+          alert('Ошибка Telegram API: ' + result.description);
+        }
+      }, 'image/png');
+
+    } catch (err) {
+      alert('Ошибка при создании картинки отчёта: ' + err.message);
+    }
+  }
+
+  window.sendLessonReportToTelegram = () => {
+    const student = document.getElementById('repStudent').innerText;
+    const date = document.getElementById('repDate').innerText;
+    const caption = `🎓 <b>Отчёт по уроку:</b> ${student} (${date})`;
+    sendElementAsPhotoToTelegram('lessonReportCard', caption);
+  };
+
+  window.sendPeriodReportToTelegram = () => {
+    const student = document.getElementById('pRepStudent').innerText;
+    const dates = document.getElementById('pRepDates').innerText;
+    const caption = `📊 <b>Отчёт за период:</b> ${student}\n${dates}`;
+    sendElementAsPhotoToTelegram('periodReportCard', caption);
+  };
 
   let currentUserId = null;
   let authMode = 'login';
@@ -825,7 +905,6 @@
     });
   }
 
-  // Функция удаления ученика из картотеки
   window.deleteStudentCard = async (studentId, studentName) => {
     if (confirm(`Вы уверены, что хотите удалить карточку ученика "${studentName}"?`)) {
       try {
@@ -836,7 +915,6 @@
     }
   };
 
-  // Функция удаления записи из истории проведенных уроков
   window.deleteHistoryLesson = async (historyId) => {
     if (confirm("Вы действительно хотите удалить эту запись из истории уроков?")) {
       try {
@@ -1000,7 +1078,6 @@
     e.preventDefault();
     const name = document.getElementById('addStudentName').value;
     
-    // Автосоздание ученика в картотеке, если его ещё нет
     const existingStudentId = Object.keys(studentsMap).find(sId => studentsMap[sId].name.toLowerCase() === name.toLowerCase());
     if (!existingStudentId) {
       await addDoc(collection(db, "students"), {
@@ -1162,7 +1239,6 @@
     const studentObj = Object.values(studentsMap).find(s => s.name === student);
     const studentId = studentObj ? Object.keys(studentsMap).find(k => studentsMap[k] === studentObj) : '';
 
-    // Обновление баланса колб у ученика
     if (studentId && flasksChange !== 0) {
       const currentBalance = studentObj.flasksBalance || 0;
       await updateDoc(doc(db, "students", studentId), {
