@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Кабинет Репетитора по Химии</title>
+  <title>Кабинет Репетитора</title>
   <style>
     :root {
       --primary: #4f46e5;
@@ -18,7 +18,6 @@
     body { background-color: var(--bg-main); color: var(--text-dark); padding: 25px 15px; }
     .container { max-width: 1100px; margin: 0 auto; }
     
-    /* ЭКРАН АВТОРИЗАЦИИ (ПРЕМИУМ ДИЗАЙН) */
     #auth-screen {
       display: flex;
       justify-content: center;
@@ -37,112 +36,31 @@
       width: 100%;
       max-width: 420px;
       border: 1px solid rgba(255, 255, 255, 0.8);
-      transition: transform 0.3s ease;
     }
 
-    .login-header {
-      text-align: center;
-      margin-bottom: 28px;
-    }
-
+    .login-header { text-align: center; margin-bottom: 24px; }
     .login-header .icon-badge {
-      width: 60px;
-      height: 60px;
-      background: #e0e7ff;
-      color: var(--primary);
-      font-size: 28px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 16px;
-      margin: 0 auto 15px auto;
-      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);
+      width: 60px; height: 60px; background: #e0e7ff; color: var(--primary);
+      font-size: 28px; display: flex; align-items: center; justify-content: center;
+      border-radius: 16px; margin: 0 auto 15px auto; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);
     }
+    .login-header h2 { color: #1e1b4b; font-size: 22px; font-weight: 800; }
+    .login-header p { color: var(--text-muted); font-size: 13px; margin-top: 4px; }
 
-    .login-header h2 {
-      color: #1e1b4b;
-      font-size: 22px;
-      font-weight: 800;
-      letter-spacing: -0.5px;
-    }
+    .auth-toggle { display: flex; background: #e0e7ff; border-radius: 10px; padding: 4px; margin-bottom: 20px; }
+    .auth-toggle button { flex: 1; padding: 8px; border: none; background: transparent; color: #4338ca; font-weight: 600; font-size: 13px; cursor: pointer; border-radius: 8px; }
+    .auth-toggle button.active { background: white; color: var(--primary); box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
 
-    .login-header p {
-      color: var(--text-muted);
-      font-size: 13px;
-      margin-top: 4px;
-    }
+    .input-wrapper { margin-bottom: 16px; }
+    .input-wrapper label { display: block; font-size: 11px; font-weight: 700; color: #374151; margin-bottom: 4px; text-transform: uppercase; }
+    .input-wrapper input { width: 100%; padding: 10px 14px; border: 1.5px solid #d1d5db; border-radius: 10px; font-size: 14px; background: #f9fafb; outline: none; }
+    .input-wrapper input:focus { background: #ffffff; border-color: var(--primary); box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.15); }
 
-    .input-wrapper {
-      position: relative;
-      margin-bottom: 18px;
-    }
+    .btn-submit { width: 100%; padding: 12px; background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%); color: white; border: none; border-radius: 10px; font-size: 14px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3); }
 
-    .input-wrapper label {
-      display: block;
-      font-size: 12px;
-      font-weight: 700;
-      color: #374151;
-      margin-bottom: 6px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
+    .error-msg { background: #fee2e2; color: #dc2626; font-size: 13px; padding: 10px; border-radius: 8px; margin-top: 15px; display: none; text-align: center; border: 1px solid #fca5a5; }
 
-    .input-wrapper input {
-      width: 100%;
-      padding: 12px 16px;
-      border: 1.5px solid #d1d5db;
-      border-radius: 10px;
-      font-size: 14px;
-      background: #f9fafb;
-      transition: all 0.2s ease;
-    }
-
-    .input-wrapper input:focus {
-      background: #ffffff;
-      border-color: var(--primary);
-      box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.15);
-    }
-
-    .btn-submit {
-      width: 100%;
-      padding: 12px;
-      background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
-      color: white;
-      border: none;
-      border-radius: 10px;
-      font-size: 15px;
-      font-weight: 700;
-      cursor: pointer;
-      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
-      transition: all 0.2s ease;
-      margin-top: 10px;
-    }
-
-    .btn-submit:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 6px 16px rgba(79, 70, 229, 0.4);
-    }
-
-    .btn-submit:active {
-      transform: translateY(0);
-    }
-
-    .error-msg {
-      background: #fee2e2;
-      color: #dc2626;
-      font-size: 13px;
-      font-weight: 600;
-      padding: 10px;
-      border-radius: 8px;
-      margin-top: 15px;
-      display: none;
-      text-align: center;
-      border: 1px solid #fca5a5;
-    }
-
-    /* ОСНОВНОЙ ИНТЕРФЕЙС (СКРЫТ ДО ВХОДА) */
     #app-screen { display: none; }
-
     header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
     header h1 { font-size: 24px; font-weight: 800; color: #1e1b4b; }
     header p { color: var(--text-muted); font-size: 13px; }
@@ -157,14 +75,12 @@
     .form-group label { display: block; font-size: 12px; font-weight: 600; color: var(--text-muted); margin-bottom: 3px; }
     .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; }
     
-    input, select, textarea { width: 100%; padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 14px; outline: none; transition: 0.2s; }
+    input, select, textarea { width: 100%; padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 14px; outline: none; }
     input:focus, select:focus, textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
     
-    button { padding: 8px 14px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; transition: 0.2s; }
+    button { padding: 8px 14px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; }
     button.btn-primary { background: var(--primary); color: white; }
-    button.btn-primary:hover { opacity: 0.9; }
     button.btn-action { background-color: #e0e7ff; color: #1e1b4b; font-size: 12px; padding: 5px 10px; }
-    button.btn-action:hover { background-color: #c7d2fe; }
     button.btn-logout { background-color: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; }
 
     table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; border: 1px solid var(--border-color); margin-bottom: 20px; }
@@ -172,11 +88,10 @@
     th { background-color: #f8fafc; color: var(--text-muted); font-weight: 600; font-size: 12px; text-transform: uppercase; }
 
     .hw-list { display: flex; flex-direction: column; gap: 6px; }
-    .hw-item { display: flex; align-items: center; gap: 8px; padding: 4px 8px; border-radius: 4px; transition: 0.2s; }
+    .hw-item { display: flex; align-items: center; gap: 8px; padding: 4px 8px; border-radius: 4px; }
     .hw-item.not-done { background-color: rgba(255, 0, 0, 0.12); }
-    .hw-item.not-done input[type="text"] { color: #cc0000; font-weight: bold; }
     .hw-item.done { background-color: rgba(0, 128, 0, 0.08); }
-    .status-select { border: 1px solid #000080; background: #ffffff; color: #000080; font-size: 14px; border-radius: 4px; padding: 2px 4px; cursor: pointer; width: auto; font-weight: bold; }
+    .status-select { border: 1px solid #000080; background: #ffffff; color: #000080; font-size: 14px; border-radius: 4px; padding: 2px 4px; cursor: pointer; font-weight: bold; }
 
     .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); justify-content: center; align-items: center; z-index: 1000; }
     .modal.active { display: flex; }
@@ -195,47 +110,52 @@
 
 <div class="container">
 
-  <!-- 1. ЭКРАН ВХОДА -->
+  <!-- ЭКРАН ВХОДА И РЕГИСТРАЦИИ -->
   <div id="auth-screen">
     <div class="login-card">
       <div class="login-header">
         <div class="icon-badge">⚗️</div>
         <h2>Кабинет Репетитора</h2>
-        <p>Авторизуйтесь для доступа к расписанию</p>
+        <p>Система учёта и аналитики занятий</p>
       </div>
-      <form id="loginForm">
+
+      <div class="auth-toggle">
+        <button id="toggleLogin" class="active" onclick="switchAuthMode('login')">Вход</button>
+        <button id="toggleRegister" onclick="switchAuthMode('register')">Регистрация</button>
+      </div>
+
+      <form id="authForm">
         <div class="input-wrapper">
-          <label>Email / Логин</label>
-          <input type="email" id="loginEmail" placeholder="teacher@example.com" required>
+          <label>Email</label>
+          <input type="email" id="authEmail" placeholder="teacher@example.com" required>
         </div>
         <div class="input-wrapper">
           <label>Пароль</label>
-          <input type="password" id="loginPassword" placeholder="••••••••" required>
+          <input type="password" id="authPassword" placeholder="••••••••" required>
         </div>
-        <button type="submit" class="btn-submit">Войти в кабинет 🚀</button>
-        <div class="error-msg" id="loginError">Неверный логин или пароль!</div>
+        <button type="submit" id="authSubmitBtn" class="btn-submit">Войти 🚀</button>
+        <div class="error-msg" id="authError"></div>
       </form>
     </div>
   </div>
 
-  <!-- 2. ОСНОВНОЙ ИНТЕРФЕЙС ПРИЛОЖЕНИЯ -->
+  <!-- ОСНОВНОЙ ИНТЕРФЕЙС -->
   <div id="app-screen">
     <header>
       <div>
-        <h1>⚗️ Кабинет Репетитора по Химии</h1>
-        <p>Управление расписанием и детальная аналитика успеваемости</p>
+        <h1>⚗️ Кабинет Репетитора</h1>
+        <p id="userWelcomeText">Управление расписанием</p>
       </div>
       <button class="btn-logout" id="logoutBtn">Выйти 🚪</button>
     </header>
 
     <div class="grid-2">
-      <!-- БЛОК 1: НАЗНАЧЕНИЕ ЗАНЯТИЯ -->
       <div class="card">
         <h3>📅 1. Запланировать урок</h3>
         <form id="studentForm">
           <div class="form-group">
             <label>Имя ученика</label>
-            <input type="text" id="addStudentName" placeholder="Например: Иван Иванов" required>
+            <input type="text" id="addStudentName" placeholder="Иван Иванов" required>
           </div>
           <div class="form-grid">
             <div class="form-group">
@@ -252,14 +172,13 @@
             </div>
           </div>
           <div class="form-group">
-            <label>Домашнее задание на этот урок (запятые или новая строка)</label>
-            <textarea id="addAssignedHw" rows="2" placeholder="Например: Параграф 5, Задача №12, Уравнение 3"></textarea>
+            <label>Домашнее задание</label>
+            <textarea id="addAssignedHw" rows="2" placeholder="Параграф 5, Задача №12"></textarea>
           </div>
           <button type="submit" class="btn-primary" style="width: 100%; margin-top:5px;">Записать в расписание</button>
         </form>
       </div>
 
-      <!-- БЛОК 2: ГЕНЕРАТОР ОТЧЕТА ЗА ПЕРИОД -->
       <div class="card">
         <h3>📊 2. Отчёт успеваемости за период</h3>
         <form id="periodReportForm">
@@ -280,15 +199,14 @@
             </div>
           </div>
           <div class="form-group">
-            <label>Комментарий преподавателя за период</label>
-            <textarea id="reportTeacherComment" rows="2" placeholder="Заметки о прогрессе ученика..."></textarea>
+            <label>Комментарий преподавателя</label>
+            <textarea id="reportTeacherComment" rows="2" placeholder="Заметки о прогрессе..."></textarea>
           </div>
           <button type="button" class="btn-primary" style="width: 100%; background: #059669;" onclick="generatePeriodReport()">Сформировать отчёт</button>
         </form>
       </div>
     </div>
 
-    <!-- БЛОК 3: БЛИЖАЙШИЕ ЗАНЯТИЯ -->
     <div class="card">
       <h3>📌 Ближайшие запланированные занятия</h3>
       <table>
@@ -305,7 +223,6 @@
       </table>
     </div>
 
-    <!-- БЛОК 4: ИСТОРИЯ УРОКОВ -->
     <div class="card">
       <h3>📜 История проведённых уроков</h3>
       <table>
@@ -314,8 +231,8 @@
             <th>Дата</th>
             <th>Ученик</th>
             <th>Тема</th>
-            <th>Оценки (Опр/Ур)</th>
-            <th>ДЗ (Сдано)</th>
+            <th>Оценки</th>
+            <th>ДЗ</th>
             <th>Отчёты</th>
           </tr>
         </thead>
@@ -323,7 +240,6 @@
       </table>
     </div>
 
-    <!-- МОДАЛЬНОЕ ОКНО ПРОВЕДЕНИЯ УРОКА -->
     <div class="modal" id="completeModal">
       <div class="modal-content">
         <h3 style="color:#000080; margin-bottom:15px;">Проведение урока: <span id="mStudentName"></span></h3>
@@ -335,52 +251,46 @@
 
           <div style="display:flex; flex-direction:column; gap:10px;">
             <div class="form-group">
-              <label>Тема прошедшего урока</label>
-              <input type="text" id="mTopic" placeholder="Тема сегодняшнего занятия" required>
+              <label>Тема урока</label>
+              <input type="text" id="mTopic" placeholder="Тема занятия" required>
             </div>
-
             <div class="form-grid">
               <div class="form-group">
                 <label>Результат опроса</label>
-                <input type="text" id="mPollGrade" placeholder="Отлично / 5 / Без ошибок">
+                <input type="text" id="mPollGrade" placeholder="5 / Без ошибок">
               </div>
               <div class="form-group">
                 <label>Работа на уроке</label>
-                <input type="text" id="mLessonGrade" placeholder="Активно решал(а) задачи">
+                <input type="text" id="mLessonGrade" placeholder="Активно решал(а)">
               </div>
             </div>
-
             <div class="form-group">
-              <label style="font-weight:bold; color:#000080;">Контроль выполнения ДЗ (заполняется автоматически):</label>
+              <label style="font-weight:bold; color:#000080;">Контроль ДЗ:</label>
               <div class="hw-list" id="modalHwList"></div>
             </div>
-
             <div class="form-grid">
               <div class="form-group">
-                <label>Итоговая оценка за урок</label>
+                <label>Итоговая оценка</label>
                 <input type="text" id="mTotalGrade" placeholder="5" style="font-weight:bold; text-align:center;">
               </div>
               <div class="form-group">
-                <label>Статус оплаты</label>
+                <label>Оплата</label>
                 <select id="mPaidStatus">
                   <option value="Оплачено">Оплачено ✅</option>
                   <option value="Не оплачено">Долг ❌</option>
                 </select>
               </div>
             </div>
-
             <div class="form-group" style="background: #eef2f7; padding: 10px; border-radius: 6px; border: 1px dashed #000080;">
-              <label style="color:#000080; font-weight:bold;">📝 Задать ДЗ на СЛЕДУЮЩИЙ урок:</label>
-              <textarea id="mNextHw" rows="2" placeholder="Например: Выучить параграф 6, Номера 5-10"></textarea>
+              <label style="color:#000080; font-weight:bold;">📝 Задать ДЗ на следующий урок:</label>
+              <textarea id="mNextHw" rows="2" placeholder="Выучить параграф..."></textarea>
             </div>
-
             <div class="form-group">
-              <label>Комментарий / Рекомендация родителю</label>
-              <textarea id="mComment" placeholder="Например: Внимание на невыполненные номера! Нужно доработать тему дома."></textarea>
+              <label>Комментарий родителю</label>
+              <textarea id="mComment" placeholder="Рекомендации..."></textarea>
             </div>
-            
             <div style="display:flex; gap:10px; margin-top:10px;">
-              <button type="submit" class="btn-primary" style="flex:1; background:#000080;">Сохранить урок и отчёт</button>
+              <button type="submit" class="btn-primary" style="flex:1; background:#000080;">Сохранить урок</button>
               <button type="button" class="btn-action" style="background:#f3f4f6;" onclick="closeModal()">Отмена</button>
             </div>
           </div>
@@ -388,11 +298,8 @@
       </div>
     </div>
 
-    <!-- КАРТОЧКИ ОТЧЁТОВ -->
     <div class="report-card" id="lessonReportCard">
-      <div class="report-header">
-        <h2>Карточка отчёта родителю</h2>
-      </div>
+      <div class="report-header"><h2>Карточка отчёта родителю</h2></div>
       <div class="report-section">
         <p><strong>Ученик(ца):</strong> <span id="repStudent"></span></p>
         <p><strong>Дата урока:</strong> <span id="repDate"></span></p>
@@ -437,11 +344,10 @@
   </div>
 </div>
 
-<!-- Скрипты Firebase -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-  import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-  import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+  import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+  import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, query, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyAHxz8YoyHn5QK-ekR9Q1aS9KfatAbe3Go",
@@ -457,45 +363,71 @@
   const auth = getAuth(app);
   const db = getFirestore(app);
 
-  const scheduleCol = collection(db, "schedule");
-  const historyCol = collection(db, "history");
-
+  let currentUserId = null;
+  let authMode = 'login';
+  let unsubSchedule = null;
+  let unsubHistory = null;
   let allHistory = [];
   let upcomingMap = {};
 
-  // ПРОВЕРКА АВТОРИЗАЦИИ
+  window.switchAuthMode = (mode) => {
+    authMode = mode;
+    const btnLogin = document.getElementById('toggleLogin');
+    const btnReg = document.getElementById('toggleRegister');
+    const submitBtn = document.getElementById('authSubmitBtn');
+    const errorMsg = document.getElementById('authError');
+    errorMsg.style.display = 'none';
+
+    if (mode === 'login') {
+      btnLogin.classList.add('active');
+      btnReg.classList.remove('active');
+      submitBtn.innerText = 'Войти 🚀';
+    } else {
+      btnReg.classList.add('active');
+      btnLogin.classList.remove('active');
+      submitBtn.innerText = 'Зарегистрироваться ✨';
+    }
+  };
+
   onAuthStateChanged(auth, (user) => {
     if (user) {
+      currentUserId = user.uid;
       document.getElementById('auth-screen').style.display = 'none';
       document.getElementById('app-screen').style.display = 'block';
+      document.getElementById('userWelcomeText').innerText = `Пользователь: ${user.email}`;
       initApp();
     } else {
+      currentUserId = null;
       document.getElementById('auth-screen').style.display = 'flex';
       document.getElementById('app-screen').style.display = 'none';
+      if (unsubSchedule) unsubSchedule();
+      if (unsubHistory) unsubHistory();
     }
   });
 
-  // ВХОД В СИСТЕМУ
-  document.getElementById('loginForm').addEventListener('submit', async (e) => {
+  document.getElementById('authForm').addEventListener('submit', async (e) => {
     e.preventDefault();
-    const email = document.getElementById('loginEmail').value;
-    const password = document.getElementById('loginPassword').value;
-    const errorMsg = document.getElementById('loginError');
+    const email = document.getElementById('authEmail').value;
+    const password = document.getElementById('authPassword').value;
+    const errorMsg = document.getElementById('authError');
+    errorMsg.style.display = 'none';
 
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      errorMsg.style.display = 'none';
+      if (authMode === 'login') {
+        await signInWithEmailAndPassword(auth, email, password);
+      } else {
+        await createUserWithEmailAndPassword(auth, email, password);
+      }
     } catch (err) {
       errorMsg.style.display = 'block';
+      errorMsg.innerText = err.message.includes('email-already-in-use') 
+        ? 'Этот Email уже зарегистрирован!' 
+        : (err.message.includes('weak-password') ? 'Пароль должен быть не менее 6 символов!' : 'Ошибка входа или неверные данные!');
     }
   });
 
-  // ВЫХОД ИЗ СИСТЕМЫ
-  document.getElementById('logoutBtn').addEventListener('click', () => {
-    signOut(auth);
-  });
+  document.getElementById('logoutBtn').addEventListener('click', () => signOut(auth));
 
-  // ОСНОВНАЯ ЛОГИКА ПРИЛОЖЕНИЯ
   function initApp() {
     const modalHwList = document.getElementById('modalHwList');
     modalHwList.innerHTML = '';
@@ -513,7 +445,11 @@
       modalHwList.appendChild(div);
     }
 
-    onSnapshot(scheduleCol, (snapshot) => {
+    // Изолированные запросы (только для текущего userId)
+    const qSchedule = query(collection(db, "schedule"), where("userId", "==", currentUserId));
+    const qHistory = query(collection(db, "history"), where("userId", "==", currentUserId));
+
+    unsubSchedule = onSnapshot(qSchedule, (snapshot) => {
       const tbody = document.getElementById('upcomingTable');
       tbody.innerHTML = '';
       upcomingMap = {};
@@ -540,7 +476,7 @@
       });
     });
 
-    onSnapshot(historyCol, (snapshot) => {
+    unsubHistory = onSnapshot(qHistory, (snapshot) => {
       const tbody = document.getElementById('historyTable');
       tbody.innerHTML = '';
       allHistory = [];
@@ -589,7 +525,8 @@
 
   document.getElementById('studentForm').addEventListener('submit', async (e) => {
     e.preventDefault();
-    await addDoc(scheduleCol, {
+    await addDoc(collection(db, "schedule"), {
+      userId: currentUserId,
       studentName: document.getElementById('addStudentName').value,
       dateTime: document.getElementById('nextLessonDate').value,
       repeatDays: parseInt(document.getElementById('repeatInterval').value),
@@ -628,9 +565,7 @@
     document.getElementById('completeModal').classList.add('active');
   };
 
-  window.closeModal = () => {
-    document.getElementById('completeModal').classList.remove('active');
-  };
+  window.closeModal = () => document.getElementById('completeModal').classList.remove('active');
 
   document.getElementById('completeLessonForm').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -645,12 +580,11 @@
     document.querySelectorAll('#modalHwList .hw-item').forEach(row => {
       const text = row.querySelector('.hw-text-input').value;
       const status = row.querySelector('.status-select').value;
-      if (text.trim() !== '') {
-        hwItems.push({ text, status });
-      }
+      if (text.trim() !== '') hwItems.push({ text, status });
     });
 
-    await addDoc(historyCol, {
+    await addDoc(collection(db, "history"), {
+      userId: currentUserId,
       studentName: student,
       date: new Date(dateStr).toLocaleDateString('ru-RU'),
       rawDate: dateStr,
@@ -668,7 +602,8 @@
     if (repeatDays > 0) {
       const nextDate = new Date(dateStr);
       nextDate.setDate(nextDate.getDate() + repeatDays);
-      await addDoc(scheduleCol, {
+      await addDoc(collection(db, "schedule"), {
+        userId: currentUserId,
         studentName: student,
         dateTime: nextDate.toISOString().slice(0, 16),
         repeatDays: repeatDays,
