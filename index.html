@@ -1056,8 +1056,6 @@
 
   window.openStudentCardModal = (studentId = null) => {
     document.getElementById('cardStudentId').value = studentId || '';
-    currentCardTemplates = [];
-    currentCardTreeNodes = [];
 
     if (studentId && studentsMap[studentId]) {
       const s = studentsMap[studentId];
@@ -1068,12 +1066,14 @@
       document.getElementById('cardFlasksBalance').value = s.flasksBalance || 0;
       document.getElementById('cardGoal').value = s.goal || '';
       document.getElementById('cardNotes').value = s.notes || '';
-      currentCardTemplates = s.hwTemplates || [];
-      currentCardTreeNodes = s.treeNodes || [];
+      currentCardTemplates = s.hwTemplates ? [...s.hwTemplates] : [];
+      currentCardTreeNodes = s.treeNodes ? JSON.parse(JSON.stringify(s.treeNodes)) : [];
     } else {
       document.getElementById('studentCardModalTitle').innerText = 'Добавление ученика';
       document.getElementById('studentCardForm').reset();
       document.getElementById('cardFlasksBalance').value = 0;
+      currentCardTemplates = [];
+      currentCardTreeNodes = [];
     }
     renderCardTemplates();
     renderCardTreeNodes();
@@ -1175,16 +1175,20 @@
       flasksBalance: parseInt(document.getElementById('cardFlasksBalance').value) || 0,
       goal: document.getElementById('cardGoal').value,
       notes: document.getElementById('cardNotes').value,
-      hwTemplates: currentCardTemplates,
-      treeNodes: currentCardTreeNodes
+      hwTemplates: [...currentCardTemplates],
+      treeNodes: JSON.parse(JSON.stringify(currentCardTreeNodes))
     };
 
-    if (id) {
-      await updateDoc(doc(db, "students", id), studentData);
-    } else {
-      await addDoc(collection(db, "students"), studentData);
+    try {
+      if (id) {
+        await updateDoc(doc(db, "students", id), studentData);
+      } else {
+        await addDoc(collection(db, "students"), studentData);
+      }
+      closeStudentCardModal();
+    } catch (err) {
+      alert("Ошибка при сохранении: " + err.message);
     }
-    closeStudentCardModal();
   });
 
   function renderScheduleTable() {
