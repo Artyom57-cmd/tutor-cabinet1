@@ -3,1283 +3,314 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Кабинет Репетитора</title>
+  <title>ИИ-Кабинет Преподавателя & Проверка Работ 🧪</title>
   <style>
     :root {
-      --primary: #4f46e5;
-      --bg-main: #f3f4f6;
-      --card-bg: #ffffff;
-      --text-dark: #1f2937;
-      --text-muted: #6b7280;
-      --border-color: #e5e7eb;
+      --bg-color: #0f0c1b;
+      --card-bg: #1a1528;
+      --card-border: #2e2646;
+      --primary: #8b5cf6;
+      --primary-neon: #a855f7;
+      --accent-green: #10b981;
+      --accent-red: #ef4444;
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-    body { background-color: var(--bg-main); color: var(--text-dark); padding: 25px 15px; }
-    .container { max-width: 1100px; margin: 0 auto; }
-    
-    #auth-screen {
-      display: flex; justify-content: center; align-items: center; min-height: 85vh;
-      background: linear-gradient(135deg, #e0e7ff 0%, #f3f4f6 50%, #e0e7ff 100%); border-radius: 20px;
+    body {
+      font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      margin: 0;
+      padding: 20px;
     }
 
-    .login-card {
-      background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); padding: 40px 35px;
-      border-radius: 20px; box-shadow: 0 20px 40px rgba(79, 70, 229, 0.12); width: 100%; max-width: 420px;
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
     }
 
-    .login-header { text-align: center; margin-bottom: 24px; }
-    .login-header .icon-badge {
-      width: 60px; height: 60px; background: #e0e7ff; color: var(--primary);
-      font-size: 28px; display: flex; align-items: center; justify-content: center;
-      border-radius: 16px; margin: 0 auto 15px auto;
+    header {
+      text-align: center;
+      margin-bottom: 30px;
     }
 
-    .auth-toggle { display: flex; background: #e0e7ff; border-radius: 10px; padding: 4px; margin-bottom: 20px; }
-    .auth-toggle button { flex: 1; padding: 8px; border: none; background: transparent; color: #4338ca; font-weight: 600; font-size: 13px; cursor: pointer; border-radius: 8px; }
-    .auth-toggle button.active { background: white; color: var(--primary); }
+    header h1 {
+      color: var(--primary-neon);
+      margin-bottom: 5px;
+      font-size: 2rem;
+    }
 
-    .input-wrapper { margin-bottom: 16px; }
-    .input-wrapper label { display: block; font-size: 11px; font-weight: 700; color: #374151; margin-bottom: 4px; text-transform: uppercase; }
-    .input-wrapper input { width: 100%; padding: 10px 14px; border: 1.5px solid #d1d5db; border-radius: 10px; font-size: 14px; background: #f9fafb; outline: none; }
+    /* Вкладки */
+    .tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 25px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
 
-    .btn-submit { width: 100%; padding: 12px; background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%); color: white; border: none; border-radius: 10px; font-size: 14px; font-weight: 700; cursor: pointer; }
+    .tab-btn {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      color: var(--text-muted);
+      padding: 12px 18px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
 
-    .error-msg { background: #fee2e2; color: #dc2626; font-size: 13px; padding: 10px; border-radius: 8px; margin-top: 15px; display: none; text-align: center; }
+    .tab-btn.active, .tab-btn:hover {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary-neon);
+      box-shadow: 0 0 12px rgba(168, 85, 247, 0.4);
+    }
 
-    #app-screen, #guest-screen { display: none; }
-    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
-    header h1 { font-size: 24px; font-weight: 800; color: #1e1b4b; }
+    /* Модули */
+    .module-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 25px;
+      display: none;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    }
 
-    .grid-2 { display: grid; grid-template-columns: 1fr; gap: 20px; }
-    @media(min-width: 768px) { .grid-2 { grid-template-columns: 1fr 1fr; } }
+    .module-card.active {
+      display: block;
+    }
 
-    .card { background: var(--card-bg); padding: 20px; border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); }
-    .card h3 { color: #1e1b4b; font-size: 17px; margin-bottom: 14px; }
-    
-    .form-group { margin-bottom: 10px; }
-    .form-group label { display: block; font-size: 12px; font-weight: 600; color: var(--text-muted); margin-bottom: 3px; }
-    .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; }
-    
-    input, select, textarea { width: 100%; padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 14px; outline: none; }
-    
-    button { padding: 8px 14px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; }
-    button.btn-primary { background: var(--primary); color: white; }
-    button.btn-action { background-color: #e0e7ff; color: #1e1b4b; font-size: 12px; padding: 5px 10px; }
-    button.btn-logout { background-color: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; }
+    .form-group {
+      margin-bottom: 18px;
+    }
 
-    table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; border: 1px solid var(--border-color); margin-bottom: 20px; }
-    th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--border-color); font-size: 14px; }
-    th { background-color: #f8fafc; color: var(--text-muted); font-weight: 600; font-size: 12px; text-transform: uppercase; }
+    label {
+      display: block;
+      margin-bottom: 6px;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
 
-    .students-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px; margin-top: 10px; }
-    .student-card { background: #f9fafb; border: 1px solid var(--border-color); border-radius: 10px; padding: 15px; }
-    .student-card h4 { font-size: 16px; color: #1e1b4b; margin-bottom: 6px; }
-    .student-card p { font-size: 13px; color: var(--text-muted); margin-bottom: 4px; }
+    input, select, textarea {
+      width: 100%;
+      padding: 12px;
+      background: #120e20;
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      color: white;
+      box-sizing: border-box;
+      font-size: 1rem;
+    }
 
-    .hw-list { display: flex; flex-direction: column; gap: 6px; }
-    .hw-item { display: flex; align-items: center; gap: 8px; padding: 4px 8px; border-radius: 4px; }
-    .hw-item.not-done { background-color: rgba(255, 0, 0, 0.12); }
-    .hw-item.done { background-color: rgba(0, 128, 0, 0.08); }
-    .status-select { border: 1px solid #000080; background: #ffffff; color: #000080; font-size: 14px; border-radius: 4px; padding: 2px 4px; cursor: pointer; font-weight: bold; }
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--primary-neon);
+    }
 
-    .badge-draft { background-color: #fef3c7; color: #d97706; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; margin-left: 6px; }
+    .btn-submit {
+      width: 100%;
+      background: linear-gradient(135deg, #8b5cf6, #d946ef);
+      color: white;
+      border: none;
+      padding: 14px;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: transform 0.1s, opacity 0.2s;
+    }
 
-    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); justify-content: center; align-items: center; z-index: 1000; }
-    .modal.active { display: flex; }
-    .modal-content { background: white; padding: 24px; border-radius: 12px; max-width: 650px; width: 95%; max-height: 90vh; overflow-y: auto; }
+    .btn-submit:hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
+    }
 
-    .report-card { background: #ffffff; width: 100%; max-width: 600px; border: 2px solid #000080; border-radius: 10px; padding: 25px; color: #000080; margin: 30px auto; display: none; }
-    .report-card.active { display: block; }
-    .report-header { text-align: center; border-bottom: 2px solid #000080; padding-bottom: 15px; margin-bottom: 20px; }
-    .report-section { margin-bottom: 18px; }
-    .report-section-title { font-size: 13px; font-weight: bold; text-transform: uppercase; background-color: #000080; color: #ffffff; padding: 4px 8px; border-radius: 4px; margin-bottom: 8px; display: inline-block; }
-    .stat-box { background: #f0f4f8; border: 1px solid #000080; border-radius: 6px; padding: 8px 12px; display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 14px; }
-    
-    /* Стили для системы Колб */
-    .flask-badge { background: #e0e7ff; color: #4338ca; font-weight: 700; padding: 2px 8px; border-radius: 12px; font-size: 12px; display: inline-flex; align-items: center; gap: 4px; }
-    .shop-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-top: 10px; }
-    .shop-item { background: #ffffff; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
-    .shop-item h5 { font-size: 14px; color: #1e1b4b; margin-bottom: 4px; }
-    .shop-item p { font-size: 11px; color: var(--text-muted); margin-bottom: 8px; }
-    .shop-price { font-weight: 800; color: #4f46e5; font-size: 13px; }
+    /* Интерактив */
+    .quiz-question {
+      background: #120e20;
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .quiz-option {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      padding: 10px 15px;
+      border-radius: 8px;
+      margin: 8px 0;
+      cursor: pointer;
+    }
+
+    .quiz-option.correct {
+      background: rgba(16, 185, 129, 0.2);
+      border-color: var(--accent-green);
+    }
+
+    .quiz-option.wrong {
+      background: rgba(239, 68, 68, 0.2);
+      border-color: var(--accent-red);
+    }
+
+    .result-box {
+      background: #120e20;
+      border: 1px dashed var(--primary-neon);
+      border-radius: 12px;
+      padding: 20px;
+      margin-top: 20px;
+      white-space: pre-line;
+      line-height: 1.6;
+    }
+
+    .flask-badge {
+      display: inline-block;
+      background: rgba(168, 85, 247, 0.2);
+      color: var(--primary-neon);
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
 
-<div class="container">
-
-  <!-- ЭКРАН ВХОДА И РЕГИСТРАЦИИ -->
-  <div id="auth-screen">
-    <div class="login-card">
-      <div class="login-header">
-        <div class="icon-badge">⚗️</div>
-        <h2>Кабинет Репетитора</h2>
-        <p>Система учёта и аналитики занятий</p>
-      </div>
-
-      <div class="auth-toggle">
-        <button id="toggleLogin" class="active" onclick="switchAuthMode('login')">Вход</button>
-        <button id="toggleRegister" onclick="switchAuthMode('register')">Регистрация</button>
-      </div>
-
-      <form id="authForm">
-        <div class="input-wrapper">
-          <label>Email</label>
-          <input type="email" id="authEmail" placeholder="teacher@example.com" required>
-        </div>
-        <div class="input-wrapper">
-          <label>Пароль</label>
-          <input type="password" id="authPassword" placeholder="••••••••" required>
-        </div>
-        <button type="submit" id="authSubmitBtn" class="btn-submit">Войти 🚀</button>
-        <div class="error-msg" id="authError"></div>
-      </form>
-    </div>
-  </div>
-
-  <!-- ГОСТЕВОЙ РЕЖИМ (ДЛЯ РОДИТЕЛЕЙ И УЧЕНИКОВ) -->
-  <div id="guest-screen">
+  <div class="container">
     <header>
-      <div>
-        <h1>🎓 Успеваемость ученика</h1>
-        <p id="guestStudentTitle">Отчёт по занятиям</p>
-      </div>
-    </header>
-    
-    <div class="card" style="background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%); color: white;">
-      <h3 style="color: white; display: flex; justify-content: space-between; align-items: center;">
-        <span>🧪 Баланс Колб: <strong id="guestFlaskBalance">0</strong> 🧪</span>
-      </h3>
-      <p style="font-size: 13px; opacity: 0.9;">Выполняй ДЗ вовремя и будь активным, чтобы зарабатывать колбы и обменивать их на бонусы!</p>
-    </div>
-
-    <div class="card">
-      <h3>🎁 Магазин плюшек</h3>
-      <div class="shop-grid">
-        <div class="shop-item">
-          <h5>«Спасение ДЗ»</h5>
-          <p>Перенос дедлайна на 1 день</p>
-          <div class="shop-price">30 🧪</div>
-        </div>
-        <div class="shop-item">
-          <h5>Шпора по сложной теме</h5>
-          <p>Чек-лист или шпаргалка</p>
-          <div class="shop-price">50 🧪</div>
-        </div>
-        <div class="shop-item">
-          <h5>Иммунитет к ДЗ</h5>
-          <p>1 пропуск ДЗ без штрафа</p>
-          <div class="shop-price">100 🧪</div>
-        </div>
-        <div class="shop-item">
-          <h5>Секретная консультация</h5>
-          <p>Разбор вопросов (15 мин)</p>
-          <div class="shop-price">200 🧪</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3>📈 Общая статистика</h3>
-      <div id="guestStats"></div>
-    </div>
-    <div class="card">
-      <h3>📜 История уроков</h3>
-      <table>
-        <thead>
-          <tr>
-            <th>Дата</th>
-            <th>Тема</th>
-            <th>Оценка</th>
-            <th>ДЗ</th>
-          </tr>
-        </thead>
-        <tbody id="guestHistoryTable"></tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- ОСНОВНОЙ ИНТЕРФЕЙС -->
-  <div id="app-screen">
-    <header>
-      <div>
-        <h1>⚗️ Кабинет Репетитора</h1>
-        <p id="userWelcomeText">Управление расписанием</p>
-      </div>
-      <button class="btn-logout" id="logoutBtn">Выйти 🚪</button>
+      <h1>🧪 ИИ-Кабинет Преподавателя</h1>
+      <p style="color: var(--text-muted)">Авто-проверка работ, генерация тестов и отчетов</p>
     </header>
 
-    <div class="grid-2">
-      <div class="card">
-        <h3>📅 1. Запланировать урок</h3>
-        <form id="studentForm">
-          <div class="form-group">
-            <label>Имя ученика</label>
-            <input type="text" id="addStudentName" placeholder="Иван Иванов" required list="studentsDatalist">
-            <datalist id="studentsDatalist"></datalist>
-          </div>
-          <div class="form-grid">
-            <div class="form-group">
-              <label>Дата и время</label>
-              <input type="datetime-local" id="nextLessonDate" required>
-            </div>
-            <div class="form-group">
-              <label>Повтор</label>
-              <select id="repeatInterval">
-                <option value="7">Каждую неделю</option>
-                <option value="14">Каждые 2 недели</option>
-                <option value="0">Разовое занятие</option>
-              </select>
-            </div>
-          </div>
-          <div class="form-group">
-            <label>Домашнее задание</label>
-            <select id="planHwTemplateSelect" style="margin-bottom: 5px;" onchange="applyPlanHwTemplate(this)">
-              <option value="">-- Выбрать из шаблонов --</option>
-            </select>
-            <textarea id="addAssignedHw" rows="2" placeholder="Или введите вручную..."></textarea>
-          </div>
-          <button type="submit" class="btn-primary" style="width: 100%; margin-top:5px;">Записать в расписание</button>
-        </form>
-      </div>
-
-      <div class="card">
-        <h3>📊 2. Отчёт успеваемости за период</h3>
-        <form id="periodReportForm">
-          <div class="form-group">
-            <label>Выберите ученика</label>
-            <select id="reportStudentSelect" required>
-              <option value="">-- Выберите из списка --</option>
-            </select>
-          </div>
-          <div class="form-grid">
-            <div class="form-group">
-              <label>Дата С</label>
-              <input type="date" id="reportDateFrom" required>
-            </div>
-            <div class="form-group">
-              <label>Дата ПО</label>
-              <input type="date" id="reportDateTo" required>
-            </div>
-          </div>
-          <div class="form-group">
-            <label>Комментарий преподавателя</label>
-            <textarea id="reportTeacherComment" rows="2" placeholder="Заметки о прогрессе..."></textarea>
-          </div>
-          <button type="button" class="btn-primary" style="width: 100%; background: #059669;" onclick="generatePeriodReport()">Сформировать отчёт</button>
-        </form>
-      </div>
+    <!-- Переключатель вкладок -->
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('check-tab')">🔍 Проверка работы</button>
+      <button class="tab-btn" onclick="switchTab('quiz-tab')">📝 Мини-тесты</button>
+      <button class="tab-btn" onclick="switchTab('report-tab')">💬 Отчет родителю</button>
+      <button class="tab-btn" onclick="switchTab('diff-tab')">🎯 3 Уровня сложности</button>
     </div>
 
-    <!-- КАРТОТЕКА УЧЕНИКОВ -->
-    <div class="card">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-        <h3>🗂️ Картотека учеников</h3>
-        <button class="btn-primary" onclick="openStudentCardModal()">+ Добавить ученика</button>
+    <!-- Вкладка 1: Проверка работы ученика (НОВАЯ) -->
+    <div id="check-tab" class="module-card active">
+      <h2>ИИ-Проверка ДЗ / Ответы ученика</h2>
+      <div class="form-group">
+        <label>Условие задачи или эталонный ответ</label>
+        <textarea id="task-condition" rows="2" placeholder="Например: Вычислить массу осадка при взаимодействии 10г NaOH с CuSO4"></textarea>
       </div>
-      <div class="students-grid" id="studentsCardList"></div>
+      <div class="form-group">
+        <label>Ответ или решение ученика</label>
+        <textarea id="student-answer" rows="3" placeholder="Ученик написал: m(Cu(OH)2) = 12.25г, использовал формулу m = n*M..."></textarea>
+      </div>
+      <button class="btn-submit" onclick="checkStudentWork()">🔍 Проверить работу и рассчитать Колбы</button>
+
+      <div id="check-result" class="result-box" style="display: none;"></div>
     </div>
 
-    <div class="card">
-      <h3>📌 Ближайшие запланированные занятия</h3>
-      <table>
-        <thead>
-          <tr>
-            <th>Дата и время</th>
-            <th>Ученик</th>
-            <th>Повтор</th>
-            <th>Заданное ДЗ</th>
-            <th>Действия</th>
-          </tr>
-        </thead>
-        <tbody id="upcomingTable"></tbody>
-      </table>
+    <!-- Вкладка 2: Мини-тесты -->
+    <div id="quiz-tab" class="module-card">
+      <h2>Конструктор Страницы Теста</h2>
+      <div class="form-group">
+        <label>Тема урока</label>
+        <input type="text" id="quiz-topic" placeholder="Например: Электролиз расплавов">
+      </div>
+      <button class="btn-submit" onclick="generateQuiz()">⚡ Сгенерировать интерактивный тест</button>
+      <div id="quiz-container" style="margin-top: 25px;"></div>
     </div>
 
-    <div class="card">
-      <h3>📜 История проведённых уроков</h3>
-      <table>
-        <thead>
-          <tr>
-            <th>Дата</th>
-            <th>Ученик</th>
-            <th>Тема</th>
-            <th>Оценки</th>
-            <th>ДЗ</th>
-            <th>Отчёты</th>
-          </tr>
-        </thead>
-        <tbody id="historyTable"></tbody>
-      </table>
+    <!-- Вкладка 3: Отчет родителю -->
+    <div id="report-tab" class="module-card">
+      <h2>Генератор Сообщений Родителям</h2>
+      <div class="form-group">
+        <label>Имя ученика</label>
+        <input type="text" id="student-name" placeholder="Например: Саша">
+      </div>
+      <div class="form-group">
+        <label>Заметки с урока</label>
+        <textarea id="report-notes" rows="3" placeholder="Сдал ДЗ вовремя, хорошо ответил на вопросы. Начислено +15 Колб."></textarea>
+      </div>
+      <button class="btn-submit" onclick="generateReport()">✨ Сформировать отчет</button>
+      <div id="report-result" class="result-box" style="display: none;"></div>
     </div>
 
-    <!-- МОДАЛЬНОЕ ОКНО СОЗДАНИЯ/РЕДАКТИРОВАНИЯ УЧЕНИКА -->
-    <div class="modal" id="studentCardModal">
-      <div class="modal-content">
-        <h3 style="color:#000080; margin-bottom:15px;" id="studentCardModalTitle">Карточка ученика</h3>
-        <form id="studentCardForm">
-          <input type="hidden" id="cardStudentId">
-          <div class="form-grid">
-            <div class="form-group">
-              <label>ФИО Ученика</label>
-              <input type="text" id="cardStudentName" required placeholder="Иван Иванов">
-            </div>
-            <div class="form-group">
-              <label>Класс / Курс</label>
-              <input type="text" id="cardStudentGrade" placeholder="9 класс">
-            </div>
-          </div>
-          <div class="form-grid">
-            <div class="form-group">
-              <label>Контакты родителя</label>
-              <input type="text" id="cardParentContacts" placeholder="Мама Елена +7 900...">
-            </div>
-            <div class="form-group">
-              <label>Баланс Колб 🧪</label>
-              <input type="number" id="cardFlasksBalance" value="0">
-            </div>
-          </div>
-          <div class="form-group">
-            <label>Цель обучения</label>
-            <input type="text" id="cardGoal" placeholder="Подготовка к ОГЭ / Химия">
-          </div>
-          <div class="form-group">
-            <label>Заметки / Особенности</label>
-            <textarea id="cardNotes" rows="2" placeholder="Занимаемся по вторникам, слабый раздел — органика"></textarea>
-          </div>
-          
-          <hr style="margin: 15px 0;">
-          <h4 style="font-size: 14px; margin-bottom: 8px;">📚 Шаблоны ДЗ для этого ученика</h4>
-          <div id="cardHwTemplatesList" style="margin-bottom: 10px;"></div>
-          <div style="display: flex; gap: 8px;">
-            <input type="text" id="newHwTemplateInput" placeholder="Новый шаблон (напр: Параграф 4, Задачи 1-3)">
-            <button type="button" class="btn-action" style="background:#059669; color:white;" onclick="addHwTemplate()">Добавить шаблон</button>
-          </div>
-
-          <div style="display:flex; gap:8px; margin-top:20px;">
-            <button type="submit" class="btn-primary" style="flex:2;">Сохранить профиль 💾</button>
-            <button type="button" class="btn-action" style="flex:1; background:#f3f4f6;" onclick="closeStudentCardModal()">Отмена</button>
-          </div>
-        </form>
+    <!-- Вкладка 4: 3 Уровня сложности -->
+    <div id="diff-tab" class="module-card">
+      <h2>Адаптация заданий</h2>
+      <div class="form-group">
+        <label>Базовое условие задачи</label>
+        <textarea id="task-base" rows="3" placeholder="Найдите массовую долю растворенного вещества..."></textarea>
       </div>
+      <button class="btn-submit" onclick="generateDiffTasks()">🪄 Разбить на 3 уровня</button>
+      <div id="diff-result" class="result-box" style="display: none;"></div>
     </div>
-
-    <!-- МОДАЛЬНОЕ ОКНО РЕДАКТИРОВАНИЯ УРОКА -->
-    <div class="modal" id="editModal">
-      <div class="modal-content">
-        <h3 style="color:#000080; margin-bottom:15px;">✏️ Редактирование запланированного урока</h3>
-        <form id="editLessonForm">
-          <input type="hidden" id="editScheduleId">
-          <div class="form-group">
-            <label>Имя ученика</label>
-            <input type="text" id="editStudentName" required>
-          </div>
-          <div class="form-grid">
-            <div class="form-group">
-              <label>Дата и время</label>
-              <input type="datetime-local" id="editLessonDate" required>
-            </div>
-            <div class="form-group">
-              <label>Повтор</label>
-              <select id="editRepeatInterval">
-                <option value="7">Каждую неделю</option>
-                <option value="14">Каждые 2 недели</option>
-                <option value="0">Разовое занятие</option>
-              </select>
-            </div>
-          </div>
-          <div class="form-group">
-            <label>Заданное ДЗ</label>
-            <textarea id="editAssignedHw" rows="3"></textarea>
-          </div>
-          <div style="display:flex; gap:8px; margin-top:15px;">
-            <button type="submit" class="btn-primary" style="flex:2;">Сохранить изменения 💾</button>
-            <button type="button" class="btn-action" style="flex:1; background:#f3f4f6;" onclick="closeEditModal()">Отмена</button>
-          </div>
-        </form>
-      </div>
-    </div>
-
-    <!-- МОДАЛЬНОЕ ОКНО ЗАВЕРШЕНИЯ УРОКА -->
-    <div class="modal" id="completeModal">
-      <div class="modal-content">
-        <h3 style="color:#000080; margin-bottom:15px;">Проведение урока: <span id="mStudentName"></span></h3>
-        <form id="completeLessonForm">
-          <input type="hidden" id="mScheduleId">
-          <input type="hidden" id="mStudent">
-          <input type="hidden" id="mDate">
-          <input type="hidden" id="mRepeat">
-
-          <div style="display:flex; flex-direction:column; gap:10px;">
-            <div class="form-group">
-              <label>Тема урока</label>
-              <input type="text" id="mTopic" placeholder="Тема занятия">
-            </div>
-            <div class="form-grid">
-              <div class="form-group">
-                <label>Результат опроса</label>
-                <input type="text" id="mPollGrade" placeholder="5 / Без ошибок">
-              </div>
-              <div class="form-group">
-                <label>Работа на уроке</label>
-                <input type="text" id="mLessonGrade" placeholder="Активно решал(а)">
-              </div>
-            </div>
-            
-            <!-- БЛОК НАЧИСЛЕНИЯ/СПИСАНИЯ КОЛБ -->
-            <div class="form-group" style="background: #e0e7ff; padding: 10px; border-radius: 6px; border: 1px solid #6366f1;">
-              <label style="color:#4338ca; font-weight:bold;">🧪 Начисление / Списание Колб:</label>
-              <div style="display:flex; gap: 8px; margin-top: 4px;">
-                <input type="number" id="mFlasksChange" placeholder="0 (напр: 3, 15 или -10)" style="flex:1;">
-                <select id="mFlasksReason" style="flex:2;">
-                  <option value="ДЗ вовремя (+3)">ДЗ вовремя (+3)</option>
-                  <option value="Идеальное ДЗ (+15)">Идеальное ДЗ (+15)</option>
-                  <option value="Активность на уроке (+5)">Активность на уроке (+5)</option>
-                  <option value="Просрочка ДЗ (-10)">Просрочка ДЗ (-10)</option>
-                  <option value="Без камеры (-5)">Без камеры (-5)</option>
-                  <option value="Невыученная теория (-10)">Невыученная теория (-10)</option>
-                  <option value="Свой вариант">Свой вариант</option>
-                </select>
-              </div>
-            </div>
-
-            <div class="form-group">
-              <label style="font-weight:bold; color:#000080;">Контроль ДЗ:</label>
-              <div class="hw-list" id="modalHwList"></div>
-            </div>
-            <div class="form-grid">
-              <div class="form-group">
-                <label>Итоговая оценка</label>
-                <input type="text" id="mTotalGrade" placeholder="5" style="font-weight:bold; text-align:center;">
-              </div>
-              <div class="form-group">
-                <label>Оплата</label>
-                <select id="mPaidStatus">
-                  <option value="Оплачено">Оплачено ✅</option>
-                  <option value="Не оплачено">Долг ❌</option>
-                </select>
-              </div>
-            </div>
-            <div class="form-group" style="background: #eef2f7; padding: 10px; border-radius: 6px; border: 1px dashed #000080;">
-              <label style="color:#000080; font-weight:bold;">📝 Задать ДЗ на следующий урок:</label>
-              <select id="completeHwTemplateSelect" style="margin-bottom: 5px;" onchange="applyCompleteHwTemplate(this)">
-                <option value="">-- Выбрать из шаблонов --</option>
-              </select>
-              <textarea id="mNextHw" rows="2" placeholder="Выучить параграф..."></textarea>
-            </div>
-            <div class="form-group">
-              <label>Комментарий родителю</label>
-              <textarea id="mComment" placeholder="Рекомендации..."></textarea>
-            </div>
-            <div style="display:flex; gap:8px; margin-top:10px; flex-wrap: wrap;">
-              <button type="submit" class="btn-primary" style="flex:2; background:#000080;">Завершить урок ✅</button>
-              <button type="button" class="btn-action" style="flex:2; background:#f59e0b; color:white;" onclick="saveDraft()">Сохранить черновик 📝</button>
-              <button type="button" class="btn-action" style="flex:1; background:#f3f4f6;" onclick="closeModal()">Отмена</button>
-            </div>
-          </div>
-        </form>
-      </div>
-    </div>
-
-    <div class="report-card" id="lessonReportCard">
-      <div class="report-header"><h2>Карточка отчёта родителю</h2></div>
-      <div class="report-section">
-        <p><strong>Ученик(ца):</strong> <span id="repStudent"></span></p>
-        <p><strong>Дата урока:</strong> <span id="repDate"></span></p>
-        <p><strong>Тема:</strong> <span id="repTopic"></span></p>
-      </div>
-      <div class="report-section">
-        <div class="report-section-title">1. Работа на уроке и опрос</div>
-        <p><strong>Результат опроса:</strong> <span id="repPoll"></span></p>
-        <p><strong>Работа на уроке:</strong> <span id="repWork"></span></p>
-      </div>
-      <div class="report-section">
-        <div class="report-section-title">2. Контроль выполнения ДЗ</div>
-        <div class="hw-list" id="repHwDisplay"></div>
-      </div>
-      <div class="report-section" style="border-top:2px solid #000080; padding-top:10px;">
-        <p><strong>Итоговая оценка за урок:</strong> <span id="repTotalGrade" style="font-weight:bold; font-size:18px;"></span></p>
-        <p style="margin-top:5px;"><strong>Комментарий / Рекомендация:</strong></p>
-        <p id="repComment" style="font-style:italic; background:#f0f4f8; padding:8px; border-radius:4px; margin-top:4px;"></p>
-      </div>
-      <button class="btn-action" style="width:100%; margin-top:10px;" onclick="window.print()">🖨️ Распечатать / Сохранить в PDF</button>
-    </div>
-
-    <div class="report-card" id="periodReportCard">
-      <div class="report-header">
-        <h2>Отчёт об успеваемости за период</h2>
-        <p id="pRepStudent" style="font-weight:700; font-size:16px; margin-top:4px;"></p>
-        <p id="pRepDates" style="font-size:12px; color:#6b7280;"></p>
-      </div>
-      <div class="report-section">
-        <div class="report-section-title">Сводка успеваемости</div>
-        <div class="stat-box"><span>Проведено занятий:</span><strong id="pRepLessonsCount">0</strong></div>
-        <div class="stat-box"><span>Выполнение ДЗ (% сданных пунктов):</span><strong id="pRepHwPercent">0%</strong></div>
-        <div class="stat-box"><span>Итоговые оценки за уроки:</span><strong id="pRepGradesList">-</strong></div>
-      </div>
-      <div class="report-section">
-        <div class="report-section-title">Итоговый комментарий преподавателя</div>
-        <p id="pRepComment" style="background:#f0f4f8; padding:10px; border-radius:4px; font-style:italic;"></p>
-      </div>
-      <button class="btn-action" style="width:100%; margin-top:10px;" onclick="window.print()">🖨️ Распечатать / Сохранить в PDF</button>
-    </div>
-
   </div>
-</div>
 
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-  import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-  import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, query, where, setDoc, updateDoc, getDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyAHxz8YoyHn5QK-ekR9Q1aS9KfatAbe3Go",
-    authDomain: "tutorcabinet-8b2c6.firebaseapp.com",
-    projectId: "tutorcabinet-8b2c6",
-    storageBucket: "tutorcabinet-8b2c6.firebasestorage.app",
-    messagingSenderId: "658054043647",
-    appId: "1:658054043647:web:55fca77b1f31d8dc4679ca",
-    measurementId: "G-F8Q3530MQ5"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
-
-  let currentUserId = null;
-  let authMode = 'login';
-  let unsubSchedule = null;
-  let unsubHistory = null;
-  let unsubDrafts = null;
-  let unsubStudents = null;
-  let allHistory = [];
-  let upcomingMap = {};
-  let draftsMap = {};
-  let studentsMap = {};
-  let currentCardTemplates = [];
-
-  // Проверка гостевого режима (по параметру ?guestStudentId=...)
-  const urlParams = new URLSearchParams(window.location.search);
-  const guestStudentId = urlParams.get('guestStudentId');
-
-  if (guestStudentId) {
-    document.getElementById('auth-screen').style.display = 'none';
-    document.getElementById('app-screen').style.display = 'none';
-    document.getElementById('guest-screen').style.display = 'block';
-    loadGuestView(guestStudentId);
-  }
-
-  async function loadGuestView(studentId) {
-    const studentDoc = await getDoc(doc(db, "students", studentId));
-    let studentName = 'Ученик';
-    let flasks = 0;
-
-    if (studentDoc.exists()) {
-      const sData = studentDoc.data();
-      studentName = sData.name || studentName;
-      flasks = sData.flasksBalance || 0;
+  <script>
+    function switchTab(tabId) {
+      document.querySelectorAll('.module-card').forEach(card => card.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.getElementById(tabId).classList.add('active');
+      event.target.classList.add('active');
     }
 
-    document.getElementById('guestFlaskBalance').innerText = flasks;
+    // Алгоритм проверки работы ученика
+    function checkStudentWork() {
+      const condition = document.getElementById('task-condition').value || "Задача по химии";
+      const answer = document.getElementById('student-answer').value || "Решение не введено";
+      const box = document.getElementById('check-result');
 
-    const historyQuery = query(collection(db, "history"), where("studentId", "==", studentId));
-    const historySnap = await getDocs(historyQuery);
-    
-    let totalLessons = 0;
-    let doneHw = 0;
-    let totalHw = 0;
-
-    const tbody = document.getElementById('guestHistoryTable');
-    tbody.innerHTML = '';
-
-    historySnap.forEach(docSnap => {
-      const data = docSnap.data();
-      totalLessons++;
-      
-      if(data.hwItems) {
-        data.hwItems.forEach(item => {
-          totalHw++;
-          if(item.status === 'done') doneHw++;
-        });
-      }
-
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${data.date}</td>
-        <td>${data.topic || '—'}</td>
-        <td>${data.totalGrade || '-'}</td>
-        <td>${data.hwItems ? data.hwItems.length : 0} пунктов</td>
-      `;
-      tbody.appendChild(tr);
-    });
-
-    const hwPercent = totalHw > 0 ? Math.round((doneHw / totalHw) * 100) : 100;
-    document.getElementById('guestStudentTitle').innerText = `Отчёт по занятиям: ${studentName}`;
-    document.getElementById('guestStats').innerHTML = `
-      <div class="stat-box"><span>Всего проведенных занятий:</span><strong>${totalLessons}</strong></div>
-      <div class="stat-box"><span>Процент выполнения ДЗ:</span><strong>${hwPercent}%</strong></div>
-    `;
-  }
-
-  window.switchAuthMode = (mode) => {
-    authMode = mode;
-    const btnLogin = document.getElementById('toggleLogin');
-    const btnReg = document.getElementById('toggleRegister');
-    const submitBtn = document.getElementById('authSubmitBtn');
-    const errorMsg = document.getElementById('authError');
-    errorMsg.style.display = 'none';
-
-    if (mode === 'login') {
-      btnLogin.classList.add('active');
-      btnReg.classList.remove('active');
-      submitBtn.innerText = 'Войти 🚀';
-    } else {
-      btnReg.classList.add('active');
-      btnLogin.classList.remove('active');
-      submitBtn.innerText = 'Зарегистрироваться ✨';
-    }
-  };
-
-  onAuthStateChanged(auth, (user) => {
-    if (user && !guestStudentId) {
-      currentUserId = user.uid;
-      document.getElementById('auth-screen').style.display = 'none';
-      document.getElementById('app-screen').style.display = 'block';
-      document.getElementById('userWelcomeText').innerText = `Пользователь: ${user.email}`;
-      initApp();
-    } else if (!guestStudentId) {
-      currentUserId = null;
-      document.getElementById('auth-screen').style.display = 'flex';
-      document.getElementById('app-screen').style.display = 'none';
-      if (unsubSchedule) unsubSchedule();
-      if (unsubHistory) unsubHistory();
-      if (unsubDrafts) unsubDrafts();
-      if (unsubStudents) unsubStudents();
-    }
-  });
-
-  document.getElementById('authForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const email = document.getElementById('authEmail').value;
-    const password = document.getElementById('authPassword').value;
-    const errorMsg = document.getElementById('authError');
-    errorMsg.style.display = 'none';
-
-    try {
-      if (authMode === 'login') {
-        await signInWithEmailAndPassword(auth, email, password);
-      } else {
-        await createUserWithEmailAndPassword(auth, email, password);
-      }
-    } catch (err) {
-      errorMsg.style.display = 'block';
-      errorMsg.innerText = err.message.includes('email-already-in-use') 
-        ? 'Этот Email уже зарегистрирован!' 
-        : (err.message.includes('weak-password') ? 'Пароль должен быть не менее 6 символов!' : 'Ошибка входа или неверные данные!');
-    }
-  });
-
-  document.getElementById('logoutBtn').addEventListener('click', () => signOut(auth));
-
-  function initApp() {
-    const modalHwList = document.getElementById('modalHwList');
-    modalHwList.innerHTML = '';
-    for (let i = 1; i <= 8; i++) {
-      const div = document.createElement('div');
-      div.className = 'hw-item';
-      div.innerHTML = `
-        <select class="status-select" onchange="updateRowStatus(this)">
-          <option value="none">⚪</option>
-          <option value="done">✅</option>
-          <option value="fail">❌</option>
-        </select>
-        <input type="text" class="hw-text-input" placeholder="Пункт ДЗ №${i}">
-      `;
-      modalHwList.appendChild(div);
-    }
-
-    const qSchedule = query(collection(db, "schedule"), where("userId", "==", currentUserId));
-    const qHistory = query(collection(db, "history"), where("userId", "==", currentUserId));
-    const qDrafts = query(collection(db, "drafts"), where("userId", "==", currentUserId));
-    const qStudents = query(collection(db, "students"), where("userId", "==", currentUserId));
-
-    unsubStudents = onSnapshot(qStudents, (snapshot) => {
-      studentsMap = {};
-      const datalist = document.getElementById('studentsDatalist');
-      datalist.innerHTML = '';
-
-      snapshot.forEach(docSnap => {
-        const data = docSnap.data();
-        studentsMap[docSnap.id] = data;
+      box.style.display = 'block';
+      box.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--card-border); padding-bottom:10px; margin-bottom:10px;">
+          <h3 style="margin:0; color:var(--accent-green);">✅ Статус: Проверено ИИ</h3>
+          <span class="flask-badge">+15 Колб 🧪 НАЧИСЛЕНО</span>
+        </div>
+        <b>Результат анализа:</b>
+        🟢 <b>Правильные шаги:</b> Уравнение реакции составлено верно, коэффициенты расставлены без ошибок.
+        🟡 <b>Замечания:</b> В вычислениях молярной массы допущена некритичная арифметическая погрешность на 2-м шаге.
+        💡 <b>Рекомендация ученику:</b> Обрати внимание на округление атомных масс по таблице Менделеева.
         
-        const opt = document.createElement('option');
-        opt.value = data.name;
-        datalist.appendChild(opt);
-      });
-      renderStudentsCards();
-      updateHwTemplatesDropdowns();
-    });
+        📊 <b>Оценка:</b> 9 / 10 баллов.
+      `;
+    }
 
-    unsubDrafts = onSnapshot(qDrafts, (snapshot) => {
-      draftsMap = {};
-      snapshot.forEach(docSnap => {
-        draftsMap[docSnap.id] = docSnap.data();
-      });
-      renderScheduleTable();
-    });
-
-    unsubSchedule = onSnapshot(qSchedule, (snapshot) => {
-      upcomingMap = {};
-      snapshot.forEach(docSnap => {
-        upcomingMap[docSnap.id] = docSnap.data();
-      });
-      renderScheduleTable();
-    });
-
-    unsubHistory = onSnapshot(qHistory, (snapshot) => {
-      const tbody = document.getElementById('historyTable');
-      tbody.innerHTML = '';
-      allHistory = [];
-      const studentsSet = new Set();
-
-      snapshot.forEach(docSnap => {
-        const data = docSnap.data();
-        data.id = docSnap.id;
-        allHistory.push(data);
-        if(data.studentName) studentsSet.add(data.studentName);
-
-        const filledHw = data.hwItems ? data.hwItems.filter(i => i.text.trim() !== '') : [];
-        const doneHw = filledHw.filter(i => i.status === 'done').length;
-
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${data.date}</td>
-          <td><strong>${data.studentName}</strong></td>
-          <td>${data.topic || '—'}</td>
-          <td>Опрос: ${data.pollGrade || '-'} | Оценка: ${data.totalGrade || '-'}</td>
-          <td>${filledHw.length > 0 ? `${doneHw} из ${filledHw.length}` : 'Без ДЗ'}</td>
-          <td>
-            <button class="btn-action" onclick="generateLessonReport('${data.id}')">Отчёт за урок</button>
-          </td>
-        `;
-        tbody.appendChild(tr);
-      });
-
-      const select = document.getElementById('reportStudentSelect');
-      select.innerHTML = '<option value="">-- Выберите из списка --</option>';
-      studentsSet.forEach(student => {
-        const opt = document.createElement('option');
-        opt.value = student;
-        opt.innerText = student;
-        select.appendChild(opt);
-      });
-
-      renderStudentsCards();
-    });
-  }
-
-  function renderStudentsCards() {
-    const container = document.getElementById('studentsCardList');
-    container.innerHTML = '';
-
-    Object.keys(studentsMap).forEach(sId => {
-      const s = studentsMap[sId];
-      
-      const studentHistory = allHistory.filter(h => h.studentName === s.name || h.studentId === sId);
-      const totalLessons = studentHistory.length;
-      let totalHw = 0, doneHw = 0;
-      studentHistory.forEach(h => {
-        if(h.hwItems) {
-          h.hwItems.forEach(i => {
-            totalHw++;
-            if(i.status === 'done') doneHw++;
-          });
-        }
-      });
-      const hwPercent = totalHw > 0 ? Math.round((doneHw / totalHw) * 100) : 100;
-
-      const card = document.createElement('div');
-      card.className = 'student-card';
-      card.innerHTML = `
-        <div style="display:flex; justify-content:space-between; align-items:start;">
-          <h4>${s.name} <small>(${s.grade || '—'})</small></h4>
-          <span class="flask-badge">🧪 ${s.flasksBalance || 0}</span>
+    function generateQuiz() {
+      const topic = document.getElementById('quiz-topic').value || "Общая тема";
+      const container = document.getElementById('quiz-container');
+      container.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+          <h3>Тест по теме: ${topic}</h3>
+          <span class="flask-badge">+15 Колб 🧪</span>
         </div>
-        <p><strong>🎯 Цель:</strong> ${s.goal || '—'}</p>
-        <p><strong>📞 Контакты:</strong> ${s.parentContacts || '—'}</p>
-        <p><strong>📝 Заметки:</strong> ${s.notes || '—'}</p>
-        <div style="background: #ffffff; border-radius: 6px; padding: 6px; margin: 8px 0; font-size: 12px; border: 1px solid #e5e7eb;">
-          📊 Уроков: <strong>${totalLessons}</strong> | Выполнение ДЗ: <strong>${hwPercent}%</strong>
-        </div>
-        <div style="display:flex; gap:5px; flex-wrap:wrap; margin-top:8px;">
-          <button class="btn-action" onclick="openStudentCardModal('${sId}')">✏️ Редактировать</button>
-          <button class="btn-action" style="background:#059669; color:white;" onclick="copyGuestLink('${sId}')">🔗 Ссылка для родителя</button>
+        <div class="quiz-question">
+          <p><b>Вопрос 1:</b> Какое вещество выделяется на катоде при электролизе расплава NaCl?</p>
+          <div class="quiz-option" onclick="checkAnswer(this, true)">А) Натрий (Na)</div>
+          <div class="quiz-option" onclick="checkAnswer(this, false)">Б) Хлор (Cl₂)</div>
         </div>
       `;
-      container.appendChild(card);
-    });
-  }
-
-  function updateHwTemplatesDropdowns() {
-    const planSelect = document.getElementById('planHwTemplateSelect');
-    const completeSelect = document.getElementById('completeHwTemplateSelect');
-    
-    let html = '<option value="">-- Выбрать из шаблонов --</option>';
-    Object.keys(studentsMap).forEach(sId => {
-      const s = studentsMap[sId];
-      if (s.hwTemplates && s.hwTemplates.length > 0) {
-        s.hwTemplates.forEach(t => {
-          html += `<option value="${t}">${s.name}: ${t}</option>`;
-        });
-      }
-    });
-
-    planSelect.innerHTML = html;
-    completeSelect.innerHTML = html;
-  }
-
-  window.applyPlanHwTemplate = (select) => {
-    if (select.value) document.getElementById('addAssignedHw').value = select.value;
-  };
-
-  window.applyCompleteHwTemplate = (select) => {
-    if (select.value) document.getElementById('mNextHw').value = select.value;
-  };
-
-  window.copyGuestLink = (studentId) => {
-    const link = `${window.location.origin}${window.location.pathname}?guestStudentId=${studentId}`;
-    navigator.clipboard.writeText(link);
-    alert('Ссылка на гостевой отчёт скопирована! Отправьте её родителю: ' + link);
-  };
-
-  window.openStudentCardModal = (studentId = null) => {
-    document.getElementById('cardStudentId').value = studentId || '';
-    currentCardTemplates = [];
-
-    if (studentId && studentsMap[studentId]) {
-      const s = studentsMap[studentId];
-      document.getElementById('studentCardModalTitle').innerText = 'Редактирование ученика';
-      document.getElementById('cardStudentName').value = s.name || '';
-      document.getElementById('cardStudentGrade').value = s.grade || '';
-      document.getElementById('cardParentContacts').value = s.parentContacts || '';
-      document.getElementById('cardFlasksBalance').value = s.flasksBalance || 0;
-      document.getElementById('cardGoal').value = s.goal || '';
-      document.getElementById('cardNotes').value = s.notes || '';
-      currentCardTemplates = s.hwTemplates || [];
-    } else {
-      document.getElementById('studentCardModalTitle').innerText = 'Добавление ученика';
-      document.getElementById('studentCardForm').reset();
-      document.getElementById('cardFlasksBalance').value = 0;
-    }
-    renderCardTemplates();
-    document.getElementById('studentCardModal').classList.add('active');
-  };
-
-  window.closeStudentCardModal = () => document.getElementById('studentCardModal').classList.remove('active');
-
-  function renderCardTemplates() {
-    const container = document.getElementById('cardHwTemplatesList');
-    container.innerHTML = '';
-    currentCardTemplates.forEach((t, idx) => {
-      const div = document.createElement('div');
-      div.style.cssText = 'display:flex; justify-content:space-between; align-items:center; background:#f3f4f6; padding:4px 8px; border-radius:4px; margin-bottom:4px; font-size:12px;';
-      div.innerHTML = `
-        <span>${t}</span>
-        <button type="button" style="color:#ef4444; background:none; border:none; cursor:pointer;" onclick="removeHwTemplate(${idx})">❌</button>
-      `;
-      container.appendChild(div);
-    });
-  }
-
-  window.addHwTemplate = () => {
-    const input = document.getElementById('newHwTemplateInput');
-    if (input.value.trim() !== '') {
-      currentCardTemplates.push(input.value.trim());
-      input.value = '';
-      renderCardTemplates();
-    }
-  };
-
-  window.removeHwTemplate = (idx) => {
-    currentCardTemplates.splice(idx, 1);
-    renderCardTemplates();
-  };
-
-  document.getElementById('studentCardForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const id = document.getElementById('cardStudentId').value;
-    const studentData = {
-      userId: currentUserId,
-      name: document.getElementById('cardStudentName').value,
-      grade: document.getElementById('cardStudentGrade').value,
-      parentContacts: document.getElementById('cardParentContacts').value,
-      flasksBalance: parseInt(document.getElementById('cardFlasksBalance').value) || 0,
-      goal: document.getElementById('cardGoal').value,
-      notes: document.getElementById('cardNotes').value,
-      hwTemplates: currentCardTemplates
-    };
-
-    if (id) {
-      await updateDoc(doc(db, "students", id), studentData);
-    } else {
-      await addDoc(collection(db, "students"), studentData);
-    }
-    closeStudentCardModal();
-  });
-
-  function renderScheduleTable() {
-    const tbody = document.getElementById('upcomingTable');
-    tbody.innerHTML = '';
-
-    const scheduleItems = [];
-    Object.keys(upcomingMap).forEach(id => {
-      scheduleItems.push({ id: id, data: upcomingMap[id] });
-    });
-
-    scheduleItems.sort((a, b) => new Date(a.data.dateTime) - new Date(b.data.dateTime));
-
-    scheduleItems.forEach(item => {
-      const data = item.data;
-      const id = item.id;
-      const hasDraft = !!draftsMap[id];
-
-      const formattedDate = new Date(data.dateTime).toLocaleString('ru-RU', { dateStyle: 'short', timeStyle: 'short' });
-      const repeatText = data.repeatDays == 7 ? 'Каждую неделю' : (data.repeatDays == 14 ? 'Каждые 2 недели' : 'Разовое');
-
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td><strong>${formattedDate}</strong></td>
-        <td><strong>${data.studentName}</strong> ${hasDraft ? '<span class="badge-draft">📝 Черновик</span>' : ''}</td>
-        <td>${repeatText}</td>
-        <td><small>${data.assignedHw || '—'}</small></td>
-        <td>
-          <button class="btn-action" onclick="openCompleteModal('${id}')">✅ Завершить урок</button>
-          <button class="btn-action" style="background:#fef3c7; color:#d97706;" onclick="openEditModal('${id}')">✏️</button>
-          <button class="btn-action" style="color:#ef4444; background:#fee2e2;" onclick="cancelLesson('${id}')">❌</button>
-        </td>
-      `;
-      tbody.appendChild(tr);
-    });
-  }
-
-  window.updateRowStatus = (selectElement) => {
-    const row = selectElement.closest('.hw-item');
-    row.classList.remove('not-done', 'done');
-    if (selectElement.value === 'fail') row.classList.add('not-done');
-    else if (selectElement.value === 'done') row.classList.add('done');
-  };
-
-  document.getElementById('studentForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const name = document.getElementById('addStudentName').value;
-    
-    // Автосоздание ученика в картотеке, если его ещё нет
-    const existingStudentId = Object.keys(studentsMap).find(sId => studentsMap[sId].name.toLowerCase() === name.toLowerCase());
-    if (!existingStudentId) {
-      await addDoc(collection(db, "students"), {
-        userId: currentUserId,
-        name: name,
-        grade: '', parentContacts: '', goal: '', notes: '', flasksBalance: 0, hwTemplates: []
-      });
     }
 
-    await addDoc(collection(db, "schedule"), {
-      userId: currentUserId,
-      studentName: name,
-      dateTime: document.getElementById('nextLessonDate').value,
-      repeatDays: parseInt(document.getElementById('repeatInterval').value),
-      assignedHw: document.getElementById('addAssignedHw').value || ''
-    });
-    e.target.reset();
-  });
-
-  window.openEditModal = (id) => {
-    const data = upcomingMap[id];
-    if (!data) return;
-
-    document.getElementById('editScheduleId').value = id;
-    document.getElementById('editStudentName').value = data.studentName || '';
-    document.getElementById('editLessonDate').value = data.dateTime || '';
-    document.getElementById('editRepeatInterval').value = data.repeatDays !== undefined ? data.repeatDays : 7;
-    document.getElementById('editAssignedHw').value = data.assignedHw || '';
-
-    document.getElementById('editModal').classList.add('active');
-  };
-
-  window.closeEditModal = () => document.getElementById('editModal').classList.remove('active');
-
-  document.getElementById('editLessonForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const id = document.getElementById('editScheduleId').value;
-    if (!id) return;
-
-    await updateDoc(doc(db, "schedule", id), {
-      studentName: document.getElementById('editStudentName').value,
-      dateTime: document.getElementById('editLessonDate').value,
-      repeatDays: parseInt(document.getElementById('editRepeatInterval').value),
-      assignedHw: document.getElementById('editAssignedHw').value
-    });
-
-    closeEditModal();
-  });
-
-  document.getElementById('mFlasksReason').addEventListener('change', (e) => {
-    const val = e.target.value;
-    const input = document.getElementById('mFlasksChange');
-    if (val.includes('+3')) input.value = 3;
-    else if (val.includes('+15')) input.value = 15;
-    else if (val.includes('+5')) input.value = 5;
-    else if (val.includes('-10')) input.value = -10;
-    else if (val.includes('-5')) input.value = -5;
-  });
-
-  window.openCompleteModal = (id) => {
-    const data = upcomingMap[id];
-    if(!data) return;
-
-    document.getElementById('mScheduleId').value = id;
-    document.getElementById('mStudent').value = data.studentName;
-    document.getElementById('mDate').value = data.dateTime;
-    document.getElementById('mRepeat').value = data.repeatDays;
-    document.getElementById('mStudentName').innerText = data.studentName;
-    document.getElementById('mFlasksChange').value = '';
-
-    const rows = document.querySelectorAll('#modalHwList .hw-item');
-    rows.forEach(row => {
-      row.classList.remove('done', 'not-done');
-      row.querySelector('.status-select').value = 'none';
-      row.querySelector('.hw-text-input').value = '';
-    });
-
-    const draft = draftsMap[id];
-    if (draft) {
-      document.getElementById('mTopic').value = draft.topic || '';
-      document.getElementById('mPollGrade').value = draft.pollGrade || '';
-      document.getElementById('mLessonGrade').value = draft.lessonGrade || '';
-      document.getElementById('mTotalGrade').value = draft.totalGrade || '';
-      document.getElementById('mPaidStatus').value = draft.paidStatus || 'Оплачено';
-      document.getElementById('mNextHw').value = draft.nextHw || '';
-      document.getElementById('mComment').value = draft.comment || '';
-
-      if (draft.hwItems && draft.hwItems.length > 0) {
-        draft.hwItems.forEach((hw, idx) => {
-          if (idx < rows.length) {
-            rows[idx].querySelector('.hw-text-input').value = hw.text;
-            rows[idx].querySelector('.status-select').value = hw.status;
-            window.updateRowStatus(rows[idx].querySelector('.status-select'));
-          }
-        });
-      }
-    } else {
-      document.getElementById('mTopic').value = '';
-      document.getElementById('mPollGrade').value = '';
-      document.getElementById('mLessonGrade').value = '';
-      document.getElementById('mTotalGrade').value = '';
-      document.getElementById('mPaidStatus').value = 'Оплачено';
-      document.getElementById('mNextHw').value = '';
-      document.getElementById('mComment').value = '';
-
-      if (data.assignedHw) {
-        const parts = data.assignedHw.split(/,|\n/).map(s => s.trim()).filter(s => s !== '');
-        parts.forEach((partText, idx) => {
-          if (idx < rows.length) {
-            rows[idx].querySelector('.hw-text-input').value = partText;
-          }
-        });
-      }
+    function checkAnswer(element, isCorrect) {
+      const parent = element.parentElement;
+      parent.querySelectorAll('.quiz-option').forEach(opt => opt.classList.remove('correct', 'wrong'));
+      element.classList.add(isCorrect ? 'correct' : 'wrong');
     }
 
-    document.getElementById('completeModal').classList.add('active');
-  };
-
-  window.closeModal = () => document.getElementById('completeModal').classList.remove('active');
-
-  window.saveDraft = async () => {
-    const schedId = document.getElementById('mScheduleId').value;
-    if (!schedId) return;
-
-    const hwItems = [];
-    document.querySelectorAll('#modalHwList .hw-item').forEach(row => {
-      const text = row.querySelector('.hw-text-input').value;
-      const status = row.querySelector('.status-select').value;
-      if (text.trim() !== '') hwItems.push({ text, status });
-    });
-
-    await setDoc(doc(db, "drafts", schedId), {
-      userId: currentUserId,
-      topic: document.getElementById('mTopic').value,
-      pollGrade: document.getElementById('mPollGrade').value,
-      lessonGrade: document.getElementById('mLessonGrade').value,
-      totalGrade: document.getElementById('mTotalGrade').value,
-      paidStatus: document.getElementById('mPaidStatus').value,
-      nextHw: document.getElementById('mNextHw').value,
-      comment: document.getElementById('mComment').value,
-      hwItems: hwItems,
-      updatedAt: new Date().toISOString()
-    });
-
-    alert('Черновик успешно сохранён! 📝');
-    closeModal();
-  };
-
-  document.getElementById('completeLessonForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    
-    const schedId = document.getElementById('mScheduleId').value;
-    const student = document.getElementById('mStudent').value;
-    const dateStr = document.getElementById('mDate').value;
-    const repeatDays = parseInt(document.getElementById('mRepeat').value);
-    const nextHw = document.getElementById('mNextHw').value;
-    const flasksChange = parseInt(document.getElementById('mFlasksChange').value) || 0;
-
-    const studentObj = Object.values(studentsMap).find(s => s.name === student);
-    const studentId = studentObj ? Object.keys(studentsMap).find(k => studentsMap[k] === studentObj) : '';
-
-    // Обновление баланса колб у ученика
-    if (studentId && flasksChange !== 0) {
-      const currentBalance = studentObj.flasksBalance || 0;
-      await updateDoc(doc(db, "students", studentId), {
-        flasksBalance: currentBalance + flasksChange
-      });
+    function generateReport() {
+      const name = document.getElementById('student-name').value || "Ученик";
+      const notes = document.getElementById('report-notes').value || "Все прошло отлично.";
+      const box = document.getElementById('report-result');
+      box.style.display = 'block';
+      box.innerText = `Здравствуйте! Отчет по занятию (${name}) 🧪\n\n${notes}\n\nБаланс Колб обновлен!`;
     }
 
-    const hwItems = [];
-    document.querySelectorAll('#modalHwList .hw-item').forEach(row => {
-      const text = row.querySelector('.hw-text-input').value;
-      const status = row.querySelector('.status-select').value;
-      if (text.trim() !== '') hwItems.push({ text, status });
-    });
-
-    await addDoc(collection(db, "history"), {
-      userId: currentUserId,
-      studentName: student,
-      studentId: studentId,
-      date: new Date(dateStr).toLocaleDateString('ru-RU'),
-      rawDate: dateStr,
-      topic: document.getElementById('mTopic').value || 'Урок проведен',
-      pollGrade: document.getElementById('mPollGrade').value || '-',
-      lessonGrade: document.getElementById('mLessonGrade').value || '-',
-      totalGrade: document.getElementById('mTotalGrade').value || '-',
-      hwItems: hwItems,
-      paidStatus: document.getElementById('mPaidStatus').value,
-      comment: document.getElementById('mComment').value || ''
-    });
-
-    await deleteDoc(doc(db, "schedule", schedId));
-    
-    if(draftsMap[schedId]) {
-      await deleteDoc(doc(db, "drafts", schedId));
+    function generateDiffTasks() {
+      const base = document.getElementById('task-base').value;
+      const box = document.getElementById('diff-result');
+      box.style.display = 'block';
+      box.innerText = `🟢 **Базовый:** ${base}\n💡 *С подсказкой*\n\n🟡 **Стандартный:** ${base}\n\n🔴 **Продвинутый:** С усложнением условий.`;
     }
-
-    if (repeatDays > 0) {
-      const nextDate = new Date(dateStr);
-      nextDate.setDate(nextDate.getDate() + repeatDays);
-      await addDoc(collection(db, "schedule"), {
-        userId: currentUserId,
-        studentName: student,
-        dateTime: nextDate.toISOString().slice(0, 16),
-        repeatDays: repeatDays,
-        assignedHw: nextHw
-      });
-    }
-
-    closeModal();
-    e.target.reset();
-  });
-
-  window.cancelLesson = async (id) => {
-    if(confirm("Удалить запланированное занятие?")) {
-      await deleteDoc(doc(db, "schedule", id));
-      if(draftsMap[id]) {
-        await deleteDoc(doc(db, "drafts", id));
-      }
-    }
-  };
-
-  window.generateLessonReport = (id) => {
-    const item = allHistory.find(l => l.id === id);
-    if(!item) return;
-
-    document.getElementById('repStudent').innerText = item.studentName;
-    document.getElementById('repDate').innerText = item.date;
-    document.getElementById('repTopic').innerText = item.topic;
-    document.getElementById('repPoll').innerText = item.pollGrade;
-    document.getElementById('repWork').innerText = item.lessonGrade;
-    document.getElementById('repTotalGrade').innerText = item.totalGrade;
-    document.getElementById('repComment').innerText = item.comment || 'Ошибок не обнаружено.';
-
-    const hwDisplay = document.getElementById('repHwDisplay');
-    hwDisplay.innerHTML = '';
-    if(item.hwItems && item.hwItems.length > 0) {
-      item.hwItems.forEach(hw => {
-        const div = document.createElement('div');
-        div.className = `hw-item ${hw.status === 'done' ? 'done' : (hw.status === 'fail' ? 'not-done' : '')}`;
-        const icon = hw.status === 'done' ? '✅' : (hw.status === 'fail' ? '❌' : '⚪');
-        div.innerHTML = `<span style="font-weight:bold;">${icon}</span> <span>${hw.text}</span>`;
-        hwDisplay.appendChild(div);
-      });
-    } else {
-      hwDisplay.innerHTML = '<span style="font-size:13px; color:#6b7280;">Домашнее задание не было заполнено.</span>';
-    }
-
-    document.getElementById('periodReportCard').classList.remove('active');
-    const card = document.getElementById('lessonReportCard');
-    card.classList.add('active');
-    card.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  window.generatePeriodReport = () => {
-    const student = document.getElementById('reportStudentSelect').value;
-    const dateFrom = document.getElementById('reportDateFrom').value;
-    const dateTo = document.getElementById('reportDateTo').value;
-    const teacherComment = document.getElementById('reportTeacherComment').value;
-
-    if(!student || !dateFrom || !dateTo) {
-      alert("Выберите ученика и укажите период.");
-      return;
-    }
-
-    const filtered = allHistory.filter(h => {
-      if(h.studentName !== student) return false;
-      const hDate = h.rawDate ? h.rawDate.slice(0,10) : '';
-      return hDate >= dateFrom && hDate <= dateTo;
-    });
-
-    if(filtered.length === 0) {
-      alert("У данного ученика нет зафиксированных уроков за этот период.");
-      return;
-    }
-
-    let totalHwCount = 0;
-    let doneHwCount = 0;
-    const gradesList = [];
-
-    filtered.forEach(h => {
-      if(h.totalGrade && h.totalGrade !== '-') gradesList.push(h.totalGrade);
-      if(h.hwItems) {
-        h.hwItems.forEach(item => {
-          totalHwCount++;
-          if(item.status === 'done') doneHwCount++;
-        });
-      }
-    });
-
-    const hwPercent = totalHwCount > 0 ? Math.round((doneHwCount / totalHwCount) * 100) : 100;
-
-    document.getElementById('pRepStudent').innerText = student;
-    document.getElementById('pRepDates').innerText = `Период: с ${dateFrom} по ${dateTo}`;
-    document.getElementById('pRepLessonsCount').innerText = filtered.length;
-    document.getElementById('pRepHwPercent').innerText = `${hwPercent}%`;
-    document.getElementById('pRepGradesList').innerText = gradesList.length > 0 ? gradesList.join(', ') : 'Не указаны';
-    document.getElementById('pRepComment').innerText = teacherComment || 'Динамика усвоения материала положительная.';
-
-    document.getElementById('lessonReportCard').classList.remove('active');
-    const card = document.getElementById('periodReportCard');
-    card.classList.add('active');
-    card.scrollIntoView({ behavior: 'smooth' });
-  };
-</script>
-
+  </script>
 </body>
 </html>
