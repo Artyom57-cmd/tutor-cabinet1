@@ -104,6 +104,23 @@
     .shop-item h5 { font-size: 14px; color: #1e1b4b; margin-bottom: 4px; }
     .shop-item p { font-size: 11px; color: var(--text-muted); margin-bottom: 8px; }
     .shop-price { font-weight: 800; color: #4f46e5; font-size: 13px; }
+
+    /* СТИЛИ ДЛЯ ДЕРЕВА ЗНАНИЙ */
+    .tree-container { margin-top: 15px; }
+    .tree-progress-bar-bg { background: #e5e7eb; border-radius: 10px; height: 12px; width: 100%; overflow: hidden; margin: 8px 0 15px 0; }
+    .tree-progress-bar-fill { background: linear-gradient(90deg, #10b981, #059669); height: 100%; width: 0%; transition: width 0.4s ease; }
+    
+    .tree-nodes-list { display: flex; flex-direction: column; gap: 8px; }
+    .tree-node-card { border-radius: 8px; padding: 10px 12px; border: 1.5px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background: #fff; }
+    
+    /* Туман войны / Закрытая тема */
+    .tree-node-card.status-locked { opacity: 0.55; background: #f3f4f6; border-style: dashed; filter: grayscale(80%); }
+    .tree-node-card.status-in_progress { border-color: #f59e0b; background: #fffbeeb0; box-shadow: 0 0 8px rgba(245, 158, 11, 0.2); }
+    .tree-node-card.status-completed { border-color: #10b981; background: #ecfdf5; }
+
+    .tree-type-badge { font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; margin-right: 6px; }
+    .tree-type-trunk { background: #dbeafe; color: #1e40af; } /* Ствол */
+    .tree-type-branch { background: #fef3c7; color: #92400e; } /* Ветка */
   </style>
 </head>
 <body>
@@ -153,6 +170,19 @@
         <span>🧪 Баланс Колб: <strong id="guestFlaskBalance">0</strong> 🧪</span>
       </h3>
       <p style="font-size: 13px; opacity: 0.9;">Выполняй ДЗ вовремя и будь активным, чтобы зарабатывать колбы и обменивать их на бонусы!</p>
+    </div>
+
+    <!-- БЛОК ДЕРЕВА ЗНАНИЙ НА ЭКРАНЕ УЧЕНИКА -->
+    <div class="card">
+      <h3>🌳 Дерево знаний (Карта навыков)</h3>
+      <div style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 600;">
+        <span>Прогресс освоения программы:</span>
+        <span id="guestTreePercent">0%</span>
+      </div>
+      <div class="tree-progress-bar-bg">
+        <div id="guestTreeProgressBar" class="tree-progress-bar-fill"></div>
+      </div>
+      <div class="tree-nodes-list" id="guestTreeNodesList"></div>
     </div>
 
     <div class="card">
@@ -353,6 +383,25 @@
             <textarea id="cardNotes" rows="2" placeholder="Занимаемся по вторникам, слабый раздел — органика"></textarea>
           </div>
           
+          <!-- УПРАВЛЕНИЕ ДЕРЕВОМ ЗНАНИЙ В МОДАЛЬНОМ ОКНЕ -->
+          <hr style="margin: 15px 0;">
+          <h4 style="font-size: 14px; margin-bottom: 8px; color: #1e1b4b;">🌳 Дерево знаний (Программа курса)</h4>
+          <div id="cardTreeNodesList" style="margin-bottom: 10px;"></div>
+          
+          <div style="display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 6px; align-items: center;">
+            <input type="text" id="newTreeNodeTitle" placeholder="Название темы (напр: Алканы)">
+            <select id="newTreeNodeType" style="font-size: 12px;">
+              <option value="trunk">🪵 Ствол</option>
+              <option value="branch">🌿 Ветка</option>
+            </select>
+            <select id="newTreeNodeStatus" style="font-size: 12px;">
+              <option value="locked">🔒 Не открыто</option>
+              <option value="in_progress">⏳ В процессе</option>
+              <option value="completed">✅ Изучено</option>
+            </select>
+            <button type="button" class="btn-action" style="background:#059669; color:white; padding: 8px 12px;" onclick="addTreeNode()">+ Тема</button>
+          </div>
+
           <hr style="margin: 15px 0;">
           <h4 style="font-size: 14px; margin-bottom: 8px;">📚 Шаблоны ДЗ для этого ученика</h4>
           <div id="cardHwTemplatesList" style="margin-bottom: 10px;"></div>
@@ -585,7 +634,6 @@
     if (!element) return;
 
     try {
-      // Создаём скриншот элемента с высоким качеством
       const canvas = await html2canvas(element, { scale: 2 });
       
       canvas.toBlob(async (blob) => {
@@ -638,6 +686,7 @@
   let draftsMap = {};
   let studentsMap = {};
   let currentCardTemplates = [];
+  let currentCardTreeNodes = [];
 
   // Проверка гостевого режима (по параметру ?guestStudentId=...)
   const urlParams = new URLSearchParams(window.location.search);
@@ -654,14 +703,17 @@
     const studentDoc = await getDoc(doc(db, "students", studentId));
     let studentName = 'Ученик';
     let flasks = 0;
+    let treeNodes = [];
 
     if (studentDoc.exists()) {
       const sData = studentDoc.data();
       studentName = sData.name || studentName;
       flasks = sData.flasksBalance || 0;
+      treeNodes = sData.treeNodes || [];
     }
 
     document.getElementById('guestFlaskBalance').innerText = flasks;
+    renderGuestTree(treeNodes);
 
     const historyQuery = query(collection(db, "history"), where("studentId", "==", studentId));
     const historySnap = await getDocs(historyQuery);
@@ -700,6 +752,46 @@
       <div class="stat-box"><span>Всего проведенных занятий:</span><strong>${totalLessons}</strong></div>
       <div class="stat-box"><span>Процент выполнения ДЗ:</span><strong>${hwPercent}%</strong></div>
     `;
+  }
+
+  function renderGuestTree(treeNodes) {
+    const container = document.getElementById('guestTreeNodesList');
+    container.innerHTML = '';
+
+    if (!treeNodes || treeNodes.length === 0) {
+      container.innerHTML = '<p style="font-size: 12px; color: var(--text-muted); text-align: center;">Программа курса пока не заполнена преподавателем.</p>';
+      document.getElementById('guestTreePercent').innerText = '0%';
+      document.getElementById('guestTreeProgressBar').style.width = '0%';
+      return;
+    }
+
+    const completedCount = treeNodes.filter(n => n.status === 'completed').length;
+    const percent = Math.round((completedCount / treeNodes.length) * 100);
+
+    document.getElementById('guestTreePercent').innerText = `${percent}%`;
+    document.getElementById('guestTreeProgressBar').style.width = `${percent}%`;
+
+    treeNodes.forEach(node => {
+      const card = document.createElement('div');
+      card.className = `tree-node-card status-${node.status}`;
+      
+      let statusIcon = '🔒';
+      let statusLabel = 'Туман войны';
+      if (node.status === 'completed') { statusIcon = '✅'; statusLabel = 'Освоено'; }
+      if (node.status === 'in_progress') { statusIcon = '⏳'; statusLabel = 'Изучается'; }
+
+      const isTrunk = node.type === 'trunk';
+      const typeBadge = `<span class="tree-type-badge ${isTrunk ? 'tree-type-trunk' : 'tree-type-branch'}">${isTrunk ? '🪵 Ствол' : '🌿 Ветка'}</span>`;
+
+      card.innerHTML = `
+        <div>
+          ${typeBadge}
+          <strong style="font-size:13px;">${node.title}</strong>
+        </div>
+        <span style="font-size:12px; font-weight:bold;">${statusIcon} ${statusLabel}</span>
+      `;
+      container.appendChild(card);
+    });
   }
 
   window.switchAuthMode = (mode) => {
@@ -882,6 +974,11 @@
       });
       const hwPercent = totalHw > 0 ? Math.round((doneHw / totalHw) * 100) : 100;
 
+      // Вычисление прогресса дерева знаний
+      const tree = s.treeNodes || [];
+      const treeDone = tree.filter(n => n.status === 'completed').length;
+      const treePercent = tree.length > 0 ? Math.round((treeDone / tree.length) * 100) : 0;
+
       const card = document.createElement('div');
       card.className = 'student-card';
       card.innerHTML = `
@@ -893,7 +990,7 @@
         <p><strong>📞 Контакты:</strong> ${s.parentContacts || '—'}</p>
         <p><strong>📝 Заметки:</strong> ${s.notes || '—'}</p>
         <div style="background: #ffffff; border-radius: 6px; padding: 6px; margin: 8px 0; font-size: 12px; border: 1px solid #e5e7eb;">
-          📊 Уроков: <strong>${totalLessons}</strong> | Выполнение ДЗ: <strong>${hwPercent}%</strong>
+          📊 Уроков: <strong>${totalLessons}</strong> | ДЗ: <strong>${hwPercent}%</strong> | 🌳 Дерево: <strong>${treePercent}%</strong>
         </div>
         <div style="display:flex; gap:5px; flex-wrap:wrap; margin-top:8px;">
           <button class="btn-action" onclick="openStudentCardModal('${sId}')">✏️ Редактировать</button>
@@ -960,6 +1057,7 @@
   window.openStudentCardModal = (studentId = null) => {
     document.getElementById('cardStudentId').value = studentId || '';
     currentCardTemplates = [];
+    currentCardTreeNodes = [];
 
     if (studentId && studentsMap[studentId]) {
       const s = studentsMap[studentId];
@@ -971,12 +1069,14 @@
       document.getElementById('cardGoal').value = s.goal || '';
       document.getElementById('cardNotes').value = s.notes || '';
       currentCardTemplates = s.hwTemplates || [];
+      currentCardTreeNodes = s.treeNodes || [];
     } else {
       document.getElementById('studentCardModalTitle').innerText = 'Добавление ученика';
       document.getElementById('studentCardForm').reset();
       document.getElementById('cardFlasksBalance').value = 0;
     }
     renderCardTemplates();
+    renderCardTreeNodes();
     document.getElementById('studentCardModal').classList.add('active');
   };
 
@@ -1010,6 +1110,60 @@
     renderCardTemplates();
   };
 
+  // ФУНКЦИИ ДЛЯ УПРАВЛЕНИЯ ДЕРЕВОМ ЗНАНИЙ В МОДАЛКЕ
+  function renderCardTreeNodes() {
+    const container = document.getElementById('cardTreeNodesList');
+    container.innerHTML = '';
+    currentCardTreeNodes.forEach((node, idx) => {
+      const div = document.createElement('div');
+      div.style.cssText = 'display:flex; justify-content:space-between; align-items:center; background:#f9fafb; border:1px solid #e5e7eb; padding:6px 10px; border-radius:6px; margin-bottom:4px; font-size:12px;';
+      
+      const isTrunk = node.type === 'trunk';
+      const typeBadge = `<span class="tree-type-badge ${isTrunk ? 'tree-type-trunk' : 'tree-type-branch'}">${isTrunk ? '🪵' : '🌿'}</span>`;
+
+      div.innerHTML = `
+        <div>
+          ${typeBadge}
+          <strong>${node.title}</strong>
+        </div>
+        <div style="display:flex; gap:6px; align-items:center;">
+          <select onchange="updateTreeNodeStatus(${idx}, this.value)" style="font-size:11px; padding:2px 4px;">
+            <option value="locked" ${node.status === 'locked' ? 'selected' : ''}>🔒 Туман</option>
+            <option value="in_progress" ${node.status === 'in_progress' ? 'selected' : ''}>⏳ В процессе</option>
+            <option value="completed" ${node.status === 'completed' ? 'selected' : ''}>✅ Освоено</option>
+          </select>
+          <button type="button" style="color:#ef4444; background:none; border:none; cursor:pointer;" onclick="removeTreeNode(${idx})">❌</button>
+        </div>
+      `;
+      container.appendChild(div);
+    });
+  }
+
+  window.addTreeNode = () => {
+    const titleInput = document.getElementById('newTreeNodeTitle');
+    const typeSelect = document.getElementById('newTreeNodeType');
+    const statusSelect = document.getElementById('newTreeNodeStatus');
+
+    if (titleInput.value.trim() !== '') {
+      currentCardTreeNodes.push({
+        title: titleInput.value.trim(),
+        type: typeSelect.value,
+        status: statusSelect.value
+      });
+      titleInput.value = '';
+      renderCardTreeNodes();
+    }
+  };
+
+  window.updateTreeNodeStatus = (idx, status) => {
+    currentCardTreeNodes[idx].status = status;
+  };
+
+  window.removeTreeNode = (idx) => {
+    currentCardTreeNodes.splice(idx, 1);
+    renderCardTreeNodes();
+  };
+
   document.getElementById('studentCardForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const id = document.getElementById('cardStudentId').value;
@@ -1021,7 +1175,8 @@
       flasksBalance: parseInt(document.getElementById('cardFlasksBalance').value) || 0,
       goal: document.getElementById('cardGoal').value,
       notes: document.getElementById('cardNotes').value,
-      hwTemplates: currentCardTemplates
+      hwTemplates: currentCardTemplates,
+      treeNodes: currentCardTreeNodes
     };
 
     if (id) {
@@ -1083,7 +1238,7 @@
       await addDoc(collection(db, "students"), {
         userId: currentUserId,
         name: name,
-        grade: '', parentContacts: '', goal: '', notes: '', flasksBalance: 0, hwTemplates: []
+        grade: '', parentContacts: '', goal: '', notes: '', flasksBalance: 0, hwTemplates: [], treeNodes: []
       });
     }
 
