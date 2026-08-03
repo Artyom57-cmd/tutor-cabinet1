@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Кабинет Репетитора по Химии</title>
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --bg-main: #f3f4f6;
+      --card-bg: #ffffff;
+      --text-dark: #1f2937;
+      --text-muted: #6b7280;
+      --border-color: #e5e7eb;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background-color: var(--bg-main); color: var(--text-dark); padding: 25px 15px; }
+    .container { max-width: 1100px; margin: 0 auto; }
+    
+    /* ЭКРАН АВТОРИЗАЦИИ (ПРЕМИУМ ДИЗАЙН) */
+    #auth-screen {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 85vh;
+      background: linear-gradient(135deg, #e0e7ff 0%, #f3f4f6 50%, #e0e7ff 100%);
+      border-radius: 20px;
+    }
+
+    .login-card {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      padding: 40px 35px;
+      border-radius: 20px;
+      box-shadow: 0 20px 40px rgba(79, 70, 229, 0.12), 0 2px 6px rgba(0, 0, 0, 0.04);
+      width: 100%;
+      max-width: 420px;
+      border: 1px solid rgba(255, 255, 255, 0.8);
+      transition: transform 0.3s ease;
+    }
+
+    .login-header {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    .login-header .icon-badge {
+      width: 60px;
+      height: 60px;
+      background: #e0e7ff;
+      color: var(--primary);
+      font-size: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 16px;
+      margin: 0 auto 15px auto;
+      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);
+    }
+
+    .login-header h2 {
+      color: #1e1b4b;
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+
+    .login-header p {
+      color: var(--text-muted);
+      font-size: 13px;
+      margin-top: 4px;
+    }
+
+    .input-wrapper {
+      position: relative;
+      margin-bottom: 18px;
+    }
+
+    .input-wrapper label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      color: #374151;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .input-wrapper input {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1.5px solid #d1d5db;
+      border-radius: 10px;
+      font-size: 14px;
+      background: #f9fafb;
+      transition: all 0.2s ease;
+    }
+
+    .input-wrapper input:focus {
+      background: #ffffff;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.15);
+    }
+
+    .btn-submit {
+      width: 100%;
+      padding: 12px;
+      background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+      transition: all 0.2s ease;
+      margin-top: 10px;
+    }
+
+    .btn-submit:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(79, 70, 229, 0.4);
+    }
+
+    .btn-submit:active {
+      transform: translateY(0);
+    }
+
+    .error-msg {
+      background: #fee2e2;
+      color: #dc2626;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 10px;
+      border-radius: 8px;
+      margin-top: 15px;
+      display: none;
+      text-align: center;
+      border: 1px solid #fca5a5;
+    }
+
+    /* ОСНОВНОЙ ИНТЕРФЕЙС (СКРЫТ ДО ВХОДА) */
+    #app-screen { display: none; }
+
+    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+    header h1 { font-size: 24px; font-weight: 800; color: #1e1b4b; }
+    header p { color: var(--text-muted); font-size: 13px; }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr; gap: 20px; }
+    @media(min-width: 768px) { .grid-2 { grid-template-columns: 1fr 1fr; } }
+
+    .card { background: var(--card-bg); padding: 20px; border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); }
+    .card h3 { color: #1e1b4b; font-size: 17px; margin-bottom: 14px; }
+    
+    .form-group { margin-bottom: 10px; }
+    .form-group label { display: block; font-size: 12px; font-weight: 600; color: var(--text-muted); margin-bottom: 3px; }
+    .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; }
+    
+    input, select, textarea { width: 100%; padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 14px; outline: none; transition: 0.2s; }
+    input:focus, select:focus, textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
+    
+    button { padding: 8px 14px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; transition: 0.2s; }
+    button.btn-primary { background: var(--primary); color: white; }
+    button.btn-primary:hover { opacity: 0.9; }
+    button.btn-action { background-color: #e0e7ff; color: #1e1b4b; font-size: 12px; padding: 5px 10px; }
+    button.btn-action:hover { background-color: #c7d2fe; }
+    button.btn-logout { background-color: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; }
+
+    table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; border: 1px solid var(--border-color); margin-bottom: 20px; }
+    th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--border-color); font-size: 14px; }
+    th { background-color: #f8fafc; color: var(--text-muted); font-weight: 600; font-size: 12px; text-transform: uppercase; }
+
+    .hw-list { display: flex; flex-direction: column; gap: 6px; }
+    .hw-item { display: flex; align-items: center; gap: 8px; padding: 4px 8px; border-radius: 4px; transition: 0.2s; }
+    .hw-item.not-done { background-color: rgba(255, 0, 0, 0.12); }
+    .hw-item.not-done input[type="text"] { color: #cc0000; font-weight: bold; }
+    .hw-item.done { background-color: rgba(0, 128, 0, 0.08); }
+    .status-select { border: 1px solid #000080; background: #ffffff; color: #000080; font-size: 14px; border-radius: 4px; padding: 2px 4px; cursor: pointer; width: auto; font-weight: bold; }
+
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); justify-content: center; align-items: center; z-index: 1000; }
+    .modal.active { display: flex; }
+    .modal-content { background: white; padding: 24px; border-radius: 12px; max-width: 650px; width: 95%; max-height: 90vh; overflow-y: auto; }
+
+    .report-card { background: #ffffff; width: 100%; max-width: 600px; border: 2px solid #000080; border-radius: 10px; padding: 25px; color: #000080; margin: 30px auto; display: none; }
+    .report-card.active { display: block; }
+    .report-header { text-align: center; border-bottom: 2px solid #000080; padding-bottom: 15px; margin-bottom: 20px; }
+    .report-header h2 { font-size: 18px; text-transform: uppercase; }
+    .report-section { margin-bottom: 18px; }
+    .report-section-title { font-size: 13px; font-weight: bold; text-transform: uppercase; background-color: #000080; color: #ffffff; padding: 4px 8px; border-radius: 4px; margin-bottom: 8px; display: inline-block; }
+    .stat-box { background: #f0f4f8; border: 1px solid #000080; border-radius: 6px; padding: 8px 12px; display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 14px; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- 1. ЭКРАН ВХОДА -->
+  <div id="auth-screen">
+    <div class="login-card">
+      <div class="login-header">
+        <div class="icon-badge">⚗️</div>
+        <h2>Кабинет Репетитора</h2>
+        <p>Авторизуйтесь для доступа к расписанию</p>
+      </div>
+      <form id="loginForm">
+        <div class="input-wrapper">
+          <label>Email / Логин</label>
+          <input type="email" id="loginEmail" placeholder="teacher@example.com" required>
+        </div>
+        <div class="input-wrapper">
+          <label>Пароль</label>
+          <input type="password" id="loginPassword" placeholder="••••••••" required>
+        </div>
+        <button type="submit" class="btn-submit">Войти в кабинет 🚀</button>
+        <div class="error-msg" id="loginError">Неверный логин или пароль!</div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 2. ОСНОВНОЙ ИНТЕРФЕЙС ПРИЛОЖЕНИЯ -->
+  <div id="app-screen">
+    <header>
+      <div>
+        <h1>⚗️ Кабинет Репетитора по Химии</h1>
+        <p>Управление расписанием и детальная аналитика успеваемости</p>
+      </div>
+      <button class="btn-logout" id="logoutBtn">Выйти 🚪</button>
+    </header>
+
+    <div class="grid-2">
+      <!-- БЛОК 1: НАЗНАЧЕНИЕ ЗАНЯТИЯ -->
+      <div class="card">
+        <h3>📅 1. Запланировать урок</h3>
+        <form id="studentForm">
+          <div class="form-group">
+            <label>Имя ученика</label>
+            <input type="text" id="addStudentName" placeholder="Например: Иван Иванов" required>
+          </div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Дата и время</label>
+              <input type="datetime-local" id="nextLessonDate" required>
+            </div>
+            <div class="form-group">
+              <label>Повтор</label>
+              <select id="repeatInterval">
+                <option value="7">Каждую неделю</option>
+                <option value="14">Каждые 2 недели</option>
+                <option value="0">Разовое занятие</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Домашнее задание на этот урок (запятые или новая строка)</label>
+            <textarea id="addAssignedHw" rows="2" placeholder="Например: Параграф 5, Задача №12, Уравнение 3"></textarea>
+          </div>
+          <button type="submit" class="btn-primary" style="width: 100%; margin-top:5px;">Записать в расписание</button>
+        </form>
+      </div>
+
+      <!-- БЛОК 2: ГЕНЕРАТОР ОТЧЕТА ЗА ПЕРИОД -->
+      <div class="card">
+        <h3>📊 2. Отчёт успеваемости за период</h3>
+        <form id="periodReportForm">
+          <div class="form-group">
+            <label>Выберите ученика</label>
+            <select id="reportStudentSelect" required>
+              <option value="">-- Выберите из списка --</option>
+            </select>
+          </div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Дата С</label>
+              <input type="date" id="reportDateFrom" required>
+            </div>
+            <div class="form-group">
+              <label>Дата ПО</label>
+              <input type="date" id="reportDateTo" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Комментарий преподавателя за период</label>
+            <textarea id="reportTeacherComment" rows="2" placeholder="Заметки о прогрессе ученика..."></textarea>
+          </div>
+          <button type="button" class="btn-primary" style="width: 100%; background: #059669;" onclick="generatePeriodReport()">Сформировать отчёт</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- БЛОК 3: БЛИЖАЙШИЕ ЗАНЯТИЯ -->
+    <div class="card">
+      <h3>📌 Ближайшие запланированные занятия</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Дата и время</th>
+            <th>Ученик</th>
+            <th>Повтор</th>
+            <th>Заданное ДЗ</th>
+            <th>Действие</th>
+          </tr>
+        </thead>
+        <tbody id="upcomingTable"></tbody>
+      </table>
+    </div>
+
+    <!-- БЛОК 4: ИСТОРИЯ УРОКОВ -->
+    <div class="card">
+      <h3>📜 История проведённых уроков</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Дата</th>
+            <th>Ученик</th>
+            <th>Тема</th>
+            <th>Оценки (Опр/Ур)</th>
+            <th>ДЗ (Сдано)</th>
+            <th>Отчёты</th>
+          </tr>
+        </thead>
+        <tbody id="historyTable"></tbody>
+      </table>
+    </div>
+
+    <!-- МОДАЛЬНОЕ ОКНО ПРОВЕДЕНИЯ УРОКА -->
+    <div class="modal" id="completeModal">
+      <div class="modal-content">
+        <h3 style="color:#000080; margin-bottom:15px;">Проведение урока: <span id="mStudentName"></span></h3>
+        <form id="completeLessonForm">
+          <input type="hidden" id="mScheduleId">
+          <input type="hidden" id="mStudent">
+          <input type="hidden" id="mDate">
+          <input type="hidden" id="mRepeat">
+
+          <div style="display:flex; flex-direction:column; gap:10px;">
+            <div class="form-group">
+              <label>Тема прошедшего урока</label>
+              <input type="text" id="mTopic" placeholder="Тема сегодняшнего занятия" required>
+            </div>
+
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Результат опроса</label>
+                <input type="text" id="mPollGrade" placeholder="Отлично / 5 / Без ошибок">
+              </div>
+              <div class="form-group">
+                <label>Работа на уроке</label>
+                <input type="text" id="mLessonGrade" placeholder="Активно решал(а) задачи">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label style="font-weight:bold; color:#000080;">Контроль выполнения ДЗ (заполняется автоматически):</label>
+              <div class="hw-list" id="modalHwList"></div>
+            </div>
+
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Итоговая оценка за урок</label>
+                <input type="text" id="mTotalGrade" placeholder="5" style="font-weight:bold; text-align:center;">
+              </div>
+              <div class="form-group">
+                <label>Статус оплаты</label>
+                <select id="mPaidStatus">
+                  <option value="Оплачено">Оплачено ✅</option>
+                  <option value="Не оплачено">Долг ❌</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group" style="background: #eef2f7; padding: 10px; border-radius: 6px; border: 1px dashed #000080;">
+              <label style="color:#000080; font-weight:bold;">📝 Задать ДЗ на СЛЕДУЮЩИЙ урок:</label>
+              <textarea id="mNextHw" rows="2" placeholder="Например: Выучить параграф 6, Номера 5-10"></textarea>
+            </div>
+
+            <div class="form-group">
+              <label>Комментарий / Рекомендация родителю</label>
+              <textarea id="mComment" placeholder="Например: Внимание на невыполненные номера! Нужно доработать тему дома."></textarea>
+            </div>
+            
+            <div style="display:flex; gap:10px; margin-top:10px;">
+              <button type="submit" class="btn-primary" style="flex:1; background:#000080;">Сохранить урок и отчёт</button>
+              <button type="button" class="btn-action" style="background:#f3f4f6;" onclick="closeModal()">Отмена</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- КАРТОЧКИ ОТЧЁТОВ -->
+    <div class="report-card" id="lessonReportCard">
+      <div class="report-header">
+        <h2>Карточка отчёта родителю</h2>
+      </div>
+      <div class="report-section">
+        <p><strong>Ученик(ца):</strong> <span id="repStudent"></span></p>
+        <p><strong>Дата урока:</strong> <span id="repDate"></span></p>
+        <p><strong>Тема:</strong> <span id="repTopic"></span></p>
+      </div>
+      <div class="report-section">
+        <div class="report-section-title">1. Работа на уроке и опрос</div>
+        <p><strong>Результат опроса:</strong> <span id="repPoll"></span></p>
+        <p><strong>Работа на уроке:</strong> <span id="repWork"></span></p>
+      </div>
+      <div class="report-section">
+        <div class="report-section-title">2. Контроль выполнения ДЗ</div>
+        <div class="hw-list" id="repHwDisplay"></div>
+      </div>
+      <div class="report-section" style="border-top:2px solid #000080; padding-top:10px;">
+        <p><strong>Итоговая оценка за урок:</strong> <span id="repTotalGrade" style="font-weight:bold; font-size:18px;"></span></p>
+        <p style="margin-top:5px;"><strong>Комментарий / Рекомендация:</strong></p>
+        <p id="repComment" style="font-style:italic; background:#f0f4f8; padding:8px; border-radius:4px; margin-top:4px;"></p>
+      </div>
+      <button class="btn-action" style="width:100%; margin-top:10px;" onclick="window.print()">🖨️ Распечатать / Сохранить в PDF</button>
+    </div>
+
+    <div class="report-card" id="periodReportCard">
+      <div class="report-header">
+        <h2>Отчёт об успеваемости за период</h2>
+        <p id="pRepStudent" style="font-weight:700; font-size:16px; margin-top:4px;"></p>
+        <p id="pRepDates" style="font-size:12px; color:#6b7280;"></p>
+      </div>
+      <div class="report-section">
+        <div class="report-section-title">Сводка успеваемости</div>
+        <div class="stat-box"><span>Проведено занятий:</span><strong id="pRepLessonsCount">0</strong></div>
+        <div class="stat-box"><span>Выполнение ДЗ (% сданных пунктов):</span><strong id="pRepHwPercent">0%</strong></div>
+        <div class="stat-box"><span>Итоговые оценки за уроки:</span><strong id="pRepGradesList">-</strong></div>
+      </div>
+      <div class="report-section">
+        <div class="report-section-title">Итоговый комментарий преподавателя</div>
+        <p id="pRepComment" style="background:#f0f4f8; padding:10px; border-radius:4px; font-style:italic;"></p>
+      </div>
+      <button class="btn-action" style="width:100%; margin-top:10px;" onclick="window.print()">🖨️ Распечатать / Сохранить в PDF</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- Скрипты Firebase -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+  import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAHxz8YoyHn5QK-ekR9Q1aS9KfatAbe3Go",
+    authDomain: "tutorcabinet-8b2c6.firebaseapp.com",
+    projectId: "tutorcabinet-8b2c6",
+    storageBucket: "tutorcabinet-8b2c6.firebasestorage.app",
+    messagingSenderId: "658054043647",
+    appId: "1:658054043647:web:55fca77b1f31d8dc4679ca",
+    measurementId: "G-F8Q3530MQ5"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  const scheduleCol = collection(db, "schedule");
+  const historyCol = collection(db, "history");
+
+  let allHistory = [];
+  let upcomingMap = {};
+
+  // ПРОВЕРКА АВТОРИЗАЦИИ
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      document.getElementById('auth-screen').style.display = 'none';
+      document.getElementById('app-screen').style.display = 'block';
+      initApp();
+    } else {
+      document.getElementById('auth-screen').style.display = 'flex';
+      document.getElementById('app-screen').style.display = 'none';
+    }
+  });
+
+  // ВХОД В СИСТЕМУ
+  document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('loginEmail').value;
+    const password = document.getElementById('loginPassword').value;
+    const errorMsg = document.getElementById('loginError');
+
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      errorMsg.style.display = 'none';
+    } catch (err) {
+      errorMsg.style.display = 'block';
+    }
+  });
+
+  // ВЫХОД ИЗ СИСТЕМЫ
+  document.getElementById('logoutBtn').addEventListener('click', () => {
+    signOut(auth);
+  });
+
+  // ОСНОВНАЯ ЛОГИКА ПРИЛОЖЕНИЯ
+  function initApp() {
+    const modalHwList = document.getElementById('modalHwList');
+    modalHwList.innerHTML = '';
+    for (let i = 1; i <= 8; i++) {
+      const div = document.createElement('div');
+      div.className = 'hw-item';
+      div.innerHTML = `
+        <select class="status-select" onchange="updateRowStatus(this)">
+          <option value="none">⚪</option>
+          <option value="done">✅</option>
+          <option value="fail">❌</option>
+        </select>
+        <input type="text" class="hw-text-input" placeholder="Пункт ДЗ №${i}">
+      `;
+      modalHwList.appendChild(div);
+    }
+
+    onSnapshot(scheduleCol, (snapshot) => {
+      const tbody = document.getElementById('upcomingTable');
+      tbody.innerHTML = '';
+      upcomingMap = {};
+      snapshot.forEach(docSnap => {
+        const data = docSnap.data();
+        const id = docSnap.id;
+        upcomingMap[id] = data;
+
+        const formattedDate = new Date(data.dateTime).toLocaleString('ru-RU', { dateStyle: 'short', timeStyle: 'short' });
+        const repeatText = data.repeatDays == 7 ? 'Каждую неделю' : (data.repeatDays == 14 ? 'Каждые 2 недели' : 'Разовое');
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><strong>${formattedDate}</strong></td>
+          <td><strong>${data.studentName}</strong></td>
+          <td>${repeatText}</td>
+          <td><small>${data.assignedHw || '—'}</small></td>
+          <td>
+            <button class="btn-action" onclick="openCompleteModal('${id}')">✅ Завершить урок</button>
+            <button class="btn-action" style="color:#ef4444; background:#fee2e2;" onclick="cancelLesson('${id}')">❌</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    });
+
+    onSnapshot(historyCol, (snapshot) => {
+      const tbody = document.getElementById('historyTable');
+      tbody.innerHTML = '';
+      allHistory = [];
+      const studentsSet = new Set();
+
+      snapshot.forEach(docSnap => {
+        const data = docSnap.data();
+        data.id = docSnap.id;
+        allHistory.push(data);
+        if(data.studentName) studentsSet.add(data.studentName);
+
+        const filledHw = data.hwItems ? data.hwItems.filter(i => i.text.trim() !== '') : [];
+        const doneHw = filledHw.filter(i => i.status === 'done').length;
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${data.date}</td>
+          <td><strong>${data.studentName}</strong></td>
+          <td>${data.topic}</td>
+          <td>Опрос: ${data.pollGrade || '-'} | Оценка: ${data.totalGrade || '-'}</td>
+          <td>${filledHw.length > 0 ? `${doneHw} из ${filledHw.length}` : 'Без ДЗ'}</td>
+          <td>
+            <button class="btn-action" onclick="generateLessonReport('${data.id}')">Отчёт за урок</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      const select = document.getElementById('reportStudentSelect');
+      select.innerHTML = '<option value="">-- Выберите из списка --</option>';
+      studentsSet.forEach(student => {
+        const opt = document.createElement('option');
+        opt.value = student;
+        opt.innerText = student;
+        select.appendChild(opt);
+      });
+    });
+  }
+
+  window.updateRowStatus = (selectElement) => {
+    const row = selectElement.closest('.hw-item');
+    row.classList.remove('not-done', 'done');
+    if (selectElement.value === 'fail') row.classList.add('not-done');
+    else if (selectElement.value === 'done') row.classList.add('done');
+  };
+
+  document.getElementById('studentForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    await addDoc(scheduleCol, {
+      studentName: document.getElementById('addStudentName').value,
+      dateTime: document.getElementById('nextLessonDate').value,
+      repeatDays: parseInt(document.getElementById('repeatInterval').value),
+      assignedHw: document.getElementById('addAssignedHw').value || ''
+    });
+    e.target.reset();
+  });
+
+  window.openCompleteModal = (id) => {
+    const data = upcomingMap[id];
+    if(!data) return;
+
+    document.getElementById('mScheduleId').value = id;
+    document.getElementById('mStudent').value = data.studentName;
+    document.getElementById('mDate').value = data.dateTime;
+    document.getElementById('mRepeat').value = data.repeatDays;
+    document.getElementById('mStudentName').innerText = data.studentName;
+    document.getElementById('mNextHw').value = '';
+
+    const rows = document.querySelectorAll('#modalHwList .hw-item');
+    rows.forEach(row => {
+      row.classList.remove('done', 'not-done');
+      row.querySelector('.status-select').value = 'none';
+      row.querySelector('.hw-text-input').value = '';
+    });
+
+    if (data.assignedHw) {
+      const parts = data.assignedHw.split(/,|\n/).map(s => s.trim()).filter(s => s !== '');
+      parts.forEach((partText, idx) => {
+        if (idx < rows.length) {
+          rows[idx].querySelector('.hw-text-input').value = partText;
+        }
+      });
+    }
+
+    document.getElementById('completeModal').classList.add('active');
+  };
+
+  window.closeModal = () => {
+    document.getElementById('completeModal').classList.remove('active');
+  };
+
+  document.getElementById('completeLessonForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const schedId = document.getElementById('mScheduleId').value;
+    const student = document.getElementById('mStudent').value;
+    const dateStr = document.getElementById('mDate').value;
+    const repeatDays = parseInt(document.getElementById('mRepeat').value);
+    const nextHw = document.getElementById('mNextHw').value;
+
+    const hwItems = [];
+    document.querySelectorAll('#modalHwList .hw-item').forEach(row => {
+      const text = row.querySelector('.hw-text-input').value;
+      const status = row.querySelector('.status-select').value;
+      if (text.trim() !== '') {
+        hwItems.push({ text, status });
+      }
+    });
+
+    await addDoc(historyCol, {
+      studentName: student,
+      date: new Date(dateStr).toLocaleDateString('ru-RU'),
+      rawDate: dateStr,
+      topic: document.getElementById('mTopic').value,
+      pollGrade: document.getElementById('mPollGrade').value || '-',
+      lessonGrade: document.getElementById('mLessonGrade').value || '-',
+      totalGrade: document.getElementById('mTotalGrade').value || '-',
+      hwItems: hwItems,
+      paidStatus: document.getElementById('mPaidStatus').value,
+      comment: document.getElementById('mComment').value || ''
+    });
+
+    await deleteDoc(doc(db, "schedule", schedId));
+
+    if (repeatDays > 0) {
+      const nextDate = new Date(dateStr);
+      nextDate.setDate(nextDate.getDate() + repeatDays);
+      await addDoc(scheduleCol, {
+        studentName: student,
+        dateTime: nextDate.toISOString().slice(0, 16),
+        repeatDays: repeatDays,
+        assignedHw: nextHw
+      });
+    }
+
+    closeModal();
+    e.target.reset();
+  });
+
+  window.cancelLesson = async (id) => {
+    if(confirm("Удалить запланированное занятие?")) {
+      await deleteDoc(doc(db, "schedule", id));
+    }
+  };
+
+  window.generateLessonReport = (id) => {
+    const item = allHistory.find(l => l.id === id);
+    if(!item) return;
+
+    document.getElementById('repStudent').innerText = item.studentName;
+    document.getElementById('repDate').innerText = item.date;
+    document.getElementById('repTopic').innerText = item.topic;
+    document.getElementById('repPoll').innerText = item.pollGrade;
+    document.getElementById('repWork').innerText = item.lessonGrade;
+    document.getElementById('repTotalGrade').innerText = item.totalGrade;
+    document.getElementById('repComment').innerText = item.comment || 'Ошибок не обнаружено.';
+
+    const hwDisplay = document.getElementById('repHwDisplay');
+    hwDisplay.innerHTML = '';
+    if(item.hwItems && item.hwItems.length > 0) {
+      item.hwItems.forEach(hw => {
+        const div = document.createElement('div');
+        div.className = `hw-item ${hw.status === 'done' ? 'done' : (hw.status === 'fail' ? 'not-done' : '')}`;
+        const icon = hw.status === 'done' ? '✅' : (hw.status === 'fail' ? '❌' : '⚪');
+        div.innerHTML = `<span style="font-weight:bold;">${icon}</span> <span>${hw.text}</span>`;
+        hwDisplay.appendChild(div);
+      });
+    } else {
+      hwDisplay.innerHTML = '<span style="font-size:13px; color:#6b7280;">Домашнее задание не было заполнено.</span>';
+    }
+
+    document.getElementById('periodReportCard').classList.remove('active');
+    const card = document.getElementById('lessonReportCard');
+    card.classList.add('active');
+    card.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  window.generatePeriodReport = () => {
+    const student = document.getElementById('reportStudentSelect').value;
+    const dateFrom = document.getElementById('reportDateFrom').value;
+    const dateTo = document.getElementById('reportDateTo').value;
+    const teacherComment = document.getElementById('reportTeacherComment').value;
+
+    if(!student || !dateFrom || !dateTo) {
+      alert("Выберите ученика и укажите период.");
+      return;
+    }
+
+    const filtered = allHistory.filter(h => {
+      if(h.studentName !== student) return false;
+      const hDate = h.rawDate ? h.rawDate.slice(0,10) : '';
+      return hDate >= dateFrom && hDate <= dateTo;
+    });
+
+    if(filtered.length === 0) {
+      alert("У данного ученика нет зафиксированных уроков за этот период.");
+      return;
+    }
+
+    let totalHwCount = 0;
+    let doneHwCount = 0;
+    const gradesList = [];
+
+    filtered.forEach(h => {
+      if(h.totalGrade && h.totalGrade !== '-') gradesList.push(h.totalGrade);
+      if(h.hwItems) {
+        h.hwItems.forEach(item => {
+          totalHwCount++;
+          if(item.status === 'done') doneHwCount++;
+        });
+      }
+    });
+
+    const hwPercent = totalHwCount > 0 ? Math.round((doneHwCount / totalHwCount) * 100) : 100;
+
+    document.getElementById('pRepStudent').innerText = student;
+    document.getElementById('pRepDates').innerText = `Период: с ${dateFrom} по ${dateTo}`;
+    document.getElementById('pRepLessonsCount').innerText = filtered.length;
+    document.getElementById('pRepHwPercent').innerText = `${hwPercent}%`;
+    document.getElementById('pRepGradesList').innerText = gradesList.length > 0 ? gradesList.join(', ') : 'Не указаны';
+    document.getElementById('pRepComment').innerText = teacherComment || 'Динамика усвоения материала положительная.';
+
+    document.getElementById('lessonReportCard').classList.remove('active');
+    const card = document.getElementById('periodReportCard');
+    card.classList.add('active');
+    card.scrollIntoView({ behavior: 'smooth' });
+  };
+</script>
+
+</body>
+</html>
