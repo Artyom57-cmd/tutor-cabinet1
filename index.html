@@ -95,6 +95,14 @@
     .report-section { margin-bottom: 18px; }
     .report-section-title { font-size: 13px; font-weight: bold; text-transform: uppercase; background-color: #000080; color: #ffffff; padding: 4px 8px; border-radius: 4px; margin-bottom: 8px; display: inline-block; }
     .stat-box { background: #f0f4f8; border: 1px solid #000080; border-radius: 6px; padding: 8px 12px; display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 14px; }
+    
+    /* Стили для системы Колб */
+    .flask-badge { background: #e0e7ff; color: #4338ca; font-weight: 700; padding: 2px 8px; border-radius: 12px; font-size: 12px; display: inline-flex; align-items: center; gap: 4px; }
+    .shop-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-top: 10px; }
+    .shop-item { background: #ffffff; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+    .shop-item h5 { font-size: 14px; color: #1e1b4b; margin-bottom: 4px; }
+    .shop-item p { font-size: 11px; color: var(--text-muted); margin-bottom: 8px; }
+    .shop-price { font-weight: 800; color: #4f46e5; font-size: 13px; }
   </style>
 </head>
 <body>
@@ -130,7 +138,7 @@
     </div>
   </div>
 
-  <!-- ГОСТЕВОЙ РЕЖИМ (ДЛЯ РОДИТЕЛЕЙ) -->
+  <!-- ГОСТЕВОЙ РЕЖИМ (ДЛЯ РОДИТЕЛЕЙ И УЧЕНИКОВ) -->
   <div id="guest-screen">
     <header>
       <div>
@@ -138,6 +146,40 @@
         <p id="guestStudentTitle">Отчёт по занятиям</p>
       </div>
     </header>
+    
+    <div class="card" style="background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%); color: white;">
+      <h3 style="color: white; display: flex; justify-content: space-between; align-items: center;">
+        <span>🧪 Баланс Колб: <strong id="guestFlaskBalance">0</strong> 🧪</span>
+      </h3>
+      <p style="font-size: 13px; opacity: 0.9;">Выполняй ДЗ вовремя и будь активным, чтобы зарабатывать колбы и обменивать их на бонусы!</p>
+    </div>
+
+    <div class="card">
+      <h3>🎁 Магазин плюшек</h3>
+      <div class="shop-grid">
+        <div class="shop-item">
+          <h5>«Спасение ДЗ»</h5>
+          <p>Перенос дедлайна на 1 день</p>
+          <div class="shop-price">30 🧪</div>
+        </div>
+        <div class="shop-item">
+          <h5>Шпора по сложной теме</h5>
+          <p>Чек-лист или шпаргалка</p>
+          <div class="shop-price">50 🧪</div>
+        </div>
+        <div class="shop-item">
+          <h5>Иммунитет к ДЗ</h5>
+          <p>1 пропуск ДЗ без штрафа</p>
+          <div class="shop-price">100 🧪</div>
+        </div>
+        <div class="shop-item">
+          <h5>Секретная консультация</h5>
+          <p>Разбор вопросов (15 мин)</p>
+          <div class="shop-price">200 🧪</div>
+        </div>
+      </div>
+    </div>
+
     <div class="card">
       <h3>📈 Общая статистика</h3>
       <div id="guestStats"></div>
@@ -294,9 +336,13 @@
               <input type="text" id="cardParentContacts" placeholder="Мама Елена +7 900...">
             </div>
             <div class="form-group">
-              <label>Цель обучения</label>
-              <input type="text" id="cardGoal" placeholder="Подготовка к ОГЭ / Химия">
+              <label>Баланс Колб 🧪</label>
+              <input type="number" id="cardFlasksBalance" value="0">
             </div>
+          </div>
+          <div class="form-group">
+            <label>Цель обучения</label>
+            <input type="text" id="cardGoal" placeholder="Подготовка к ОГЭ / Химия">
           </div>
           <div class="form-group">
             <label>Заметки / Особенности</label>
@@ -380,6 +426,24 @@
                 <input type="text" id="mLessonGrade" placeholder="Активно решал(а)">
               </div>
             </div>
+            
+            <!-- БЛОК НАЧИСЛЕНИЯ/СПИСАНИЯ КОЛБ -->
+            <div class="form-group" style="background: #e0e7ff; padding: 10px; border-radius: 6px; border: 1px solid #6366f1;">
+              <label style="color:#4338ca; font-weight:bold;">🧪 Начисление / Списание Колб:</label>
+              <div style="display:flex; gap: 8px; margin-top: 4px;">
+                <input type="number" id="mFlasksChange" placeholder="0 (напр: 3, 15 или -10)" style="flex:1;">
+                <select id="mFlasksReason" style="flex:2;">
+                  <option value="ДЗ вовремя (+3)">ДЗ вовремя (+3)</option>
+                  <option value="Идеальное ДЗ (+15)">Идеальное ДЗ (+15)</option>
+                  <option value="Активность на уроке (+5)">Активность на уроке (+5)</option>
+                  <option value="Просрочка ДЗ (-10)">Просрочка ДЗ (-10)</option>
+                  <option value="Без камеры (-5)">Без камеры (-5)</option>
+                  <option value="Невыученная теория (-10)">Невыученная теория (-10)</option>
+                  <option value="Свой вариант">Свой вариант</option>
+                </select>
+              </div>
+            </div>
+
             <div class="form-group">
               <label style="font-weight:bold; color:#000080;">Контроль ДЗ:</label>
               <div class="hw-list" id="modalHwList"></div>
@@ -467,7 +531,7 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
   import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-  import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, query, where, setDoc, updateDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+  import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, query, where, setDoc, updateDoc, getDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyAHxz8YoyHn5QK-ekR9Q1aS9KfatAbe3Go",
@@ -507,20 +571,30 @@
   }
 
   async function loadGuestView(studentId) {
+    const studentDoc = await getDoc(doc(db, "students", studentId));
+    let studentName = 'Ученик';
+    let flasks = 0;
+
+    if (studentDoc.exists()) {
+      const sData = studentDoc.data();
+      studentName = sData.name || studentName;
+      flasks = sData.flasksBalance || 0;
+    }
+
+    document.getElementById('guestFlaskBalance').innerText = flasks;
+
     const historyQuery = query(collection(db, "history"), where("studentId", "==", studentId));
     const historySnap = await getDocs(historyQuery);
     
     let totalLessons = 0;
     let doneHw = 0;
     let totalHw = 0;
-    let studentName = 'Ученик';
 
     const tbody = document.getElementById('guestHistoryTable');
     tbody.innerHTML = '';
 
     historySnap.forEach(docSnap => {
       const data = docSnap.data();
-      studentName = data.studentName || studentName;
       totalLessons++;
       
       if(data.hwItems) {
@@ -728,7 +802,10 @@
       const card = document.createElement('div');
       card.className = 'student-card';
       card.innerHTML = `
-        <h4>${s.name} <small>(${s.grade || '—'})</small></h4>
+        <div style="display:flex; justify-content:space-between; align-items:start;">
+          <h4>${s.name} <small>(${s.grade || '—'})</small></h4>
+          <span class="flask-badge">🧪 ${s.flasksBalance || 0}</span>
+        </div>
         <p><strong>🎯 Цель:</strong> ${s.goal || '—'}</p>
         <p><strong>📞 Контакты:</strong> ${s.parentContacts || '—'}</p>
         <p><strong>📝 Заметки:</strong> ${s.notes || '—'}</p>
@@ -786,12 +863,14 @@
       document.getElementById('cardStudentName').value = s.name || '';
       document.getElementById('cardStudentGrade').value = s.grade || '';
       document.getElementById('cardParentContacts').value = s.parentContacts || '';
+      document.getElementById('cardFlasksBalance').value = s.flasksBalance || 0;
       document.getElementById('cardGoal').value = s.goal || '';
       document.getElementById('cardNotes').value = s.notes || '';
       currentCardTemplates = s.hwTemplates || [];
     } else {
       document.getElementById('studentCardModalTitle').innerText = 'Добавление ученика';
       document.getElementById('studentCardForm').reset();
+      document.getElementById('cardFlasksBalance').value = 0;
     }
     renderCardTemplates();
     document.getElementById('studentCardModal').classList.add('active');
@@ -835,6 +914,7 @@
       name: document.getElementById('cardStudentName').value,
       grade: document.getElementById('cardStudentGrade').value,
       parentContacts: document.getElementById('cardParentContacts').value,
+      flasksBalance: parseInt(document.getElementById('cardFlasksBalance').value) || 0,
       goal: document.getElementById('cardGoal').value,
       notes: document.getElementById('cardNotes').value,
       hwTemplates: currentCardTemplates
@@ -900,7 +980,7 @@
       await addDoc(collection(db, "students"), {
         userId: currentUserId,
         name: name,
-        grade: '', parentContacts: '', goal: '', notes: '', hwTemplates: []
+        grade: '', parentContacts: '', goal: '', notes: '', flasksBalance: 0, hwTemplates: []
       });
     }
 
@@ -944,6 +1024,16 @@
     closeEditModal();
   });
 
+  document.getElementById('mFlasksReason').addEventListener('change', (e) => {
+    const val = e.target.value;
+    const input = document.getElementById('mFlasksChange');
+    if (val.includes('+3')) input.value = 3;
+    else if (val.includes('+15')) input.value = 15;
+    else if (val.includes('+5')) input.value = 5;
+    else if (val.includes('-10')) input.value = -10;
+    else if (val.includes('-5')) input.value = -5;
+  });
+
   window.openCompleteModal = (id) => {
     const data = upcomingMap[id];
     if(!data) return;
@@ -953,6 +1043,7 @@
     document.getElementById('mDate').value = data.dateTime;
     document.getElementById('mRepeat').value = data.repeatDays;
     document.getElementById('mStudentName').innerText = data.studentName;
+    document.getElementById('mFlasksChange').value = '';
 
     const rows = document.querySelectorAll('#modalHwList .hw-item');
     rows.forEach(row => {
@@ -1040,9 +1131,18 @@
     const dateStr = document.getElementById('mDate').value;
     const repeatDays = parseInt(document.getElementById('mRepeat').value);
     const nextHw = document.getElementById('mNextHw').value;
+    const flasksChange = parseInt(document.getElementById('mFlasksChange').value) || 0;
 
     const studentObj = Object.values(studentsMap).find(s => s.name === student);
     const studentId = studentObj ? Object.keys(studentsMap).find(k => studentsMap[k] === studentObj) : '';
+
+    // Обновление баланса колб у ученика
+    if (studentId && flasksChange !== 0) {
+      const currentBalance = studentObj.flasksBalance || 0;
+      await updateDoc(doc(db, "students", studentId), {
+        flasksBalance: currentBalance + flasksChange
+      });
+    }
 
     const hwItems = [];
     document.querySelectorAll('#modalHwList .hw-item').forEach(row => {
