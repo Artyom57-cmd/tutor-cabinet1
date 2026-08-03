@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Кабинет Репетитора</title>
-  
   <style>
     :root {
       --primary: #4f46e5;
@@ -97,15 +96,13 @@
     .report-section-title { font-size: 13px; font-weight: bold; text-transform: uppercase; background-color: #000080; color: #ffffff; padding: 4px 8px; border-radius: 4px; margin-bottom: 8px; display: inline-block; }
     .stat-box { background: #f0f4f8; border: 1px solid #000080; border-radius: 6px; padding: 8px 12px; display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 14px; }
     
+    /* Стили для системы Колб */
     .flask-badge { background: #e0e7ff; color: #4338ca; font-weight: 700; padding: 2px 8px; border-radius: 12px; font-size: 12px; display: inline-flex; align-items: center; gap: 4px; }
     .shop-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-top: 10px; }
     .shop-item { background: #ffffff; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
     .shop-item h5 { font-size: 14px; color: #1e1b4b; margin-bottom: 4px; }
     .shop-item p { font-size: 11px; color: var(--text-muted); margin-bottom: 8px; }
     .shop-price { font-weight: 800; color: #4f46e5; font-size: 13px; }
-
-    .quiz-question-box { background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px; margin-bottom: 10px; }
-    .quiz-item-card { background: #ffffff; border: 1px solid var(--border-color); padding: 12px; border-radius: 8px; margin-bottom: 10px; }
   </style>
 </head>
 <body>
@@ -154,15 +151,7 @@
       <h3 style="color: white; display: flex; justify-content: space-between; align-items: center;">
         <span>🧪 Баланс Колб: <strong id="guestFlaskBalance">0</strong> 🧪</span>
       </h3>
-      <p style="font-size: 13px; opacity: 0.9;">Выполняй ДЗ вовремя и проходи тесты, чтобы зарабатывать колбы и обменивать их на бонусы!</p>
-    </div>
-
-    <!-- БЛОК ПРОХОЖДЕНИЯ ТЕСТОВ -->
-    <div class="card">
-      <h3>🧪 Доступные мини-тесты</h3>
-      <div id="guestQuizzesList">
-        <p style="font-size: 13px; color: var(--text-muted);">Загрузка тестов...</p>
-      </div>
+      <p style="font-size: 13px; opacity: 0.9;">Выполняй ДЗ вовремя и будь активным, чтобы зарабатывать колбы и обменивать их на бонусы!</p>
     </div>
 
     <div class="card">
@@ -211,7 +200,7 @@
     </div>
   </div>
 
-  <!-- ОСНОВНОЙ ИНТЕРФЕЙС РЕПЕТИТОРА -->
+  <!-- ОСНОВНОЙ ИНТЕРФЕЙС -->
   <div id="app-screen">
     <header>
       <div>
@@ -323,35 +312,6 @@
         </thead>
         <tbody id="historyTable"></tbody>
       </table>
-    </div>
-
-    <!-- КОНСТРУКТОР МИНИ-ТЕСТОВ (ПЕРЕНЕСЕН В САМЫЙ НИЗ) -->
-    <div class="card">
-      <h3>🧪 Конструктор мини-тестов по химии</h3>
-      <form id="createQuizForm">
-        <div class="form-grid">
-          <div class="form-group">
-            <label>Название теста</label>
-            <input type="text" id="quizTitle" placeholder="Напр: Оксиды и их свойства" required>
-          </div>
-          <div class="form-group">
-            <label>Назначить ученику</label>
-            <select id="quizStudentSelect">
-              <option value="all">Для всех учеников</option>
-            </select>
-          </div>
-        </div>
-
-        <div id="quizQuestionsContainer" style="margin-top:10px;"></div>
-
-        <div style="display:flex; gap:10px; margin-top:10px;">
-          <button type="button" class="btn-action" onclick="addQuestionField()">+ Добавить вопрос</button>
-          <button type="submit" class="btn-primary" style="background:#059669;">Сохранить тест 💾</button>
-        </div>
-      </form>
-
-      <h4 style="margin-top:20px; font-size:14px;">📜 Созданные тесты:</h4>
-      <div id="teacherQuizList" style="margin-top:10px;"></div>
     </div>
 
     <!-- МОДАЛЬНОЕ ОКНО СОЗДАНИЯ/РЕДАКТИРОВАНИЯ УЧЕНИКА -->
@@ -467,6 +427,7 @@
               </div>
             </div>
             
+            <!-- БЛОК НАЧИСЛЕНИЯ/СПИСАНИЯ КОЛБ -->
             <div class="form-group" style="background: #e0e7ff; padding: 10px; border-radius: 6px; border: 1px solid #6366f1;">
               <label style="color:#4338ca; font-weight:bold;">🧪 Начисление / Списание Колб:</label>
               <div style="display:flex; gap: 8px; margin-top: 4px;">
@@ -516,21 +477,6 @@
               <button type="button" class="btn-action" style="flex:2; background:#f59e0b; color:white;" onclick="saveDraft()">Сохранить черновик 📝</button>
               <button type="button" class="btn-action" style="flex:1; background:#f3f4f6;" onclick="closeModal()">Отмена</button>
             </div>
-          </div>
-        </form>
-      </div>
-    </div>
-
-    <!-- МОДАЛЬНОЕ ОКНО ПРОХОЖДЕНИЯ ТЕСТА УЧЕНИКОМ -->
-    <div class="modal" id="takeQuizModal">
-      <div class="modal-content">
-        <h3 style="color:#000080; margin-bottom:15px;" id="takeQuizTitle">Прохождение теста</h3>
-        <form id="takeQuizForm">
-          <input type="hidden" id="takeQuizId">
-          <div id="quizQuestionsSolveContainer"></div>
-          <div style="display:flex; gap:8px; margin-top:20px;">
-            <button type="submit" class="btn-primary" style="flex:2; background:#059669;">Отправить ответы 🚀</button>
-            <button type="button" class="btn-action" style="flex:1; background:#f3f4f6;" onclick="closeTakeQuizModal()">Отмена</button>
           </div>
         </form>
       </div>
@@ -607,15 +553,13 @@
   let unsubHistory = null;
   let unsubDrafts = null;
   let unsubStudents = null;
-  let unsubQuizzes = null;
-  
   let allHistory = [];
   let upcomingMap = {};
   let draftsMap = {};
   let studentsMap = {};
-  let quizzesMap = {};
   let currentCardTemplates = [];
 
+  // Проверка гостевого режима (по параметру ?guestStudentId=...)
   const urlParams = new URLSearchParams(window.location.search);
   const guestStudentId = urlParams.get('guestStudentId');
 
@@ -676,108 +620,7 @@
       <div class="stat-box"><span>Всего проведенных занятий:</span><strong>${totalLessons}</strong></div>
       <div class="stat-box"><span>Процент выполнения ДЗ:</span><strong>${hwPercent}%</strong></div>
     `;
-
-    const qQuizzes = query(collection(db, "quizzes"));
-    const quizSnap = await getDocs(qQuizzes);
-    const guestQuizzesDiv = document.getElementById('guestQuizzesList');
-    guestQuizzesDiv.innerHTML = '';
-
-    let hasQuizzes = false;
-    quizSnap.forEach(qDoc => {
-      const qData = qDoc.data();
-      if (qData.studentId === 'all' || qData.studentId === studentId) {
-        hasQuizzes = true;
-        const qCard = document.createElement('div');
-        qCard.className = 'quiz-item-card';
-        qCard.innerHTML = `
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <div>
-              <strong>🧪 ${qData.title}</strong>
-              <div style="font-size:12px; color:var(--text-muted);">${qData.questions ? qData.questions.length : 0} вопросов | Бонус: +10 🧪</div>
-            </div>
-            <button class="btn-primary" style="background:#059669;" onclick="startGuestQuiz('${qDoc.id}')">Пройти тест 🚀</button>
-          </div>
-        `;
-        guestQuizzesDiv.appendChild(qCard);
-      }
-    });
-
-    if (!hasQuizzes) {
-      guestQuizzesDiv.innerHTML = '<p style="font-size:13px; color:var(--text-muted);">Активных тестов пока нет.</p>';
-    }
   }
-
-  window.startGuestQuiz = async (quizId) => {
-    const qDoc = await getDoc(doc(db, "quizzes", quizId));
-    if (!qDoc.exists()) return;
-    const quiz = qDoc.data();
-
-    document.getElementById('takeQuizTitle').innerText = `Тест: ${quiz.title}`;
-    document.getElementById('takeQuizId').value = quizId;
-
-    const container = document.getElementById('quizQuestionsSolveContainer');
-    container.innerHTML = '';
-
-    quiz.questions.forEach((q, qIdx) => {
-      const div = document.createElement('div');
-      div.className = 'quiz-question-box';
-      
-      let optionsHtml = '';
-      q.options.forEach((opt, optIdx) => {
-        optionsHtml += `
-          <label style="display:block; margin-top:4px; font-weight:normal; font-size:13px; cursor:pointer;">
-            <input type="radio" name="q_${qIdx}" value="${optIdx}" required> ${opt}
-          </label>
-        `;
-      });
-
-      div.innerHTML = `
-        <p style="font-size:14px; font-weight:bold;">${qIdx + 1}. ${q.question}</p>
-        ${optionsHtml}
-      `;
-      container.appendChild(div);
-    });
-
-    document.getElementById('takeQuizModal').classList.add('active');
-  };
-
-  window.closeTakeQuizModal = () => document.getElementById('takeQuizModal').classList.remove('active');
-
-  document.getElementById('takeQuizForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const quizId = document.getElementById('takeQuizId').value;
-    const qDoc = await getDoc(doc(db, "quizzes", quizId));
-    if (!qDoc.exists()) return;
-    const quiz = qDoc.data();
-
-    let correctCount = 0;
-    quiz.questions.forEach((q, qIdx) => {
-      const selected = document.querySelector(`input[name="q_${qIdx}"]:checked`);
-      if (selected && parseInt(selected.value) === q.correct) {
-        correctCount++;
-      }
-    });
-
-    const totalQuestions = quiz.questions.length;
-    const percent = Math.round((correctCount / totalQuestions) * 100);
-    let earnedFlasks = 0;
-
-    if (percent >= 80) earnedFlasks = 10;
-    else if (percent >= 50) earnedFlasks = 5;
-
-    if (guestStudentId && earnedFlasks > 0) {
-      const sRef = doc(db, "students", guestStudentId);
-      const sDoc = await getDoc(sRef);
-      if (sDoc.exists()) {
-        const curBal = sDoc.data().flasksBalance || 0;
-        await updateDoc(sRef, { flasksBalance: curBal + earnedFlasks });
-      }
-    }
-
-    alert(`Тест завершен!\nПравильных ответов: ${correctCount} из ${totalQuestions} (${percent}%).\nЗаработано колб: +${earnedFlasks} 🧪`);
-    closeTakeQuizModal();
-    if (guestStudentId) loadGuestView(guestStudentId);
-  });
 
   window.switchAuthMode = (mode) => {
     authMode = mode;
@@ -813,7 +656,6 @@
       if (unsubHistory) unsubHistory();
       if (unsubDrafts) unsubDrafts();
       if (unsubStudents) unsubStudents();
-      if (unsubQuizzes) unsubQuizzes();
     }
   });
 
@@ -861,15 +703,11 @@
     const qHistory = query(collection(db, "history"), where("userId", "==", currentUserId));
     const qDrafts = query(collection(db, "drafts"), where("userId", "==", currentUserId));
     const qStudents = query(collection(db, "students"), where("userId", "==", currentUserId));
-    const qQuizzes = query(collection(db, "quizzes"), where("userId", "==", currentUserId));
 
     unsubStudents = onSnapshot(qStudents, (snapshot) => {
       studentsMap = {};
       const datalist = document.getElementById('studentsDatalist');
-      const quizStudentSel = document.getElementById('quizStudentSelect');
-      
       datalist.innerHTML = '';
-      quizStudentSel.innerHTML = '<option value="all">Для всех учеников</option>';
 
       snapshot.forEach(docSnap => {
         const data = docSnap.data();
@@ -878,11 +716,6 @@
         const opt = document.createElement('option');
         opt.value = data.name;
         datalist.appendChild(opt);
-
-        const qOpt = document.createElement('option');
-        qOpt.value = docSnap.id;
-        qOpt.innerText = data.name;
-        quizStudentSel.appendChild(qOpt);
       });
       renderStudentsCards();
       updateHwTemplatesDropdowns();
@@ -944,115 +777,7 @@
 
       renderStudentsCards();
     });
-
-    unsubQuizzes = onSnapshot(qQuizzes, (snapshot) => {
-      quizzesMap = {};
-      const teacherQuizDiv = document.getElementById('teacherQuizList');
-      teacherQuizDiv.innerHTML = '';
-
-      snapshot.forEach(docSnap => {
-        const data = docSnap.data();
-        quizzesMap[docSnap.id] = data;
-
-        const qCard = document.createElement('div');
-        qCard.className = 'quiz-item-card';
-        qCard.innerHTML = `
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <div>
-              <strong>🧪 ${data.title}</strong>
-              <div style="font-size:12px; color:var(--text-muted);">Вопросов: ${data.questions ? data.questions.length : 0}</div>
-            </div>
-            <button class="btn-action" style="color:#ef4444; background:#fee2e2;" onclick="deleteQuiz('${docSnap.id}')">Удалить ❌</button>
-          </div>
-        `;
-        teacherQuizDiv.appendChild(qCard);
-      });
-    });
-
-    if (document.querySelectorAll('#quizQuestionsContainer .quiz-question-box').length === 0) {
-      addQuestionField();
-    }
   }
-
-  window.addQuestionField = () => {
-    const container = document.getElementById('quizQuestionsContainer');
-    const qIndex = container.children.length;
-
-    const div = document.createElement('div');
-    div.className = 'quiz-question-box';
-    div.innerHTML = `
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-        <label style="font-weight:bold;">Вопрос №${qIndex + 1}</label>
-        ${qIndex > 0 ? `<button type="button" style="color:red; background:none; border:none; cursor:pointer;" onclick="this.closest('.quiz-question-box').remove()">Удалить</button>` : ''}
-      </div>
-      <input type="text" class="q-title" placeholder="Введите текст вопроса по химии..." required style="margin-bottom:8px;">
-      
-      <div class="form-grid">
-        <input type="text" class="q-opt" placeholder="Вариант 1" required>
-        <input type="text" class="q-opt" placeholder="Вариант 2" required>
-        <input type="text" class="q-opt" placeholder="Вариант 3">
-        <input type="text" class="q-opt" placeholder="Вариант 4">
-      </div>
-      
-      <div class="form-group" style="margin-top:8px;">
-        <label>Индекс правильного ответа (1, 2, 3 или 4)</label>
-        <input type="number" class="q-correct" min="1" max="4" value="1" required style="width:100px;">
-      </div>
-    `;
-    container.appendChild(div);
-  };
-
-  document.getElementById('createQuizForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const title = document.getElementById('quizTitle').value;
-    const studentId = document.getElementById('quizStudentSelect').value;
-
-    const questionBoxes = document.querySelectorAll('#quizQuestionsContainer .quiz-question-box');
-    const questions = [];
-
-    questionBoxes.forEach(box => {
-      const qTitle = box.querySelector('.q-title').value;
-      const optInputs = box.querySelectorAll('.q-opt');
-      const options = [];
-      optInputs.forEach(optInput => {
-        if (optInput.value.trim() !== '') options.push(optInput.value.trim());
-      });
-
-      const correctIndex = (parseInt(box.querySelector('.q-correct').value) || 1) - 1;
-
-      if (qTitle && options.length >= 2) {
-        questions.push({
-          question: qTitle,
-          options: options,
-          correct: correctIndex
-        });
-      }
-    });
-
-    if (questions.length === 0) {
-      alert("Добавьте хотя бы один вопрос с 2 вариантами ответов!");
-      return;
-    }
-
-    await addDoc(collection(db, "quizzes"), {
-      userId: currentUserId,
-      title: title,
-      studentId: studentId,
-      questions: questions,
-      createdAt: new Date().toISOString()
-    });
-
-    alert("Мини-тест успешно сохранён!");
-    e.target.reset();
-    document.getElementById('quizQuestionsContainer').innerHTML = '';
-    addQuestionField();
-  });
-
-  window.deleteQuiz = async (quizId) => {
-    if (confirm("Удалить этот тест?")) {
-      await deleteDoc(doc(db, "quizzes", quizId));
-    }
-  };
 
   function renderStudentsCards() {
     const container = document.getElementById('studentsCardList');
@@ -1249,6 +974,7 @@
     e.preventDefault();
     const name = document.getElementById('addStudentName').value;
     
+    // Автосоздание ученика в картотеке, если его ещё нет
     const existingStudentId = Object.keys(studentsMap).find(sId => studentsMap[sId].name.toLowerCase() === name.toLowerCase());
     if (!existingStudentId) {
       await addDoc(collection(db, "students"), {
@@ -1410,6 +1136,7 @@
     const studentObj = Object.values(studentsMap).find(s => s.name === student);
     const studentId = studentObj ? Object.keys(studentsMap).find(k => studentsMap[k] === studentObj) : '';
 
+    // Обновление баланса колб у ученика
     if (studentId && flasksChange !== 0) {
       const currentBalance = studentObj.flasksBalance || 0;
       await updateDoc(doc(db, "students", studentId), {
@@ -1505,7 +1232,7 @@
   window.generatePeriodReport = () => {
     const student = document.getElementById('reportStudentSelect').value;
     const dateFrom = document.getElementById('reportDateFrom').value;
-    const dateTo = document.getElementById('reportDateTo'.value);
+    const dateTo = document.getElementById('reportDateTo').value;
     const teacherComment = document.getElementById('reportTeacherComment').value;
 
     if(!student || !dateFrom || !dateTo) {
