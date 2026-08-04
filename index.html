@@ -381,7 +381,7 @@
       </div>
     </div>
 
-    <!-- МОДАЛЬНОЕ ОКНО РЕДАКТИРОВАНИЯ УРОКА -->
+    <!-- МОДАЛЬНОЕ ОКНО РЕДАКТИРОВАНИЯ ЗАПЛАНИРОВАННОГО УРОКА -->
     <div class="modal" id="editModal">
       <div class="modal-content">
         <h3 style="color:#000080; margin-bottom:15px;">✏️ Редактирование запланированного урока</h3>
@@ -496,6 +496,79 @@
               <button type="submit" class="btn-primary" style="flex:2; background:#000080;">Завершить урок ✅</button>
               <button type="button" class="btn-action" style="flex:2; background:#f59e0b; color:white;" onclick="saveDraft()">Сохранить черновик 📝</button>
               <button type="button" class="btn-action" style="flex:1; background:#f3f4f6;" onclick="closeModal()">Отмена</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- МОДАЛЬНОЕ ОКНО РЕДАКТИРОВАНИЯ ЗАКРЫТОГО/ПРОВЕДЕННОГО УРОКА -->
+    <div class="modal" id="editHistoryModal">
+      <div class="modal-content">
+        <h3 style="color:#000080; margin-bottom:15px;">✏️ Редактирование проведённого урока</h3>
+        <form id="editHistoryForm">
+          <input type="hidden" id="ehHistoryId">
+          <input type="hidden" id="ehStudentId">
+          
+          <div style="display:flex; flex-direction:column; gap:10px;">
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Ученик</label>
+                <input type="text" id="ehStudentName" disabled style="background:#e5e7eb;">
+              </div>
+              <div class="form-group">
+                <label>Дата проведения</label>
+                <input type="text" id="ehDate" required>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Тема урока</label>
+              <input type="text" id="ehTopic" placeholder="Тема занятия">
+            </div>
+
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Результат опроса</label>
+                <input type="text" id="ehPollGrade" placeholder="5 / Без ошибок">
+              </div>
+              <div class="form-group">
+                <label>Работа на уроке</label>
+                <input type="text" id="ehLessonGrade" placeholder="Активно решал(а)">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label style="font-weight:bold; color:#000080;">Контроль ДЗ:</label>
+              <div class="hw-list" id="editHistoryHwList"></div>
+            </div>
+
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Оценка за ДЗ</label>
+                <input type="text" id="ehHwGrade" placeholder="5 / Выполнено" style="font-weight:bold; text-align:center;">
+              </div>
+              <div class="form-group">
+                <label>Итоговая оценка</label>
+                <input type="text" id="ehTotalGrade" placeholder="5" style="font-weight:bold; text-align:center;">
+              </div>
+              <div class="form-group">
+                <label>Оплата</label>
+                <select id="ehPaidStatus">
+                  <option value="Оплачено">Оплачено ✅</option>
+                  <option value="Не оплачено">Долг ❌</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Комментарий родителю</label>
+              <textarea id="ehComment" rows="2" placeholder="Заметки по уроку..."></textarea>
+            </div>
+
+            <div style="display:flex; gap:8px; margin-top:10px;">
+              <button type="submit" class="btn-primary" style="flex:2; background:#000080;">Сохранить изменения 💾</button>
+              <button type="button" class="btn-action" style="flex:1; background:#f3f4f6;" onclick="closeEditHistoryModal()">Отмена</button>
             </div>
           </div>
         </form>
@@ -887,6 +960,22 @@
       modalHwList.appendChild(div);
     }
 
+    const editHistoryHwList = document.getElementById('editHistoryHwList');
+    editHistoryHwList.innerHTML = '';
+    for (let i = 1; i <= 8; i++) {
+      const div = document.createElement('div');
+      div.className = 'hw-item';
+      div.innerHTML = `
+        <select class="status-select" onchange="window.updateRowStatus(this)">
+          <option value="none">⚪</option>
+          <option value="done">✅</option>
+          <option value="fail">❌</option>
+        </select>
+        <input type="text" class="hw-text-input" placeholder="Пункт ДЗ №${i}">
+      `;
+      editHistoryHwList.appendChild(div);
+    }
+
     const qSchedule = query(collection(db, "schedule"), where("userId", "==", currentUserId));
     const qHistory = query(collection(db, "history"), where("userId", "==", currentUserId));
     const qDrafts = query(collection(db, "drafts"), where("userId", "==", currentUserId));
@@ -950,6 +1039,7 @@
           <td>
             <div style="display:flex; gap:5px; flex-wrap:wrap;">
               <button class="btn-action" onclick="generateLessonReport('${data.id}')">Отчёт</button>
+              <button class="btn-action" style="background:#fef3c7; color:#d97706;" onclick="openEditHistoryModal('${data.id}')">✏️ Edit</button>
               <button class="btn-action" style="color:#ef4444; background:#fee2e2;" onclick="deleteHistoryLesson('${data.id}')">🗑️</button>
             </div>
           </td>
@@ -1041,6 +1131,78 @@
       }
     }
   };
+
+  // ФУНКЦИИ РЕДАКТИРОВАНИЯ ЗАКРЫТОГО УРОКА ИЗ ИСТОРИИ
+  window.openEditHistoryModal = (id) => {
+    const item = allHistory.find(l => l.id === id);
+    if (!item) return;
+
+    document.getElementById('ehHistoryId').value = item.id;
+    document.getElementById('ehStudentId').value = item.studentId || '';
+    document.getElementById('ehStudentName').value = item.studentName || '';
+    document.getElementById('ehDate').value = item.date || '';
+    document.getElementById('ehTopic').value = item.topic || '';
+    document.getElementById('ehPollGrade').value = item.pollGrade || '';
+    document.getElementById('ehLessonGrade').value = item.lessonGrade || '';
+    document.getElementById('ehHwGrade').value = item.hwGrade || '';
+    document.getElementById('ehTotalGrade').value = item.totalGrade || '';
+    document.getElementById('ehPaidStatus').value = item.paidStatus || 'Оплачено';
+    document.getElementById('ehComment').value = item.comment || '';
+
+    const rows = document.querySelectorAll('#editHistoryHwList .hw-item');
+    rows.forEach(row => {
+      row.classList.remove('done', 'not-done');
+      row.querySelector('.status-select').value = 'none';
+      row.querySelector('.hw-text-input').value = '';
+    });
+
+    if (item.hwItems && item.hwItems.length > 0) {
+      item.hwItems.forEach((hw, idx) => {
+        if (idx < rows.length) {
+          rows[idx].querySelector('.hw-text-input').value = hw.text;
+          rows[idx].querySelector('.status-select').value = hw.status;
+          window.updateRowStatus(rows[idx].querySelector('.status-select'));
+        }
+      });
+    }
+
+    document.getElementById('editHistoryModal').classList.add('active');
+  };
+
+  window.closeEditHistoryModal = () => document.getElementById('editHistoryModal').classList.remove('active');
+
+  document.getElementById('editHistoryForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const historyId = document.getElementById('ehHistoryId').value;
+    if (!historyId) return;
+
+    const hwItems = [];
+    document.querySelectorAll('#editHistoryHwList .hw-item').forEach(row => {
+      const text = row.querySelector('.hw-text-input').value;
+      const status = row.querySelector('.status-select').value;
+      if (text.trim() !== '') hwItems.push({ text, status });
+    });
+
+    try {
+      await updateDoc(doc(db, "history", historyId), {
+        date: document.getElementById('ehDate').value,
+        topic: document.getElementById('ehTopic').value,
+        pollGrade: document.getElementById('ehPollGrade').value,
+        lessonGrade: document.getElementById('ehLessonGrade').value,
+        hwGrade: document.getElementById('ehHwGrade').value,
+        totalGrade: document.getElementById('ehTotalGrade').value,
+        paidStatus: document.getElementById('ehPaidStatus').value,
+        comment: document.getElementById('ehComment').value,
+        hwItems: hwItems
+      });
+
+      alert("Запись о проведённом уроке успешно обновлена! 💾");
+      closeEditHistoryModal();
+    } catch (err) {
+      alert("Ошибка при сохранении отредактированного урока: " + err.message);
+    }
+  });
 
   function updateHwTemplatesDropdowns() {
     const planSelect = document.getElementById('planHwTemplateSelect');
