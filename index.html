@@ -646,55 +646,59 @@
   }
 
   async function loadGuestView(studentId) {
-    const studentDoc = await getDoc(doc(db, "students", studentId));
-    let studentName = 'Ученик';
-    let flasks = 0;
+    try {
+      const studentDoc = await getDoc(doc(db, "students", studentId));
+      let studentName = 'Ученик';
+      let flasks = 0;
 
-    if (studentDoc.exists()) {
-      const sData = studentDoc.data();
-      studentName = sData.name || studentName;
-      flasks = sData.flasksBalance || 0;
-    }
-
-    document.getElementById('guestFlaskBalance').innerText = flasks;
-
-    const historyQuery = query(collection(db, "history"), where("studentId", "==", studentId));
-    const historySnap = await getDocs(historyQuery);
-    
-    let totalLessons = 0;
-    let doneHw = 0;
-    let totalHw = 0;
-
-    const tbody = document.getElementById('guestHistoryTable');
-    tbody.innerHTML = '';
-
-    historySnap.forEach(docSnap => {
-      const data = docSnap.data();
-      totalLessons++;
-      
-      if(data.hwItems) {
-        data.hwItems.forEach(item => {
-          totalHw++;
-          if(item.status === 'done') doneHw++;
-        });
+      if (studentDoc.exists()) {
+        const sData = studentDoc.data();
+        studentName = sData.name || studentName;
+        flasks = sData.flasksBalance || 0;
       }
 
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${data.date}</td>
-        <td>${data.topic || '—'}</td>
-        <td>${data.totalGrade || '-'}</td>
-        <td>${data.hwItems ? data.hwItems.length : 0} пунктов</td>
-      `;
-      tbody.appendChild(tr);
-    });
+      document.getElementById('guestFlaskBalance').innerText = flasks;
 
-    const hwPercent = totalHw > 0 ? Math.round((doneHw / totalHw) * 100) : 100;
-    document.getElementById('guestStudentTitle').innerText = `Отчёт по занятиям: ${studentName}`;
-    document.getElementById('guestStats').innerHTML = `
-      <div class="stat-box"><span>Всего проведенных занятий:</span><strong>${totalLessons}</strong></div>
-      <div class="stat-box"><span>Процент выполнения ДЗ:</span><strong>${hwPercent}%</strong></div>
-    `;
+      const historyQuery = query(collection(db, "history"), where("studentId", "==", studentId));
+      const historySnap = await getDocs(historyQuery);
+      
+      let totalLessons = 0;
+      let doneHw = 0;
+      let totalHw = 0;
+
+      const tbody = document.getElementById('guestHistoryTable');
+      tbody.innerHTML = '';
+
+      historySnap.forEach(docSnap => {
+        const data = docSnap.data();
+        totalLessons++;
+        
+        if(data.hwItems) {
+          data.hwItems.forEach(item => {
+            totalHw++;
+            if(item.status === 'done') doneHw++;
+          });
+        }
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${data.date}</td>
+          <td>${data.topic || '—'}</td>
+          <td>${data.totalGrade || '-'}</td>
+          <td>${data.hwItems ? data.hwItems.length : 0} пунктов</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      const hwPercent = totalHw > 0 ? Math.round((doneHw / totalHw) * 100) : 100;
+      document.getElementById('guestStudentTitle').innerText = `Отчёт по занятиям: ${studentName}`;
+      document.getElementById('guestStats').innerHTML = `
+        <div class="stat-box"><span>Всего проведенных занятий:</span><strong>${totalLessons}</strong></div>
+        <div class="stat-box"><span>Процент выполнения ДЗ:</span><strong>${hwPercent}%</strong></div>
+      `;
+    } catch(e) {
+      console.error(e);
+    }
   }
 
   window.switchAuthMode = (mode) => {
@@ -1019,12 +1023,16 @@
       hwTemplates: currentCardTemplates
     };
 
-    if (id) {
-      await updateDoc(doc(db, "students", id), studentData);
-    } else {
-      await addDoc(collection(db, "students"), studentData);
+    try {
+      if (id) {
+        await updateDoc(doc(db, "students", id), studentData);
+      } else {
+        await addDoc(collection(db, "students"), studentData);
+      }
+      closeStudentCardModal();
+    } catch(err) {
+      alert("Ошибка при сохранении профиля ученика: " + err.message);
     }
-    closeStudentCardModal();
   });
 
   function renderScheduleTable() {
@@ -1073,23 +1081,27 @@
     e.preventDefault();
     const name = document.getElementById('addStudentName').value;
     
-    const existingStudentId = Object.keys(studentsMap).find(sId => studentsMap[sId].name.toLowerCase() === name.toLowerCase());
-    if (!existingStudentId) {
-      await addDoc(collection(db, "students"), {
-        userId: currentUserId,
-        name: name,
-        grade: '', parentContacts: '', goal: '', notes: '', flasksBalance: 0, hwTemplates: []
-      });
-    }
+    try {
+      const existingStudentId = Object.keys(studentsMap).find(sId => studentsMap[sId].name.toLowerCase() === name.toLowerCase());
+      if (!existingStudentId) {
+        await addDoc(collection(db, "students"), {
+          userId: currentUserId,
+          name: name,
+          grade: '', parentContacts: '', goal: '', notes: '', flasksBalance: 0, hwTemplates: []
+        });
+      }
 
-    await addDoc(collection(db, "schedule"), {
-      userId: currentUserId,
-      studentName: name,
-      dateTime: document.getElementById('nextLessonDate').value,
-      repeatDays: parseInt(document.getElementById('repeatInterval').value),
-      assignedHw: document.getElementById('addAssignedHw').value || ''
-    });
-    e.target.reset();
+      await addDoc(collection(db, "schedule"), {
+        userId: currentUserId,
+        studentName: name,
+        dateTime: document.getElementById('nextLessonDate').value,
+        repeatDays: parseInt(document.getElementById('repeatInterval').value),
+        assignedHw: document.getElementById('addAssignedHw').value || ''
+      });
+      e.target.reset();
+    } catch(err) {
+      alert("Ошибка сохранения записи: " + err.message);
+    }
   });
 
   window.openEditModal = (id) => {
@@ -1112,14 +1124,18 @@
     const id = document.getElementById('editScheduleId').value;
     if (!id) return;
 
-    await updateDoc(doc(db, "schedule", id), {
-      studentName: document.getElementById('editStudentName').value,
-      dateTime: document.getElementById('editLessonDate').value,
-      repeatDays: parseInt(document.getElementById('editRepeatInterval').value),
-      assignedHw: document.getElementById('editAssignedHw').value
-    });
+    try {
+      await updateDoc(doc(db, "schedule", id), {
+        studentName: document.getElementById('editStudentName').value,
+        dateTime: document.getElementById('editLessonDate').value,
+        repeatDays: parseInt(document.getElementById('editRepeatInterval').value),
+        assignedHw: document.getElementById('editAssignedHw').value
+      });
 
-    closeEditModal();
+      closeEditModal();
+    } catch (err) {
+      alert("Ошибка при обновлении урока: " + err.message);
+    }
   });
 
   document.getElementById('mFlasksReason').addEventListener('change', (e) => {
@@ -1204,21 +1220,25 @@
       if (text.trim() !== '') hwItems.push({ text, status });
     });
 
-    await setDoc(doc(db, "drafts", schedId), {
-      userId: currentUserId,
-      topic: document.getElementById('mTopic').value,
-      pollGrade: document.getElementById('mPollGrade').value,
-      lessonGrade: document.getElementById('mLessonGrade').value,
-      totalGrade: document.getElementById('mTotalGrade').value,
-      paidStatus: document.getElementById('mPaidStatus').value,
-      nextHw: document.getElementById('mNextHw').value,
-      comment: document.getElementById('mComment').value,
-      hwItems: hwItems,
-      updatedAt: new Date().toISOString()
-    });
+    try {
+      await setDoc(doc(db, "drafts", schedId), {
+        userId: currentUserId,
+        topic: document.getElementById('mTopic').value,
+        pollGrade: document.getElementById('mPollGrade').value,
+        lessonGrade: document.getElementById('mLessonGrade').value,
+        totalGrade: document.getElementById('mTotalGrade').value,
+        paidStatus: document.getElementById('mPaidStatus').value,
+        nextHw: document.getElementById('mNextHw').value,
+        comment: document.getElementById('mComment').value,
+        hwItems: hwItems,
+        updatedAt: new Date().toISOString()
+      });
 
-    alert('Черновик успешно сохранён! 📝');
-    closeModal();
+      alert('Черновик успешно сохранён! 📝');
+      closeModal();
+    } catch(err) {
+      alert('Ошибка при сохранении черновика: ' + err.message);
+    }
   };
 
   document.getElementById('completeLessonForm').addEventListener('submit', async (e) => {
@@ -1231,68 +1251,76 @@
     const nextHw = document.getElementById('mNextHw').value;
     const flasksChange = parseInt(document.getElementById('mFlasksChange').value) || 0;
 
-    const studentObj = Object.values(studentsMap).find(s => s.name === student);
-    const studentId = studentObj ? Object.keys(studentsMap).find(k => studentsMap[k] === studentObj) : '';
+    try {
+      const studentObj = Object.values(studentsMap).find(s => s.name === student);
+      const studentId = studentObj ? Object.keys(studentsMap).find(k => studentsMap[k] === studentObj) : '';
 
-    if (studentId && flasksChange !== 0) {
-      const currentBalance = studentObj.flasksBalance || 0;
-      await updateDoc(doc(db, "students", studentId), {
-        flasksBalance: currentBalance + flasksChange
+      if (studentId && flasksChange !== 0) {
+        const currentBalance = studentObj.flasksBalance || 0;
+        await updateDoc(doc(db, "students", studentId), {
+          flasksBalance: currentBalance + flasksChange
+        });
+      }
+
+      const hwItems = [];
+      document.querySelectorAll('#modalHwList .hw-item').forEach(row => {
+        const text = row.querySelector('.hw-text-input').value;
+        const status = row.querySelector('.status-select').value;
+        if (text.trim() !== '') hwItems.push({ text, status });
       });
-    }
 
-    const hwItems = [];
-    document.querySelectorAll('#modalHwList .hw-item').forEach(row => {
-      const text = row.querySelector('.hw-text-input').value;
-      const status = row.querySelector('.status-select').value;
-      if (text.trim() !== '') hwItems.push({ text, status });
-    });
+      const parsedDate = dateStr ? new Date(dateStr) : new Date();
+      const formattedDate = isNaN(parsedDate) ? new Date().toLocaleDateString('ru-RU') : parsedDate.toLocaleDateString('ru-RU');
 
-    const parsedDate = dateStr ? new Date(dateStr) : new Date();
-    const formattedDate = isNaN(parsedDate) ? new Date().toLocaleDateString('ru-RU') : parsedDate.toLocaleDateString('ru-RU');
-
-    await addDoc(collection(db, "history"), {
-      userId: currentUserId,
-      studentName: student,
-      studentId: studentId,
-      date: formattedDate,
-      rawDate: dateStr || new Date().toISOString(),
-      topic: document.getElementById('mTopic').value || 'Урок проведен',
-      pollGrade: document.getElementById('mPollGrade').value || '-',
-      lessonGrade: document.getElementById('mLessonGrade').value || '-',
-      totalGrade: document.getElementById('mTotalGrade').value || '-',
-      hwItems: hwItems,
-      paidStatus: document.getElementById('mPaidStatus').value,
-      comment: document.getElementById('mComment').value || ''
-    });
-
-    await deleteDoc(doc(db, "schedule", schedId));
-    
-    if(draftsMap[schedId]) {
-      await deleteDoc(doc(db, "drafts", schedId));
-    }
-
-    if (repeatDays > 0 && !isNaN(parsedDate)) {
-      const nextDate = new Date(parsedDate);
-      nextDate.setDate(nextDate.getDate() + repeatDays);
-      await addDoc(collection(db, "schedule"), {
+      await addDoc(collection(db, "history"), {
         userId: currentUserId,
         studentName: student,
-        dateTime: nextDate.toISOString().slice(0, 16),
-        repeatDays: repeatDays,
-        assignedHw: nextHw
+        studentId: studentId,
+        date: formattedDate,
+        rawDate: dateStr || new Date().toISOString(),
+        topic: document.getElementById('mTopic').value || 'Урок проведен',
+        pollGrade: document.getElementById('mPollGrade').value || '-',
+        lessonGrade: document.getElementById('mLessonGrade').value || '-',
+        totalGrade: document.getElementById('mTotalGrade').value || '-',
+        hwItems: hwItems,
+        paidStatus: document.getElementById('mPaidStatus').value,
+        comment: document.getElementById('mComment').value || ''
       });
-    }
 
-    closeModal();
-    e.target.reset();
+      await deleteDoc(doc(db, "schedule", schedId));
+      
+      if(draftsMap[schedId]) {
+        await deleteDoc(doc(db, "drafts", schedId));
+      }
+
+      if (repeatDays > 0 && !isNaN(parsedDate)) {
+        const nextDate = new Date(parsedDate);
+        nextDate.setDate(nextDate.getDate() + repeatDays);
+        await addDoc(collection(db, "schedule"), {
+          userId: currentUserId,
+          studentName: student,
+          dateTime: nextDate.toISOString().slice(0, 16),
+          repeatDays: repeatDays,
+          assignedHw: nextHw
+        });
+      }
+
+      closeModal();
+      e.target.reset();
+    } catch(err) {
+      alert("Ошибка завершения урока: " + err.message);
+    }
   });
 
   window.cancelLesson = async (id) => {
     if(confirm("Удалить запланированное занятие?")) {
-      await deleteDoc(doc(db, "schedule", id));
-      if(draftsMap[id]) {
-        await deleteDoc(doc(db, "drafts", id));
+      try {
+        await deleteDoc(doc(db, "schedule", id));
+        if(draftsMap[id]) {
+          await deleteDoc(doc(db, "drafts", id));
+        }
+      } catch(err) {
+        alert("Ошибка при удалении: " + err.message);
       }
     }
   };
