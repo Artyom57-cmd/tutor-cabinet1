@@ -340,13 +340,19 @@
               <input type="text" id="cardParentContacts" placeholder="Мама Елена +7 900...">
             </div>
             <div class="form-group">
+              <label>TG Chat ID Ученика</label>
+              <input type="text" id="cardTelegramChatId" placeholder="Напр: 123456789">
+            </div>
+          </div>
+          <div class="form-grid">
+            <div class="form-group">
               <label>Баланс Колб 🧪</label>
               <input type="number" id="cardFlasksBalance" value="0">
             </div>
-          </div>
-          <div class="form-group">
-            <label>Цель обучения</label>
-            <input type="text" id="cardGoal" placeholder="Подготовка к ОГЭ / Химия">
+            <div class="form-group">
+              <label>Цель обучения</label>
+              <input type="text" id="cardGoal" placeholder="Подготовка к ОГЭ / Химия">
+            </div>
           </div>
           <div class="form-group">
             <label>Заметки / Особенности</label>
@@ -561,7 +567,10 @@
   const auth = getAuth(app);
   const db = getFirestore(app);
 
+  // Токен бота для системных отчетов преподавателя
   const TELEGRAM_BOT_TOKEN = '8522803708:AAGKTIzLz0FR8g-oeBK5TMjgqTfpyCqqWsY';
+  // Токен бота для прямых сообщений ученикам
+  const STUDENT_BOT_TOKEN = '8586464666:AAGuNK-m9JNOL3Ujae0yoOFofbHpIlQ-ruQ';
 
   const telegramChatInput = document.getElementById('myTelegramChatId');
   if (localStorage.getItem('myTelegramChatId')) {
@@ -608,6 +617,44 @@
       alert('Ошибка при создании картинки отчёта: ' + err.message);
     }
   }
+
+  window.sendMessageToStudent = async (studentId) => {
+    const student = studentsMap[studentId];
+    if (!student || !student.telegramChatId) {
+      alert('У этого ученика не указан Telegram Chat ID! Заполните его в карточке ученика.');
+      return;
+    }
+
+    const input = document.getElementById(`msgInput_${studentId}`);
+    const text = input ? input.value.trim() : '';
+
+    if (!text) {
+      alert('Введите текст сообщения перед отправкой.');
+      return;
+    }
+
+    try {
+      const response = await fetch(`https://api.telegram.org/bot${STUDENT_BOT_TOKEN}/sendMessage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id: student.telegramChatId,
+          text: text,
+          parse_mode: 'HTML'
+        })
+      });
+
+      const result = await response.json();
+      if (result.ok) {
+        alert(`Сообщение успешно отправлено ученику (${student.name})! 🚀`);
+        input.value = '';
+      } else {
+        alert('Ошибка отправки в Telegram: ' + result.description);
+      }
+    } catch (err) {
+      alert('Ошибка сети или Telegram API: ' + err.message);
+    }
+  };
 
   window.sendLessonReportToTelegram = () => {
     const student = document.getElementById('repStudent').innerText;
@@ -890,10 +937,18 @@
         </div>
         <p><strong>🎯 Цель:</strong> ${s.goal || '—'}</p>
         <p><strong>📞 Контакты:</strong> ${s.parentContacts || '—'}</p>
+        <p><strong>✈️ TG Chat ID:</strong> ${s.telegramChatId || '<span style="color:#9ca3af;">Не указан</span>'}</p>
         <p><strong>📝 Заметки:</strong> ${s.notes || '—'}</p>
         <div style="background: #ffffff; border-radius: 6px; padding: 6px; margin: 8px 0; font-size: 12px; border: 1px solid #e5e7eb;">
           📊 Уроков: <strong>${totalLessons}</strong> | Выполнение ДЗ: <strong>${hwPercent}%</strong>
         </div>
+        
+        <!-- БЛОК БЫСТРОЙ ОТПРАВКИ СООБЩЕНИЯ УЧЕНИКУ -->
+        <div style="margin: 8px 0; display: flex; gap: 4px;">
+          <input type="text" id="msgInput_${sId}" placeholder="Сообщение ученику..." style="font-size: 12px; padding: 4px 8px;">
+          <button class="btn-action" style="background: #0088cc; color: white; white-space: nowrap;" onclick="sendMessageToStudent('${sId}')">💬 Отправить</button>
+        </div>
+
         <div style="display:flex; gap:5px; flex-wrap:wrap; margin-top:8px;">
           <button class="btn-action" onclick="openStudentCardModal('${sId}')">✏️ Редактировать</button>
           <button class="btn-action" style="background:#059669; color:white;" onclick="copyGuestLink('${sId}')">🔗 Ссылка</button>
@@ -966,6 +1021,7 @@
       document.getElementById('cardStudentName').value = s.name || '';
       document.getElementById('cardStudentGrade').value = s.grade || '';
       document.getElementById('cardParentContacts').value = s.parentContacts || '';
+      document.getElementById('cardTelegramChatId').value = s.telegramChatId || '';
       document.getElementById('cardFlasksBalance').value = s.flasksBalance || 0;
       document.getElementById('cardGoal').value = s.goal || '';
       document.getElementById('cardNotes').value = s.notes || '';
@@ -1017,6 +1073,7 @@
       name: document.getElementById('cardStudentName').value,
       grade: document.getElementById('cardStudentGrade').value,
       parentContacts: document.getElementById('cardParentContacts').value,
+      telegramChatId: document.getElementById('cardTelegramChatId').value.trim(),
       flasksBalance: parseInt(document.getElementById('cardFlasksBalance').value) || 0,
       goal: document.getElementById('cardGoal').value,
       notes: document.getElementById('cardNotes').value,
@@ -1087,7 +1144,7 @@
         await addDoc(collection(db, "students"), {
           userId: currentUserId,
           name: name,
-          grade: '', parentContacts: '', goal: '', notes: '', flasksBalance: 0, hwTemplates: []
+          grade: '', parentContacts: '', telegramChatId: '', goal: '', notes: '', flasksBalance: 0, hwTemplates: []
         });
       }
 
