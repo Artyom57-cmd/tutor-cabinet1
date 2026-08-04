@@ -356,7 +356,7 @@
           <div class="form-grid">
             <div class="form-group">
               <label>Токен вашего бота (@BotFather)</label>
-              <input type="text" id="setTgBotToken" placeholder="8522803708:AA...">
+              <input type="text" id="setTgBotToken" placeholder="Введите токен Вашего бота">
             </div>
             <div class="form-group">
               <label>Ваш Chat ID</label>
@@ -408,7 +408,7 @@
           </div>
           <div class="toggle-switch" style="margin-top:15px;">
             <input type="checkbox" id="onboardEconomy" checked>
-            <label for="onboardEconomy">Использовать игроку валюту и магазин?</label>
+            <label for="onboardEconomy">Использовать игровую валюту и магазин?</label>
           </div>
           <button type="submit" class="btn-primary" style="width:100%; margin-top:20px; padding:12px;">Начать работу 🚀</button>
         </form>
@@ -748,7 +748,7 @@
   let userSettings = {
     subject: "chemistry",
     tgEnabled: true,
-    tgBotToken: "8522803708:AAGKTIzLz0FR8g-oeBK5TMjgqTfpyCqqWsY",
+    tgBotToken: "",
     tgChatId: "",
     economyEnabled: true,
     currencyName: "Колбы",
@@ -756,7 +756,7 @@
   };
 
   let guestChartInstance = null;
-  let currentGuestStudentData = { name: '', teacherChatId: '' };
+  let currentGuestStudentData = { name: '', teacherChatId: '', teacherBotToken: '' };
 
   const shopItemsConfig = [
     { title: "Пропуск устного опроса", price: 10 },
@@ -801,20 +801,24 @@
         const sData = studentDoc.data();
         studentName = sData.name || studentName;
         flasks = sData.flasksBalance || 0;
-        currentGuestStudentData = {
-          name: sData.name || '',
-          parentContacts: sData.parentContacts || '',
-          teacherChatId: sData.teacherChatId || '',
-          teacherUid: sData.userId || ''
-        };
-
+        
+        let teacherBotToken = '';
         if (sData.userId) {
           const settingsDoc = await getDoc(doc(db, "users", sData.userId));
           if (settingsDoc.exists()) {
             const s = settingsDoc.data();
             applyThemeUI(s);
+            teacherBotToken = s.tgBotToken || '';
           }
         }
+
+        currentGuestStudentData = {
+          name: sData.name || '',
+          parentContacts: sData.parentContacts || '',
+          teacherChatId: sData.teacherChatId || '',
+          teacherBotToken: teacherBotToken,
+          teacherUid: sData.userId || ''
+        };
       }
 
       document.getElementById('guestFlaskBalance').innerText = flasks;
@@ -916,7 +920,7 @@
 
   window.sendReadNotification = async () => {
     const chatId = currentGuestStudentData.teacherChatId || userSettings.tgChatId;
-    const token = userSettings.tgBotToken;
+    const token = currentGuestStudentData.teacherBotToken || userSettings.tgBotToken;
     if (!chatId || !token) {
       alert('Уведомления репетитором не настроены.');
       return;
@@ -993,7 +997,7 @@
         });
 
         const result = await response.json();
-        if (result.ok) alert('Отчёт успешно отправлен вваш Telegram! ✈️');
+        if (result.ok) alert('Отчёт успешно отправлен в ваш Telegram! ✈️');
         else alert('Ошибка Telegram API: ' + result.description);
       }, 'image/png');
 
@@ -1123,7 +1127,7 @@
     const initialData = {
       subject: subKey,
       tgEnabled: true,
-      tgBotToken: "8522803708:AAGKTIzLz0FR8g-oeBK5TMjgqTfpyCqqWsY",
+      tgBotToken: "",
       tgChatId: "",
       economyEnabled: econ,
       currencyName: preset.currency,
