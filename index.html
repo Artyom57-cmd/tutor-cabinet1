@@ -561,10 +561,8 @@
   const auth = getAuth(app);
   const db = getFirestore(app);
 
-  // Настройки Telegram
   const TELEGRAM_BOT_TOKEN = '8522803708:AAGKTIzLz0FR8g-oeBK5TMjgqTfpyCqqWsY';
 
-  // Сохранение и получение Chat ID из localStorage
   const telegramChatInput = document.getElementById('myTelegramChatId');
   if (localStorage.getItem('myTelegramChatId')) {
     telegramChatInput.value = localStorage.getItem('myTelegramChatId');
@@ -573,7 +571,6 @@
     localStorage.setItem('myTelegramChatId', telegramChatInput.value.trim());
   });
 
-  // Функция создания снимка и отправки в Telegram
   async function sendElementAsPhotoToTelegram(elementId, captionText) {
     const chatId = telegramChatInput.value.trim();
     if (!chatId) {
@@ -585,7 +582,6 @@
     if (!element) return;
 
     try {
-      // Создаём скриншот элемента с высоким качеством
       const canvas = await html2canvas(element, { scale: 2 });
       
       canvas.toBlob(async (blob) => {
@@ -639,7 +635,6 @@
   let studentsMap = {};
   let currentCardTemplates = [];
 
-  // Проверка гостевого режима (по параметру ?guestStudentId=...)
   const urlParams = new URLSearchParams(window.location.search);
   const guestStudentId = urlParams.get('guestStudentId');
 
@@ -769,7 +764,7 @@
       const div = document.createElement('div');
       div.className = 'hw-item';
       div.innerHTML = `
-        <select class="status-select" onchange="updateRowStatus(this)">
+        <select class="status-select" onchange="window.updateRowStatus(this)">
           <option value="none">⚪</option>
           <option value="done">✅</option>
           <option value="fail">❌</option>
@@ -1232,7 +1227,7 @@
     const schedId = document.getElementById('mScheduleId').value;
     const student = document.getElementById('mStudent').value;
     const dateStr = document.getElementById('mDate').value;
-    const repeatDays = parseInt(document.getElementById('mRepeat').value);
+    const repeatDays = parseInt(document.getElementById('mRepeat').value) || 0;
     const nextHw = document.getElementById('mNextHw').value;
     const flasksChange = parseInt(document.getElementById('mFlasksChange').value) || 0;
 
@@ -1253,12 +1248,15 @@
       if (text.trim() !== '') hwItems.push({ text, status });
     });
 
+    const parsedDate = dateStr ? new Date(dateStr) : new Date();
+    const formattedDate = isNaN(parsedDate) ? new Date().toLocaleDateString('ru-RU') : parsedDate.toLocaleDateString('ru-RU');
+
     await addDoc(collection(db, "history"), {
       userId: currentUserId,
       studentName: student,
       studentId: studentId,
-      date: new Date(dateStr).toLocaleDateString('ru-RU'),
-      rawDate: dateStr,
+      date: formattedDate,
+      rawDate: dateStr || new Date().toISOString(),
       topic: document.getElementById('mTopic').value || 'Урок проведен',
       pollGrade: document.getElementById('mPollGrade').value || '-',
       lessonGrade: document.getElementById('mLessonGrade').value || '-',
@@ -1274,8 +1272,8 @@
       await deleteDoc(doc(db, "drafts", schedId));
     }
 
-    if (repeatDays > 0) {
-      const nextDate = new Date(dateStr);
+    if (repeatDays > 0 && !isNaN(parsedDate)) {
+      const nextDate = new Date(parsedDate);
       nextDate.setDate(nextDate.getDate() + repeatDays);
       await addDoc(collection(db, "schedule"), {
         userId: currentUserId,
