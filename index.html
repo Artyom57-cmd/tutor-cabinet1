@@ -6,6 +6,8 @@
   <title>Кабинет Репетитора</title>
   <!-- Библиотека для создания скриншотов HTML-элементов -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <!-- Библиотека для графиков и диаграмм -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     :root {
       --primary: #4f46e5;
@@ -185,6 +187,15 @@
       <h3>📈 Общая статистика</h3>
       <div id="guestStats"></div>
     </div>
+
+    <!-- ДИАГРАММА УСПЕВАЕМОСТИ -->
+    <div class="card">
+      <h3>📊 Динамика успеваемости</h3>
+      <div style="position: relative; height: 300px; width: 100%;">
+        <canvas id="guestPerformanceChart"></canvas>
+      </div>
+    </div>
+
     <div class="card">
       <h3>📜 История уроков</h3>
       <table>
@@ -192,7 +203,8 @@
           <tr>
             <th>Дата</th>
             <th>Тема</th>
-            <th>Оценка</th>
+            <th>Оценка за урок</th>
+            <th>Оценка за ДЗ</th>
             <th>ДЗ</th>
           </tr>
         </thead>
@@ -454,7 +466,11 @@
             </div>
             <div class="form-grid">
               <div class="form-group">
-                <label>Итоговая оценка</label>
+                <label>Оценка за ДЗ</label>
+                <input type="text" id="mHwGrade" placeholder="5 / Выполнено" style="font-weight:bold; text-align:center;">
+              </div>
+              <div class="form-group">
+                <label>Итоговая оценка за урок</label>
                 <input type="text" id="mTotalGrade" placeholder="5" style="font-weight:bold; text-align:center;">
               </div>
               <div class="form-group">
@@ -501,6 +517,7 @@
       </div>
       <div class="report-section">
         <div class="report-section-title">2. Контроль выполнения ДЗ</div>
+        <p style="margin-bottom:6px;"><strong>Оценка за ДЗ:</strong> <span id="repHwGrade" style="font-weight:bold;"></span></p>
         <div class="hw-list" id="repHwDisplay"></div>
       </div>
       <div class="report-section" style="border-top:2px solid #000080; padding-top:10px;">
@@ -526,6 +543,7 @@
         <div class="report-section-title">Сводка успеваемости</div>
         <div class="stat-box"><span>Проведено занятий:</span><strong id="pRepLessonsCount">0</strong></div>
         <div class="stat-box"><span>Выполнение ДЗ (% сданных пунктов):</span><strong id="pRepHwPercent">0%</strong></div>
+        <div class="stat-box"><span>Оценки за ДЗ:</span><strong id="pRepHwGradesList">-</strong></div>
         <div class="stat-box"><span>Итоговые оценки за уроки:</span><strong id="pRepGradesList">-</strong></div>
       </div>
       <div class="report-section">
@@ -562,6 +580,7 @@
   const db = getFirestore(app);
 
   const TELEGRAM_BOT_TOKEN = '8522803708:AAGKTIzLz0FR8g-oeBK5TMjgqTfpyCqqWsY';
+  let guestChartInstance = null;
 
   const telegramChatInput = document.getElementById('myTelegramChatId');
   if (localStorage.getItem('myTelegramChatId')) {
@@ -692,8 +711,19 @@
       const tbody = document.getElementById('guestHistoryTable');
       tbody.innerHTML = '';
 
+      const chartLabels = [];
+      const chartLessonGrades = [];
+      const chartHwGrades = [];
+
+      const historyList = [];
       historySnap.forEach(docSnap => {
-        const data = docSnap.data();
+        historyList.push(docSnap.data());
+      });
+
+      // Сортировка по дате для правильного отображения на графике
+      historyList.sort((a, b) => new Date(a.rawDate || a.date) - new Date(b.rawDate || b.date));
+
+      historyList.forEach(data => {
         totalLessons++;
         
         if(data.hwItems) {
@@ -708,9 +738,17 @@
           <td>${data.date}</td>
           <td>${data.topic || '—'}</td>
           <td>${data.totalGrade || '-'}</td>
+          <td>${data.hwGrade || '-'}</td>
           <td>${data.hwItems ? data.hwItems.length : 0} пунктов</td>
         `;
         tbody.appendChild(tr);
+
+        // Сбор данных для диаграммы
+        chartLabels.push(data.date);
+        const lGrade = parseFloat(data.totalGrade);
+        const hGrade = parseFloat(data.hwGrade);
+        chartLessonGrades.push(!isNaN(lGrade) ? lGrade : null);
+        chartHwGrades.push(!isNaN(hGrade) ? hGrade : null);
       });
 
       const hwPercent = totalHw > 0 ? Math.round((doneHw / totalHw) * 100) : 100;
@@ -719,9 +757,57 @@
         <div class="stat-box"><span>Всего проведенных занятий:</span><strong>${totalLessons}</strong></div>
         <div class="stat-box"><span>Процент выполнения ДЗ:</span><strong>${hwPercent}%</strong></div>
       `;
+
+      // Отрисовка диаграммы успеваемости
+      renderGuestChart(chartLabels, chartLessonGrades, chartHwGrades);
     } catch(e) {
       console.error(e);
     }
+  }
+
+  function renderGuestChart(labels, lessonGrades, hwGrades) {
+    const ctx = document.getElementById('guestPerformanceChart').getContext('2d');
+    if (guestChartInstance) {
+      guestChartInstance.destroy();
+    }
+
+    guestChartInstance = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: 'Оценка за урок',
+            data: lessonGrades,
+            borderColor: '#4f46e5',
+            backgroundColor: 'rgba(79, 70, 229, 0.1)',
+            tension: 0.3,
+            fill: true,
+            spanGaps: true
+          },
+          {
+            label: 'Оценка за ДЗ',
+            data: hwGrades,
+            borderColor: '#059669',
+            backgroundColor: 'rgba(5, 150, 105, 0.1)',
+            tension: 0.3,
+            fill: true,
+            spanGaps: true
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: {
+            min: 1,
+            max: 5,
+            ticks: { stepSize: 1 }
+          }
+        }
+      }
+    });
   }
 
   window.switchAuthMode = (mode) => {
@@ -859,7 +945,7 @@
           <td>${data.date}</td>
           <td><strong>${data.studentName}</strong></td>
           <td>${data.topic || '—'}</td>
-          <td>Опрос: ${data.pollGrade || '-'} | Оценка: ${data.totalGrade || '-'}</td>
+          <td>Опрос: ${data.pollGrade || '-'} | ДЗ: ${data.hwGrade || '-'} | Оценка: ${data.totalGrade || '-'}</td>
           <td>${filledHw.length > 0 ? `${doneHw} из ${filledHw.length}` : 'Без ДЗ'}</td>
           <td>
             <div style="display:flex; gap:5px; flex-wrap:wrap;">
@@ -894,6 +980,8 @@
       const studentHistory = allHistory.filter(h => h.studentName === s.name || h.studentId === sId);
       const totalLessons = studentHistory.length;
       let totalHw = 0, doneHw = 0;
+      let hwGradesSum = 0, hwGradesCount = 0;
+
       studentHistory.forEach(h => {
         if(h.hwItems) {
           h.hwItems.forEach(i => {
@@ -901,8 +989,15 @@
             if(i.status === 'done') doneHw++;
           });
         }
+        const parsedHwGrade = parseFloat(h.hwGrade);
+        if (!isNaN(parsedHwGrade)) {
+          hwGradesSum += parsedHwGrade;
+          hwGradesCount++;
+        }
       });
+
       const hwPercent = totalHw > 0 ? Math.round((doneHw / totalHw) * 100) : 100;
+      const avgHwGrade = hwGradesCount > 0 ? (hwGradesSum / hwGradesCount).toFixed(1) : '—';
 
       const card = document.createElement('div');
       card.className = 'student-card';
@@ -915,7 +1010,7 @@
         <p><strong>📞 Контакты:</strong> ${s.parentContacts || '—'}</p>
         <p><strong>📝 Заметки:</strong> ${s.notes || '—'}</p>
         <div style="background: #ffffff; border-radius: 6px; padding: 6px; margin: 8px 0; font-size: 12px; border: 1px solid #e5e7eb;">
-          📊 Уроков: <strong>${totalLessons}</strong> | Выполнение ДЗ: <strong>${hwPercent}%</strong>
+          📊 Уроков: <strong>${totalLessons}</strong> | Выполнение ДЗ: <strong>${hwPercent}%</strong> | Ср. оценка ДЗ: <strong>${avgHwGrade}</strong>
         </div>
         <div style="display:flex; gap:5px; flex-wrap:wrap; margin-top:8px;">
           <button class="btn-action" onclick="openStudentCardModal('${sId}')">✏️ Редактировать</button>
@@ -1194,6 +1289,7 @@
       document.getElementById('mTopic').value = draft.topic || '';
       document.getElementById('mPollGrade').value = draft.pollGrade || '';
       document.getElementById('mLessonGrade').value = draft.lessonGrade || '';
+      document.getElementById('mHwGrade').value = draft.hwGrade || '';
       document.getElementById('mTotalGrade').value = draft.totalGrade || '';
       document.getElementById('mPaidStatus').value = draft.paidStatus || 'Оплачено';
       document.getElementById('mNextHw').value = draft.nextHw || '';
@@ -1212,6 +1308,7 @@
       document.getElementById('mTopic').value = '';
       document.getElementById('mPollGrade').value = '';
       document.getElementById('mLessonGrade').value = '';
+      document.getElementById('mHwGrade').value = '';
       document.getElementById('mTotalGrade').value = '';
       document.getElementById('mPaidStatus').value = 'Оплачено';
       document.getElementById('mNextHw').value = '';
@@ -1249,6 +1346,7 @@
         topic: document.getElementById('mTopic').value,
         pollGrade: document.getElementById('mPollGrade').value,
         lessonGrade: document.getElementById('mLessonGrade').value,
+        hwGrade: document.getElementById('mHwGrade').value,
         totalGrade: document.getElementById('mTotalGrade').value,
         paidStatus: document.getElementById('mPaidStatus').value,
         nextHw: document.getElementById('mNextHw').value,
@@ -1309,6 +1407,7 @@
         topic: document.getElementById('mTopic').value || 'Урок проведен',
         pollGrade: document.getElementById('mPollGrade').value || '-',
         lessonGrade: document.getElementById('mLessonGrade').value || '-',
+        hwGrade: document.getElementById('mHwGrade').value || '-',
         totalGrade: document.getElementById('mTotalGrade').value || '-',
         hwItems: hwItems,
         paidStatus: document.getElementById('mPaidStatus').value,
@@ -1362,6 +1461,7 @@
     document.getElementById('repTopic').innerText = item.topic;
     document.getElementById('repPoll').innerText = item.pollGrade;
     document.getElementById('repWork').innerText = item.lessonGrade;
+    document.getElementById('repHwGrade').innerText = item.hwGrade || '-';
     document.getElementById('repTotalGrade').innerText = item.totalGrade;
     document.getElementById('repComment').innerText = item.comment || 'Ошибок не обнаружено.';
 
@@ -1410,9 +1510,11 @@
     let totalHwCount = 0;
     let doneHwCount = 0;
     const gradesList = [];
+    const hwGradesList = [];
 
     filtered.forEach(h => {
       if(h.totalGrade && h.totalGrade !== '-') gradesList.push(h.totalGrade);
+      if(h.hwGrade && h.hwGrade !== '-') hwGradesList.push(h.hwGrade);
       if(h.hwItems) {
         h.hwItems.forEach(item => {
           totalHwCount++;
@@ -1427,6 +1529,7 @@
     document.getElementById('pRepDates').innerText = `Период: с ${dateFrom} по ${dateTo}`;
     document.getElementById('pRepLessonsCount').innerText = filtered.length;
     document.getElementById('pRepHwPercent').innerText = `${hwPercent}%`;
+    document.getElementById('pRepHwGradesList').innerText = hwGradesList.length > 0 ? hwGradesList.join(', ') : 'Не указаны';
     document.getElementById('pRepGradesList').innerText = gradesList.length > 0 ? gradesList.join(', ') : 'Не указаны';
     document.getElementById('pRepComment').innerText = teacherComment || 'Динамика усвоения материала положительная.';
 
