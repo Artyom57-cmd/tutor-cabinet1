@@ -101,11 +101,24 @@
     .stat-box { background: #f0f4f8; border: 1px solid #000080; border-radius: 6px; padding: 8px 12px; display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 14px; }
     
     .flask-badge { background: #e0e7ff; color: #4338ca; font-weight: 700; padding: 2px 8px; border-radius: 12px; font-size: 12px; display: inline-flex; align-items: center; gap: 4px; }
-    .shop-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-top: 10px; }
-    .shop-item { background: #ffffff; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+    
+    /* Стили для магазина плюшек */
+    .shop-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 12px; margin-top: 10px; }
+    .shop-item { background: #ffffff; border: 1px solid var(--border-color); border-radius: 10px; padding: 14px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02); display: flex; flex-direction: column; justify-content: space-between; position: relative; }
+    .shop-item.affordable { border: 1.5px solid #10b981; background: #f0fdf4; }
+    .shop-item.unaffordable { opacity: 0.85; border: 1px dashed #cbd5e1; }
     .shop-item h5 { font-size: 14px; color: #1e1b4b; margin-bottom: 4px; }
-    .shop-item p { font-size: 11px; color: var(--text-muted); margin-bottom: 8px; }
-    .shop-price { font-weight: 800; color: #4f46e5; font-size: 13px; }
+    .shop-price { font-weight: 800; color: #4f46e5; font-size: 14px; margin: 6px 0; }
+    .shop-status-badge { display: inline-block; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: 700; margin-top: 6px; }
+    .status-ok { background: #d1fae5; color: #047857; }
+    .status-no { background: #fee2e2; color: #b91c1c; }
+
+    /* Стили для карточки подтверждения родителей */
+    .read-confirmation-card { text-align: center; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 12px; padding: 20px; margin-top: 25px; }
+    .btn-acknowledge { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; font-size: 16px; font-weight: 700; padding: 12px 24px; border-radius: 8px; cursor: pointer; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2); transition: all 0.2s ease; }
+    .btn-acknowledge:hover { transform: translateY(-1px); box-shadow: 0 6px 15px rgba(16, 185, 129, 0.3); }
+    .btn-acknowledge:disabled { background: #9ca3af; cursor: not-allowed; transform: none; box-shadow: none; }
+    .parent-notice { font-size: 13px; color: var(--text-muted); margin-top: 12px; font-weight: 500; }
   </style>
 </head>
 <body>
@@ -159,27 +172,8 @@
 
     <div class="card">
       <h3>🎁 Магазин плюшек</h3>
-      <div class="shop-grid">
-        <div class="shop-item">
-          <h5>«Спасение ДЗ»</h5>
-          <p>Перенос дедлайна на 1 день</p>
-          <div class="shop-price">30 🧪</div>
-        </div>
-        <div class="shop-item">
-          <h5>Шпора по сложной теме</h5>
-          <p>Чек-лист или шпаргалка</p>
-          <div class="shop-price">50 🧪</div>
-        </div>
-        <div class="shop-item">
-          <h5>Иммунитет к ДЗ</h5>
-          <p>1 пропуск ДЗ без штрафа</p>
-          <div class="shop-price">100 🧪</div>
-        </div>
-        <div class="shop-item">
-          <h5>Секретная консультация</h5>
-          <p>Разбор вопросов (15 мин)</p>
-          <div class="shop-price">200 🧪</div>
-        </div>
+      <div class="shop-grid" id="guestShopGrid">
+        <!-- Позиции динамически создаются скриптом -->
       </div>
     </div>
 
@@ -210,6 +204,12 @@
         </thead>
         <tbody id="guestHistoryTable"></tbody>
       </table>
+    </div>
+
+    <!-- БЛОК ПОДТВЕРЖДЕНИЯ ДЛЯ РОДИТЕЛЕЙ -->
+    <div class="read-confirmation-card">
+      <button class="btn-acknowledge" id="btnAcknowledge" onclick="sendReadNotification()">✅ Ознакомлен(-на)</button>
+      <p class="parent-notice">Если у Вас есть вопросы по обучению или успеваемости ученика, напишите в личные сообщения репетитору!</p>
     </div>
   </div>
 
@@ -654,6 +654,18 @@
 
   const TELEGRAM_BOT_TOKEN = '8522803708:AAGKTIzLz0FR8g-oeBK5TMjgqTfpyCqqWsY';
   let guestChartInstance = null;
+  let currentGuestStudentData = { name: '', teacherChatId: '' };
+
+  // Список позиций магазина из инфографики
+  const shopItemsConfig = [
+    { title: "Пропуск устного опроса", price: 10 },
+    { title: "Перенос ДЗ", price: 30 },
+    { title: "Шпаргалка", price: 40 },
+    { title: "Иммунитет", price: 50 },
+    { title: "Решение от шефа", price: 70 },
+    { title: "Личная консультация", price: 150 },
+    { title: "Секретный подарок от репетитора", price: 200 }
+  ];
 
   const telegramChatInput = document.getElementById('myTelegramChatId');
   if (localStorage.getItem('myTelegramChatId')) {
@@ -662,6 +674,49 @@
   telegramChatInput.addEventListener('change', () => {
     localStorage.setItem('myTelegramChatId', telegramChatInput.value.trim());
   });
+
+  // Функция отправки уведомления нажатия кнопки "Ознакомлен(-на)" родителями
+  window.sendReadNotification = async () => {
+    const chatId = currentGuestStudentData.teacherChatId || localStorage.getItem('myTelegramChatId');
+    if (!chatId) {
+      alert('Ошибка отправки: ID репетитора не найден.');
+      return;
+    }
+
+    const parentName = currentGuestStudentData.parentContacts ? ` (${currentGuestStudentData.parentContacts})` : '';
+    const studentName = currentGuestStudentData.name || 'ученика';
+    const message = `👀 Родители${parentName} ученика <b>${studentName}</b> ознакомились с дневником ученика.`;
+
+    const btn = document.getElementById('btnAcknowledge');
+    btn.disabled = true;
+    btn.innerText = 'Отправка... ⏳';
+
+    try {
+      const res = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id: chatId,
+          text: message,
+          parse_mode: 'HTML'
+        })
+      });
+
+      if (res.ok) {
+        btn.innerText = 'Отправлено ✅';
+        alert('Уведомление успешно отправлено репетитору!');
+      } else {
+        btn.disabled = false;
+        btn.innerText = '✅ Ознакомлен(-на)';
+        alert('Ошибка при отправке сообщения в Telegram.');
+      }
+    } catch (e) {
+      btn.disabled = false;
+      btn.innerText = '✅ Ознакомлен(-на)';
+      console.error('Ошибка отправки уведомления в Telegram:', e);
+      alert('Ошибка соединения с сетью.');
+    }
+  };
 
   // Функция отправки текстового сообщения в Telegram
   async function sendFlaskNotificationToTelegram(studentName, amount, reason, newBalance) {
@@ -770,9 +825,17 @@
         const sData = studentDoc.data();
         studentName = sData.name || studentName;
         flasks = sData.flasksBalance || 0;
+        currentGuestStudentData = {
+          name: sData.name || '',
+          parentContacts: sData.parentContacts || '',
+          teacherChatId: sData.teacherChatId || ''
+        };
       }
 
       document.getElementById('guestFlaskBalance').innerText = flasks;
+
+      // Отрисовка магазина товаров со статусами под счётчик пользователя
+      renderGuestShop(flasks);
 
       const historyQuery = query(collection(db, "history"), where("studentId", "==", studentId));
       const historySnap = await getDocs(historyQuery);
@@ -836,6 +899,33 @@
     } catch(e) {
       console.error(e);
     }
+  }
+
+  function renderGuestShop(currentBalance) {
+    const shopContainer = document.getElementById('guestShopGrid');
+    if (!shopContainer) return;
+    
+    shopContainer.innerHTML = '';
+    shopItemsConfig.forEach(item => {
+      const canAfford = currentBalance >= item.price;
+      const diff = item.price - currentBalance;
+      
+      const itemEl = document.createElement('div');
+      itemEl.className = `shop-item ${canAfford ? 'affordable' : 'unaffordable'}`;
+      
+      const statusBadge = canAfford 
+        ? `<span class="shop-status-badge status-ok">Доступно ✅</span>` 
+        : `<span class="shop-status-badge status-no">Не хватает ${diff} 🧪</span>`;
+
+      itemEl.innerHTML = `
+        <div>
+          <h5>${item.title}</h5>
+          <div class="shop-price">${item.price} 🧪</div>
+        </div>
+        ${statusBadge}
+      `;
+      shopContainer.appendChild(itemEl);
+    });
   }
 
   function renderGuestChart(labels, lessonGrades, hwGrades) {
@@ -1292,8 +1382,11 @@
   document.getElementById('studentCardForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const id = document.getElementById('cardStudentId').value;
+    const currentChatId = telegramChatInput ? telegramChatInput.value.trim() : '';
+
     const studentData = {
       userId: currentUserId,
+      teacherChatId: currentChatId,
       name: document.getElementById('cardStudentName').value,
       grade: document.getElementById('cardStudentGrade').value,
       parentContacts: document.getElementById('cardParentContacts').value,
@@ -1360,12 +1453,14 @@
   document.getElementById('studentForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const name = document.getElementById('addStudentName').value;
+    const currentChatId = telegramChatInput ? telegramChatInput.value.trim() : '';
     
     try {
       const existingStudentId = Object.keys(studentsMap).find(sId => studentsMap[sId].name.toLowerCase() === name.toLowerCase());
       if (!existingStudentId) {
         await addDoc(collection(db, "students"), {
           userId: currentUserId,
+          teacherChatId: currentChatId,
           name: name,
           grade: '', parentContacts: '', goal: '', notes: '', flasksBalance: 0, hwTemplates: []
         });
