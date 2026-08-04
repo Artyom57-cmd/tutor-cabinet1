@@ -123,6 +123,13 @@
 
     .toggle-switch { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; font-size: 13px; font-weight: 600; }
     .toggle-switch input { width: auto; }
+
+    /* Элементы управления магазином в настройках */
+    .shop-edit-list { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+    .shop-edit-row { display: flex; gap: 8px; align-items: center; }
+    .shop-edit-row input[type="text"] { flex: 3; }
+    .shop-edit-row input[type="number"] { flex: 1; }
+    .shop-edit-row button { background: #fee2e2; color: #dc2626; border: none; padding: 8px 10px; }
   </style>
 </head>
 <body class="theme-chemistry">
@@ -221,6 +228,7 @@
         <p id="userWelcomeText">Управление расписанием</p>
       </div>
       <div style="display:flex; align-items:center; gap:10px;">
+        <button class="btn-action economy-field" style="background:#10b981; color:white;" onclick="openSettingsModal('shopTab')">🛍️ Настроить магазин</button>
         <button class="btn-action" style="background:#e0e7ff;" onclick="openSettingsModal()">⚙️ Настройки кабинета</button>
         <button class="btn-logout" id="logoutBtn">Выйти 🚪</button>
       </div>
@@ -379,6 +387,17 @@
               <label>Эмодзи валюты</label>
               <input type="text" id="setCurrencyIcon" placeholder="🧪">
             </div>
+          </div>
+
+          <!-- РЕДАКТОР МАГАЗИНА ПЛЮШЕК -->
+          <div id="shopSettingsBlock">
+            <hr style="margin: 15px 0;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+              <h4 style="font-size: 14px;">🎁 Ассортимент и цены Магазина</h4>
+              <button type="button" class="btn-action" style="background:#e0e7ff;" onclick="resetShopItemsToDefault()">Сбросить по умолчанию</button>
+            </div>
+            <div class="shop-edit-list" id="shopEditList"></div>
+            <button type="button" class="btn-action" style="background:#059669; color:white; width:100%; margin-top:10px;" onclick="addShopEditRow()">+ Добавить позицию в магазин</button>
           </div>
 
           <div style="display:flex; gap:8px; margin-top:20px;">
@@ -745,20 +764,7 @@
     russian: { title: "Русский язык", icon: "📚", theme: "theme-russian", currency: "Буквы", currencyIcon: "📚" }
   };
 
-  let userSettings = {
-    subject: "chemistry",
-    tgEnabled: true,
-    tgBotToken: "",
-    tgChatId: "",
-    economyEnabled: true,
-    currencyName: "Колбы",
-    currencyIcon: "🧪"
-  };
-
-  let guestChartInstance = null;
-  let currentGuestStudentData = { name: '', teacherChatId: '', teacherBotToken: '' };
-
-  const shopItemsConfig = [
+  const defaultShopItems = [
     { title: "Пропуск устного опроса", price: 10 },
     { title: "Перенос ДЗ", price: 30 },
     { title: "Шпаргалка", price: 40 },
@@ -767,6 +773,20 @@
     { title: "Личная консультация", price: 150 },
     { title: "Секретный подарок от репетитора", price: 200 }
   ];
+
+  let userSettings = {
+    subject: "chemistry",
+    tgEnabled: true,
+    tgBotToken: "",
+    tgChatId: "",
+    economyEnabled: true,
+    currencyName: "Колбы",
+    currencyIcon: "🧪",
+    shopItems: defaultShopItems
+  };
+
+  let guestChartInstance = null;
+  let currentGuestStudentData = { name: '', teacherChatId: '', teacherBotToken: '' };
 
   let currentUserId = null;
   let authMode = 'login';
@@ -796,6 +816,7 @@
       const studentDoc = await getDoc(doc(db, "students", studentId));
       let studentName = 'Ученик';
       let flasks = 0;
+      let activeShopItems = defaultShopItems;
 
       if (studentDoc.exists()) {
         const sData = studentDoc.data();
@@ -809,6 +830,9 @@
             const s = settingsDoc.data();
             applyThemeUI(s);
             teacherBotToken = s.tgBotToken || '';
+            if (s.shopItems && Array.isArray(s.shopItems)) {
+              activeShopItems = s.shopItems;
+            }
           }
         }
 
@@ -822,7 +846,7 @@
       }
 
       document.getElementById('guestFlaskBalance').innerText = flasks;
-      renderGuestShop(flasks);
+      renderGuestShop(flasks, activeShopItems);
 
       const historyQuery = query(collection(db, "history"), where("studentId", "==", studentId));
       const historySnap = await getDocs(historyQuery);
@@ -874,12 +898,14 @@
     }
   }
 
-  function renderGuestShop(currentBalance) {
+  function renderGuestShop(currentBalance, shopItems) {
     const shopContainer = document.getElementById('guestShopGrid');
     if (!shopContainer) return;
     
     shopContainer.innerHTML = '';
-    shopItemsConfig.forEach(item => {
+    const itemsToRender = shopItems && shopItems.length > 0 ? shopItems : defaultShopItems;
+
+    itemsToRender.forEach(item => {
       const canAfford = currentBalance >= item.price;
       const diff = item.price - currentBalance;
       
@@ -1048,7 +1074,11 @@
       const docSnap = await getDoc(docRef);
 
       if (docSnap.exists()) {
-        userSettings = { ...userSettings, ...docSnap.data() };
+        const fetchedData = docSnap.data();
+        if (!fetchedData.shopItems) {
+          fetchedData.shopItems = defaultShopItems;
+        }
+        userSettings = { ...userSettings, ...fetchedData };
         applyThemeUI(userSettings);
       } else {
         // Онбординг нового пользователя
@@ -1092,7 +1122,9 @@
   function listenUserSettings() {
     unsubSettings = onSnapshot(doc(db, "users", currentUserId), (docSnap) => {
       if (docSnap.exists()) {
-        userSettings = { ...userSettings, ...docSnap.data() };
+        const data = docSnap.data();
+        if (!data.shopItems) data.shopItems = defaultShopItems;
+        userSettings = { ...userSettings, ...data };
         applyThemeUI(userSettings);
       }
     });
@@ -1131,7 +1163,8 @@
       tgChatId: "",
       economyEnabled: econ,
       currencyName: preset.currency,
-      currencyIcon: preset.currencyIcon
+      currencyIcon: preset.currencyIcon,
+      shopItems: defaultShopItems
     };
 
     await setDoc(doc(db, "users", currentUserId), initialData);
@@ -1139,7 +1172,7 @@
   });
 
   // НАСТРОЙКИ МОДАЛЬНОГО ОКНА
-  window.openSettingsModal = () => {
+  window.openSettingsModal = (scrollTo = null) => {
     document.getElementById('setSubject').value = userSettings.subject || 'chemistry';
     document.getElementById('setTgEnabled').checked = userSettings.tgEnabled;
     document.getElementById('setTgBotToken').value = userSettings.tgBotToken || '';
@@ -1148,7 +1181,16 @@
     document.getElementById('setCurrencyName').value = userSettings.currencyName || '';
     document.getElementById('setCurrencyIcon').value = userSettings.currencyIcon || '';
 
+    renderShopEditRows(userSettings.shopItems || defaultShopItems);
+
     document.getElementById('settingsModal').classList.add('active');
+
+    if (scrollTo === 'shopTab') {
+      setTimeout(() => {
+        const block = document.getElementById('shopSettingsBlock');
+        if (block) block.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+    }
   };
 
   window.closeSettingsModal = () => document.getElementById('settingsModal').classList.remove('active');
@@ -1161,8 +1203,58 @@
     }
   };
 
+  // ФУНКЦИИ УПРАВЛЕНИЯ РЕДАКТИРОВАНИЕМ МАГАЗИНА В НАСТРОЙКАХ
+  function renderShopEditRows(items) {
+    const list = document.getElementById('shopEditList');
+    list.innerHTML = '';
+    items.forEach((item, index) => {
+      const row = document.createElement('div');
+      row.className = 'shop-edit-row';
+      row.innerHTML = `
+        <input type="text" class="shop-item-title" value="${item.title}" placeholder="Название плюшки" required>
+        <input type="number" class="shop-item-price" value="${item.price}" placeholder="Цена" min="0" required>
+        <button type="button" onclick="removeShopEditRow(this)">🗑️</button>
+      `;
+      list.appendChild(row);
+    });
+  }
+
+  window.addShopEditRow = () => {
+    const list = document.getElementById('shopEditList');
+    const row = document.createElement('div');
+    row.className = 'shop-edit-row';
+    row.innerHTML = `
+      <input type="text" class="shop-item-title" value="" placeholder="Новая плюшка" required>
+      <input type="number" class="shop-item-price" value="50" placeholder="Цена" min="0" required>
+      <button type="button" onclick="removeShopEditRow(this)">🗑️</button>
+    `;
+    list.appendChild(row);
+  };
+
+  window.removeShopEditRow = (btn) => {
+    const row = btn.closest('.shop-edit-row');
+    if (row) row.remove();
+  };
+
+  window.resetShopItemsToDefault = () => {
+    if (confirm("Вы действительно хотите сбросить ассортимент и цены магазина к значениям по умолчанию?")) {
+      renderShopEditRows(defaultShopItems);
+    }
+  };
+
   document.getElementById('settingsForm').addEventListener('submit', async (e) => {
     e.preventDefault();
+    
+    const shopRows = document.querySelectorAll('#shopEditList .shop-edit-row');
+    const updatedShopItems = [];
+    shopRows.forEach(row => {
+      const title = row.querySelector('.shop-item-title').value.trim();
+      const price = parseInt(row.querySelector('.shop-item-price').value) || 0;
+      if (title) {
+        updatedShopItems.push({ title, price });
+      }
+    });
+
     const newData = {
       subject: document.getElementById('setSubject').value,
       tgEnabled: document.getElementById('setTgEnabled').checked,
@@ -1170,13 +1262,14 @@
       tgChatId: document.getElementById('setTgChatId').value.trim(),
       economyEnabled: document.getElementById('setEconomyEnabled').checked,
       currencyName: document.getElementById('setCurrencyName').value.trim(),
-      currencyIcon: document.getElementById('setCurrencyIcon').value.trim()
+      currencyIcon: document.getElementById('setCurrencyIcon').value.trim(),
+      shopItems: updatedShopItems
     };
 
     try {
       await setDoc(doc(db, "users", currentUserId), newData, { merge: true });
       closeSettingsModal();
-      alert("Настройки кабинета обновлены! 💾");
+      alert("Настройки кабинета и магазина успешно обновлены! 💾");
     } catch (err) {
       alert("Ошибка при сохранении настроек: " + err.message);
     }
