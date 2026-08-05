@@ -315,15 +315,6 @@
             </div>
           </div>
 
-          <div class="form-group" style="background:#f0f4f8; padding:8px; border-radius:6px;">
-            <label>⏰ Напомнить ученику через бот за:</label>
-            <select id="reminderDelay">
-              <option value="0">Без напоминания</option>
-              <option value="2">За 2 часа</option>
-              <option value="24">За 24 часа</option>
-            </select>
-          </div>
-
           <div class="form-group">
             <label>Домашнее задание</label>
             <select id="planHwTemplateSelect" style="margin-bottom: 5px;" onchange="applyPlanHwTemplate(this)">
@@ -1748,7 +1739,6 @@
   document.getElementById('studentForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const format = document.getElementById('lessonFormatSelect').value;
-    const reminderDelay = document.getElementById('reminderDelay').value;
     let name = '';
 
     if (format === 'group') {
@@ -1777,7 +1767,6 @@
         studentName: name,
         dateTime: document.getElementById('nextLessonDate').value,
         repeatDays: parseInt(document.getElementById('repeatInterval').value),
-        reminderDelay: reminderDelay,
         assignedHw: document.getElementById('addAssignedHw').value || ''
       });
       e.target.reset();
