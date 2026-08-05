@@ -4,10 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SaaS Кабинет Репетитора</title>
-  <!-- Библиотека для создания скриншотов HTML-элементов -->
+  <!-- Библиотека для создания скриншотов HTML-элементов для отправки в TG -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  <!-- Библиотека для графиков и диаграмм -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     :root {
       --primary: #4f46e5;
@@ -59,7 +57,7 @@
 
     .error-msg { background: #fee2e2; color: #dc2626; font-size: 13px; padding: 10px; border-radius: 8px; margin-top: 15px; display: none; text-align: center; }
 
-    #app-screen, #guest-screen { display: none; }
+    #app-screen { display: none; }
     header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 10px; }
     header h1 { font-size: 24px; font-weight: 800; color: var(--primary-dark); }
 
@@ -110,16 +108,6 @@
     .stat-box { background: #f0f4f8; border: 1px solid var(--primary); border-radius: 6px; padding: 8px 12px; display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 14px; }
     
     .flask-badge { background: #e0e7ff; color: var(--primary-dark); font-weight: 700; padding: 2px 8px; border-radius: 12px; font-size: 12px; display: inline-flex; align-items: center; gap: 4px; }
-    
-    .shop-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 12px; margin-top: 10px; }
-    .shop-item { background: #ffffff; border: 1px solid var(--border-color); border-radius: 10px; padding: 14px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02); display: flex; flex-direction: column; justify-content: space-between; position: relative; }
-    .shop-item.affordable { border: 1.5px solid #10b981; background: #f0fdf4; }
-    .shop-item.unaffordable { opacity: 0.85; border: 1px dashed #cbd5e1; }
-    .shop-item h5 { font-size: 14px; color: var(--primary-dark); margin-bottom: 4px; }
-    .shop-price { font-weight: 800; color: var(--primary); font-size: 14px; margin: 6px 0; }
-    .shop-status-badge { display: inline-block; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: 700; margin-top: 6px; }
-    .status-ok { background: #d1fae5; color: #047857; }
-    .status-no { background: #fee2e2; color: #b91c1c; }
 
     .toggle-switch { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; font-size: 13px; font-weight: 600; }
     .toggle-switch input { width: auto; }
@@ -269,77 +257,6 @@
         <button type="submit" id="authSubmitBtn" class="btn-submit">Войти 🚀</button>
         <div class="error-msg" id="authError"></div>
       </form>
-    </div>
-  </div>
-
-  <!-- ГОСТЕВОЙ РЕЖИМ (ДЛЯ РОДИТЕЛЕЙ И УЧЕНИКОВ) -->
-  <div id="guest-screen">
-    <header>
-      <div>
-        <h1 id="guestHeaderTitle">🎓 Успеваемость ученика</h1>
-        <p id="guestStudentTitle">Отчёт по занятиям</p>
-      </div>
-    </header>
-    
-    <div class="card" id="guestEconomyCard" style="background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: white;">
-      <h3 style="color: white; display: flex; justify-content: space-between; align-items: center;">
-        <span><span id="guestCurrencyIcon">🧪</span> Баланс: <strong id="guestFlaskBalance">0</strong> <span class="currency-name">Колб</span></span>
-      </h3>
-      <p style="font-size: 13px; opacity: 0.9;">Выполняй ДЗ вовремя и будь активным, чтобы зарабатывать бонусы!</p>
-    </div>
-
-    <div class="card" id="guestShopCard">
-      <h3>🎁 Магазин плюшек</h3>
-      <div class="shop-grid" id="guestShopGrid"></div>
-    </div>
-
-    <div class="card">
-      <h3>📈 Общая статистика</h3>
-      <div id="guestStats"></div>
-    </div>
-
-    <div class="card">
-      <h3>📊 Динамика успеваемости</h3>
-      <div style="position: relative; height: 300px; width: 100%;">
-        <canvas id="guestPerformanceChart"></canvas>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3>📜 История уроков</h3>
-      <table>
-        <thead>
-          <tr>
-            <th>Дата</th>
-            <th>Тема</th>
-            <th>Оценка за урок</th>
-            <th>Оценка за ДЗ</th>
-            <th>ДЗ</th>
-          </tr>
-        </thead>
-        <tbody id="guestHistoryTable"></tbody>
-      </table>
-    </div>
-
-    <!-- ФОРМА ВОПРОСА РЕПЕТИТОРУ ЧЕРЕЗ ГОСТЕВУЮ ССЫЛКУ -->
-    <div class="card" style="background: #e0e7ff; border: 1.5px solid var(--primary);">
-      <h3>💬 Задать вопрос репетитору</h3>
-      <form id="guestQuestionForm">
-        <div class="form-group">
-          <label>Ваше имя / Кто задает вопрос</label>
-          <input type="text" id="guestSenderName" placeholder="Например: Мама Елены" required>
-        </div>
-        <div class="form-group">
-          <label>Сообщение / Вопрос</label>
-          <textarea id="guestQuestionText" rows="3" placeholder="Введите ваш вопрос..." required></textarea>
-        </div>
-        <button type="submit" class="btn-primary" style="width: 100%;">Отправить вопрос репетитору в Telegram ✉️</button>
-      </form>
-    </div>
-
-    <div class="read-confirmation-card" style="text-align: center; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 12px; padding: 20px; margin-top: 25px;">
-      <button class="btn-acknowledge" id="btnAcknowledge" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; font-size: 16px; font-weight: 700; padding: 12px 24px; border-radius: 8px; cursor: pointer;" onclick="sendReadNotification()">✅ Ознакомлен(-на)</button>
-      <p style="font-size: 13px; color: var(--text-muted); margin-top: 12px;">Если у Вас есть вопросы по обучению или успеваемости ученика, напишите в личные сообщения репетитору!</p>
     </div>
   </div>
 
@@ -983,7 +900,7 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
   import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-  import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, query, where, setDoc, updateDoc, getDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+  import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, query, where, setDoc, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyAHxz8YoyHn5QK-ekR9Q1aS9KfatAbe3Go",
@@ -1031,9 +948,6 @@
     shopItems: defaultShopItems
   };
 
-  let guestChartInstance = null;
-  let currentGuestStudentData = { name: '', teacherChatId: '', teacherBotToken: '' };
-
   let currentUserId = null;
   let authMode = 'login';
   let unsubSchedule = null;
@@ -1046,233 +960,6 @@
   let draftsMap = {};
   let studentsMap = {};
   let currentCardTemplates = [];
-
-  const urlParams = new URLSearchParams(window.location.search);
-  const guestStudentId = urlParams.get('guestStudentId');
-
-  if (guestStudentId) {
-    document.getElementById('auth-screen').style.display = 'none';
-    document.getElementById('app-screen').style.display = 'none';
-    document.getElementById('guest-screen').style.display = 'block';
-    loadGuestView(guestStudentId);
-  }
-
-  async function loadGuestView(studentId) {
-    try {
-      const studentDoc = await getDoc(doc(db, "students", studentId));
-      let studentName = 'Ученик';
-      let flasks = 0;
-      let activeShopItems = defaultShopItems;
-
-      if (studentDoc.exists()) {
-        const sData = studentDoc.data();
-        studentName = sData.name || studentName;
-        flasks = sData.flasksBalance || 0;
-        
-        let teacherBotToken = '';
-        let teacherChatId = sData.teacherChatId || '';
-
-        if (sData.userId) {
-          const settingsDoc = await getDoc(doc(db, "users", sData.userId));
-          if (settingsDoc.exists()) {
-            const s = settingsDoc.data();
-            applyThemeUI(s);
-            teacherBotToken = s.tgBotToken || '';
-            if (!teacherChatId) {
-              teacherChatId = s.tgChatId || '';
-            }
-            if (s.shopItems && Array.isArray(s.shopItems)) {
-              activeShopItems = s.shopItems;
-            }
-          }
-        }
-
-        currentGuestStudentData = {
-          name: sData.name || '',
-          parentContacts: sData.parentContacts || '',
-          teacherChatId: teacherChatId,
-          teacherBotToken: teacherBotToken,
-          teacherUid: sData.userId || ''
-        };
-      }
-
-      document.getElementById('guestFlaskBalance').innerText = flasks;
-      renderGuestShop(flasks, activeShopItems);
-
-      let historyList = [];
-      const historyQuery1 = query(collection(db, "history"), where("studentId", "==", studentId));
-      const historySnap1 = await getDocs(historyQuery1);
-      historySnap1.forEach(docSnap => historyList.push(docSnap.data()));
-
-      if (historyList.length === 0 && studentName !== 'Ученик') {
-        const historyQuery2 = query(collection(db, "history"), where("studentName", "==", studentName));
-        const historySnap2 = await getDocs(historyQuery2);
-        historySnap2.forEach(docSnap => historyList.push(docSnap.data()));
-      }
-      
-      let totalLessons = 0, doneHw = 0, totalHw = 0;
-      const tbody = document.getElementById('guestHistoryTable');
-      tbody.innerHTML = '';
-      const chartLabels = [], chartLessonGrades = [], chartHwGrades = [];
-
-      historyList.sort((a, b) => new Date(a.rawDate || a.date) - new Date(b.rawDate || b.date));
-
-      historyList.forEach(data => {
-        totalLessons++;
-        if(data.hwItems) {
-          data.hwItems.forEach(item => {
-            totalHw++;
-            if(item.status === 'done') doneHw++;
-          });
-        }
-
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${data.date}</td>
-          <td>${data.topic || '—'}</td>
-          <td>${data.type === 'exam' ? (data.examStatus || '-') : (data.totalGrade || '-')}</td>
-          <td>${data.hwGrade || '-'}</td>
-          <td>${data.hwItems ? data.hwItems.length : 0} пунктов</td>
-        `;
-        tbody.appendChild(tr);
-
-        chartLabels.push(data.date);
-        const lGrade = parseFloat(data.totalGrade);
-        const hGrade = parseFloat(data.hwGrade);
-        chartLessonGrades.push(!isNaN(lGrade) ? lGrade : null);
-        chartHwGrades.push(!isNaN(hGrade) ? hGrade : null);
-      });
-
-      const hwPercent = totalHw > 0 ? Math.round((doneHw / totalHw) * 100) : 100;
-      document.getElementById('guestStudentTitle').innerText = `Отчёт по занятиям: ${studentName}`;
-      document.getElementById('guestStats').innerHTML = `
-        <div class="stat-box"><span>Всего проведенных занятий:</span><strong>${totalLessons}</strong></div>
-        <div class="stat-box"><span>Процент выполнения ДЗ:</span><strong>${hwPercent}%</strong></div>
-      `;
-
-      renderGuestChart(chartLabels, chartLessonGrades, chartHwGrades);
-    } catch(e) {
-      console.error("Ошибка загрузки данных в гостевом режиме:", e);
-    }
-  }
-
-  document.getElementById('guestQuestionForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const sender = document.getElementById('guestSenderName').value;
-    const text = document.getElementById('guestQuestionText').value;
-
-    const chatId = currentGuestStudentData.teacherChatId || userSettings.tgChatId;
-    const token = currentGuestStudentData.teacherBotToken || userSettings.tgBotToken;
-
-    if (!chatId || !token) {
-      alert("Репетитор не подключил Telegram-бот для приема вопросов.");
-      return;
-    }
-
-    const message = `❓ <b>Вопрос от родителей</b>\n<b>Ученик:</b> ${currentGuestStudentData.name}\n<b>От кого:</b> ${sender}\n\n<b>Вопрос:</b> ${text}`;
-
-    try {
-      const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ chat_id: chatId, text: message, parse_mode: 'HTML' })
-      });
-
-      if (res.ok) {
-        alert("Ваш вопрос успешно отправлен репетитору! ✉️");
-        e.target.reset();
-      } else {
-        alert("Ошибка при отправке сообщения.");
-      }
-    } catch(err) {
-      alert("Ошибка сети: " + err.message);
-    }
-  });
-
-  function renderGuestShop(currentBalance, shopItems) {
-    const shopContainer = document.getElementById('guestShopGrid');
-    if (!shopContainer) return;
-    
-    shopContainer.innerHTML = '';
-    const itemsToRender = shopItems && shopItems.length > 0 ? shopItems : defaultShopItems;
-
-    itemsToRender.forEach(item => {
-      const canAfford = currentBalance >= item.price;
-      const diff = item.price - currentBalance;
-      
-      const itemEl = document.createElement('div');
-      itemEl.className = `shop-item ${canAfford ? 'affordable' : 'unaffordable'}`;
-      
-      const statusBadge = canAfford 
-        ? `<span class="shop-status-badge status-ok">Доступно ✅</span>` 
-        : `<span class="shop-status-badge status-no">Не хватает ${diff} ${userSettings.currencyIcon}</span>`;
-
-      itemEl.innerHTML = `
-        <div>
-          <h5>${item.title}</h5>
-          <div class="shop-price">${item.price} ${userSettings.currencyIcon}</div>
-        </div>
-        ${statusBadge}
-      `;
-      shopContainer.appendChild(itemEl);
-    });
-  }
-
-  function renderGuestChart(labels, lessonGrades, hwGrades) {
-    const ctx = document.getElementById('guestPerformanceChart').getContext('2d');
-    if (guestChartInstance) guestChartInstance.destroy();
-
-    guestChartInstance = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: labels,
-        datasets: [
-          { label: 'Оценка за урок', data: lessonGrades, borderColor: '#4f46e5', backgroundColor: 'rgba(79, 70, 229, 0.1)', tension: 0.3, fill: true, spanGaps: true },
-          { label: 'Оценка за ДЗ', data: hwGrades, borderColor: '#059669', backgroundColor: 'rgba(5, 150, 105, 0.1)', tension: 0.3, fill: true, spanGaps: true }
-        ]
-      },
-      options: { responsive: true, maintainAspectRatio: false, scales: { y: { min: 1, max: 5, ticks: { stepSize: 1 } } } }
-    });
-  }
-
-  window.sendReadNotification = async () => {
-    const chatId = currentGuestStudentData.teacherChatId || userSettings.tgChatId;
-    const token = currentGuestStudentData.teacherBotToken || userSettings.tgBotToken;
-    if (!chatId || !token) {
-      alert('Уведомления репетитором не настроены.');
-      return;
-    }
-
-    const parentName = currentGuestStudentData.parentContacts ? ` (${currentGuestStudentData.parentContacts})` : '';
-    const studentName = currentGuestStudentData.name || 'ученика';
-    const message = `👀 Родители${parentName} ученика <b>${studentName}</b> ознакомились с дневником ученика.`;
-
-    const btn = document.getElementById('btnAcknowledge');
-    btn.disabled = true;
-    btn.innerText = 'Отправка... ⏳';
-
-    try {
-      const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ chat_id: chatId, text: message, parse_mode: 'HTML' })
-      });
-
-      if (res.ok) {
-        btn.innerText = 'Отправлено ✅';
-        alert('Уведомление успешно отправлено репетитору!');
-      } else {
-        btn.disabled = false;
-        btn.innerText = '✅ Ознакомлен(-на)';
-        alert('Ошибка при отправке сообщения в Telegram.');
-      }
-    } catch (e) {
-      btn.disabled = false;
-      btn.innerText = '✅ Ознакомлен(-на)';
-      console.error(e);
-      alert('Ошибка соединения с сетью.');
-    }
-  };
 
   async function sendElementAsPhotoToTelegram(elementId, captionText) {
     if (!userSettings.tgEnabled || !userSettings.tgChatId || !userSettings.tgBotToken) {
@@ -1343,7 +1030,7 @@
   };
 
   onAuthStateChanged(auth, async (user) => {
-    if (user && !guestStudentId) {
+    if (user) {
       currentUserId = user.uid;
       document.getElementById('auth-screen').style.display = 'none';
       document.getElementById('app-screen').style.display = 'block';
@@ -1366,7 +1053,7 @@
       listenUserSettings();
       initApp();
       checkAndSendMonthlyReports();
-    } else if (!guestStudentId) {
+    } else {
       currentUserId = null;
       document.getElementById('auth-screen').style.display = 'flex';
       document.getElementById('app-screen').style.display = 'none';
@@ -1464,7 +1151,7 @@
     document.querySelectorAll('.currency-icon').forEach(el => el.innerText = settings.currencyIcon || preset.currencyIcon);
     document.querySelectorAll('.currency-name').forEach(el => el.innerText = settings.currencyName || preset.currency);
 
-    const econEls = document.querySelectorAll('.economy-field, #guestEconomyCard, #guestShopCard');
+    const econEls = document.querySelectorAll('.economy-field');
     econEls.forEach(el => el.style.display = settings.economyEnabled ? '' : 'none');
 
     const tgBtns = document.querySelectorAll('.tg-btn');
@@ -1825,7 +1512,6 @@
         </div>
         <div style="display:flex; gap:5px; flex-wrap:wrap; margin-top:8px;">
           <button class="btn-action" onclick="openStudentCardModal('${sId}')">✏️ Редактировать</button>
-          <button class="btn-action" style="background:#059669; color:white;" onclick="copyGuestLink('${sId}')">🔗 Ссылка</button>
           <button class="btn-action" style="color:#ef4444; background:#fee2e2;" onclick="deleteStudentCard('${sId}', '${s.name}')">🗑️ Удалить</button>
         </div>
       `;
@@ -1935,14 +1621,6 @@
 
   window.applyPlanHwTemplate = (select) => { if (select.value) document.getElementById('addAssignedHw').value = select.value; };
   window.applyCompleteHwTemplate = (select) => { if (select.value) document.getElementById('mNextHw').value = select.value; };
-
-  window.copyGuestLink = (studentId) => {
-    const url = new URL(window.location.href);
-    url.searchParams.set('guestStudentId', studentId);
-    const link = url.toString();
-    navigator.clipboard.writeText(link);
-    alert('Автономная ссылка родительского доступа скопирована:\n' + link);
-  };
 
   window.openStudentCardModal = (studentId = null) => {
     document.getElementById('cardStudentId').value = studentId || '';
@@ -2236,51 +1914,38 @@
       if (text.trim() !== '') hwItems.push({ text, status });
     });
 
-    try {
-      await setDoc(doc(db, "drafts", schedId), {
-        userId: currentUserId,
-        type: document.getElementById('mLessonTypeSelect').value,
-        topic: document.getElementById('mTopic').value,
-        examStatus: document.getElementById('mExamStatus').value,
-        pollGrade: document.getElementById('mPollGrade').value,
-        lessonGrade: document.getElementById('mLessonGrade').value,
-        hwGrade: document.getElementById('mHwGrade').value,
-        totalGrade: document.getElementById('mTotalGrade').value,
-        paidStatus: document.getElementById('mPaidStatus').value,
-        nextHw: document.getElementById('mNextHw').value,
-        comment: document.getElementById('mComment').value,
-        hwItems: hwItems,
-        updatedAt: new Date().toISOString()
-      });
+    const draftData = {
+      userId: currentUserId,
+      type: document.getElementById('mLessonTypeSelect').value,
+      topic: document.getElementById('mTopic').value,
+      pollGrade: document.getElementById('mPollGrade').value,
+      lessonGrade: document.getElementById('mLessonGrade').value,
+      hwGrade: document.getElementById('mHwGrade').value,
+      totalGrade: document.getElementById('mTotalGrade').value,
+      paidStatus: document.getElementById('mPaidStatus').value,
+      nextHw: document.getElementById('mNextHw').value,
+      comment: document.getElementById('mComment').value,
+      examStatus: document.getElementById('mExamStatus').value,
+      hwItems: hwItems
+    };
 
-      alert('Черновик успешно сохранён! 📝');
+    try {
+      await setDoc(doc(db, "drafts", schedId), draftData);
       closeModal();
-    } catch(err) {
-      alert('Ошибка при сохранении черновика: ' + err.message);
+    } catch(e) {
+      alert("Ошибка сохранения черновика: " + e.message);
     }
   };
 
-  // ====== ФУНКЦИЯ ЗАВЕРШЕНИЯ УРОКА ======
   document.getElementById('completeLessonForm').addEventListener('submit', async (e) => {
     e.preventDefault();
-    e.stopPropagation();
-    
-    const scheduleId = document.getElementById('mScheduleId').value;
+    const schedId = document.getElementById('mScheduleId').value;
     const studentName = document.getElementById('mStudent').value;
     const rawDate = document.getElementById('mDate').value;
-    const repeatDays = parseInt(document.getElementById('mRepeat').value) || 0;
-    
-    const type = document.getElementById('mLessonTypeSelect').value;
-    const topic = document.getElementById('mTopic').value;
-    const examStatus = document.getElementById('mExamStatus').value;
-    const pollGrade = document.getElementById('mPollGrade').value;
-    const lessonGrade = document.getElementById('mLessonGrade').value;
-    const hwGrade = document.getElementById('mHwGrade').value;
-    const totalGrade = document.getElementById('mTotalGrade').value;
-    const paidStatus = document.getElementById('mPaidStatus').value;
-    const nextHw = document.getElementById('mNextHw').value;
-    const comment = document.getElementById('mComment').value;
-    const flasksChange = parseInt(document.getElementById('mFlasksChange').value) || 0;
+    const repeatDays = parseInt(document.getElementById('mRepeat').value);
+    const lessonType = document.getElementById('mLessonTypeSelect').value;
+
+    const formattedDate = new Date(rawDate).toLocaleString('ru-RU', { dateStyle: 'short', timeStyle: 'short' });
 
     const hwItems = [];
     document.querySelectorAll('#modalHwList .hw-item').forEach(row => {
@@ -2289,87 +1954,63 @@
       if (text.trim() !== '') hwItems.push({ text, status });
     });
 
-    try {
-      let studentId = null;
-      for (let sId in studentsMap) {
-        if (studentsMap[sId].name.toLowerCase() === studentName.toLowerCase()) {
-          studentId = sId;
-          break;
-        }
-      }
+    const flasksChange = parseInt(document.getElementById('mFlasksChange').value) || 0;
+    const sId = Object.keys(studentsMap).find(id => studentsMap[id].name.toLowerCase() === studentName.toLowerCase());
 
-      if (!studentId) {
-        const newStudentRef = await addDoc(collection(db, "students"), {
-          userId: currentUserId,
-          teacherChatId: userSettings.tgChatId || '',
-          name: studentName,
-          grade: '',
-          parentContacts: '',
-          flasksBalance: 0,
-          goal: '',
-          notes: '',
-          hwTemplates: []
-        });
-        studentId = newStudentRef.id;
-      }
-
-      if (studentId && flasksChange !== 0) {
-        const currentBal = studentsMap[studentId] ? (studentsMap[studentId].flasksBalance || 0) : 0;
-        await updateDoc(doc(db, "students", studentId), {
-          flasksBalance: Math.max(0, currentBal + flasksChange)
-        });
-      }
-
-      const formattedDateStr = new Date(rawDate).toLocaleString('ru-RU', { dateStyle: 'short', timeStyle: 'short' });
-
-      await addDoc(collection(db, "history"), {
-        userId: currentUserId,
-        studentId: studentId,
-        studentName: studentName,
-        date: formattedDateStr,
-        rawDate: rawDate,
-        type: type,
-        topic: topic,
-        examStatus: type === 'exam' ? examStatus : null,
-        pollGrade: pollGrade,
-        lessonGrade: lessonGrade,
-        hwGrade: hwGrade,
-        totalGrade: totalGrade,
-        paidStatus: paidStatus,
-        comment: comment,
-        hwItems: hwItems,
-        createdAt: new Date().toISOString()
+    if (sId && flasksChange !== 0) {
+      const currentBalance = studentsMap[sId].flasksBalance || 0;
+      await updateDoc(doc(db, "students", sId), {
+        flasksBalance: Math.max(0, currentBalance + flasksChange)
       });
+    }
 
-      await deleteDoc(doc(db, "schedule", scheduleId));
-      if (draftsMap[scheduleId]) {
-        await deleteDoc(doc(db, "drafts", scheduleId));
-      }
+    const historyData = {
+      userId: currentUserId,
+      studentId: sId || null,
+      studentName: studentName,
+      type: lessonType,
+      date: formattedDate,
+      rawDate: rawDate,
+      topic: document.getElementById('mTopic').value,
+      pollGrade: document.getElementById('mPollGrade').value,
+      lessonGrade: document.getElementById('mLessonGrade').value,
+      hwGrade: document.getElementById('mHwGrade').value,
+      totalGrade: document.getElementById('mTotalGrade').value,
+      paidStatus: document.getElementById('mPaidStatus').value,
+      comment: document.getElementById('mComment').value,
+      examStatus: document.getElementById('mExamStatus').value,
+      hwItems: hwItems
+    };
 
+    try {
+      const addedDoc = await addDoc(collection(db, "history"), historyData);
+      await deleteDoc(doc(db, "schedule", schedId));
+      if (draftsMap[schedId]) await deleteDoc(doc(db, "drafts", schedId));
+
+      const nextHw = document.getElementById('mNextHw').value;
       if (repeatDays > 0) {
-        const nextDateObj = new Date(rawDate);
-        nextDateObj.setDate(nextDateObj.getDate() + repeatDays);
-        const isoNextDate = new Date(nextDateObj.getTime() - (nextDateObj.getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
+        const nextDate = new Date(rawDate);
+        nextDate.setDate(nextDate.getDate() + repeatDays);
 
         await addDoc(collection(db, "schedule"), {
           userId: currentUserId,
           studentName: studentName,
-          dateTime: isoNextDate,
+          dateTime: nextDate.toISOString().slice(0, 16),
           repeatDays: repeatDays,
           assignedHw: nextHw || ''
         });
       }
 
       closeModal();
-      alert("Урок успешно завершен и сохранён в истории! 🎉");
+      generateLessonReport(addedDoc.id);
     } catch(err) {
-      alert("Ошибка при сохранении проведенного урока: " + err.message);
+      alert("Ошибка при проведении занятия: " + err.message);
     }
   });
 
   window.generateLessonReport = (historyId) => {
-    const item = allHistory.find(h => h.id === historyId);
-    if (!item) return;
+    const item = allHistory.find(l => l.id === historyId);
+    if(!item) return;
 
     document.getElementById('repStudent').innerText = item.studentName;
     document.getElementById('repDate').innerText = item.date;
@@ -2378,20 +2019,19 @@
     document.getElementById('repWork').innerText = item.lessonGrade || '—';
     document.getElementById('repHwGrade').innerText = item.hwGrade || '—';
     document.getElementById('repTotalGrade').innerText = item.totalGrade || '—';
-    document.getElementById('repComment').innerText = item.comment || 'Замечаний нет';
+    document.getElementById('repComment').innerText = item.comment || 'Нет комментариев.';
 
-    const hwContainer = document.getElementById('repHwDisplay');
-    hwContainer.innerHTML = '';
+    const hwDisplay = document.getElementById('repHwDisplay');
+    hwDisplay.innerHTML = '';
     if (item.hwItems && item.hwItems.length > 0) {
       item.hwItems.forEach(hw => {
-        const icon = hw.status === 'done' ? '✅' : (hw.status === 'fail' ? '❌' : '⚪');
         const div = document.createElement('div');
         div.className = `hw-item ${hw.status === 'done' ? 'done' : (hw.status === 'fail' ? 'not-done' : '')}`;
-        div.innerHTML = `<span>${icon}</span> <span>${hw.text}</span>`;
-        hwContainer.appendChild(div);
+        div.innerHTML = `<span>${hw.status === 'done' ? '✅' : (hw.status === 'fail' ? '❌' : '⚪')} ${hw.text}</span>`;
+        hwDisplay.appendChild(div);
       });
     } else {
-      hwContainer.innerHTML = '<p style="font-size:12px; color:var(--text-muted);">Домашнее задание не было задано.</p>';
+      hwDisplay.innerHTML = '<p style="font-size:13px; color:#6b7280;">Домашнее задание не было задано.</p>';
     }
 
     const card = document.getElementById('lessonReportCard');
@@ -2405,8 +2045,8 @@
     const dateTo = document.getElementById('reportDateTo').value;
     const comment = document.getElementById('reportTeacherComment').value;
 
-    if (!student || !dateFrom || !dateTo) {
-      alert("Заполните все поля формы отчёта за период!");
+    if(!student || !dateFrom || !dateTo) {
+      alert("Заполните все поля для формирования отчёта!");
       return;
     }
 
@@ -2417,29 +2057,28 @@
     });
 
     let totalHw = 0, doneHw = 0;
-    const hwGrades = [];
-    const lessonGrades = [];
+    const hwGrades = [], totalGrades = [];
 
     filtered.forEach(h => {
-      if (h.hwItems) {
+      if(h.hwItems) {
         h.hwItems.forEach(i => {
           totalHw++;
-          if (i.status === 'done') doneHw++;
+          if(i.status === 'done') doneHw++;
         });
       }
-      if (h.hwGrade) hwGrades.push(h.hwGrade);
-      if (h.totalGrade) lessonGrades.push(h.totalGrade);
+      if(h.hwGrade) hwGrades.push(h.hwGrade);
+      if(h.totalGrade) totalGrades.push(h.totalGrade);
     });
 
     const hwPercent = totalHw > 0 ? Math.round((doneHw / totalHw) * 100) : 100;
 
     document.getElementById('pRepStudent').innerText = student;
-    document.getElementById('pRepDates').innerText = `Период: с ${new Date(dateFrom).toLocaleDateString('ru-RU')} по ${new Date(dateTo).toLocaleDateString('ru-RU')}`;
+    document.getElementById('pRepDates').innerText = `Период с ${dateFrom} по ${dateTo}`;
     document.getElementById('pRepLessonsCount').innerText = filtered.length;
     document.getElementById('pRepHwPercent').innerText = `${hwPercent}%`;
     document.getElementById('pRepHwGradesList').innerText = hwGrades.length > 0 ? hwGrades.join(', ') : '—';
-    document.getElementById('pRepGradesList').innerText = lessonGrades.length > 0 ? lessonGrades.join(', ') : '—';
-    document.getElementById('pRepComment').innerText = comment || 'Стабильный прогресс в обучении.';
+    document.getElementById('pRepGradesList').innerText = totalGrades.length > 0 ? totalGrades.join(', ') : '—';
+    document.getElementById('pRepComment').innerText = comment || 'Замечаний нет.';
 
     const card = document.getElementById('periodReportCard');
     card.classList.add('active');
