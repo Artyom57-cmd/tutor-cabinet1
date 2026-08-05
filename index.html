@@ -964,12 +964,17 @@
         flasks = sData.flasksBalance || 0;
         
         let teacherBotToken = '';
+        let teacherChatId = sData.teacherChatId || '';
+
         if (sData.userId) {
           const settingsDoc = await getDoc(doc(db, "users", sData.userId));
           if (settingsDoc.exists()) {
             const s = settingsDoc.data();
             applyThemeUI(s);
             teacherBotToken = s.tgBotToken || '';
+            if (!teacherChatId) {
+              teacherChatId = s.tgChatId || '';
+            }
             if (s.shopItems && Array.isArray(s.shopItems)) {
               activeShopItems = s.shopItems;
             }
@@ -979,7 +984,7 @@
         currentGuestStudentData = {
           name: sData.name || '',
           parentContacts: sData.parentContacts || '',
-          teacherChatId: sData.teacherChatId || '',
+          teacherChatId: teacherChatId,
           teacherBotToken: teacherBotToken,
           teacherUid: sData.userId || ''
         };
@@ -1929,6 +1934,17 @@
     });
   }
 
+  window.cancelLesson = async (id) => {
+    if (confirm("Вы действительно хотите отменить/удалить запланированный урок?")) {
+      try {
+        await deleteDoc(doc(db, "schedule", id));
+        if (draftsMap[id]) await deleteDoc(doc(db, "drafts", id));
+      } catch (e) {
+        alert("Ошибка отмены занятия: " + e.message);
+      }
+    }
+  };
+
   window.updateRowStatus = (selectElement) => {
     const row = selectElement.closest('.hw-item');
     row.classList.remove('not-done', 'done');
@@ -2002,7 +2018,7 @@
       await updateDoc(doc(db, "schedule", id), {
         studentName: document.getElementById('editStudentName').value,
         dateTime: document.getElementById('editLessonDate').value,
-        repeatDays: parseInt(document.getElementById('editRepeatInterval').value),
+        repeatDays: parseInt(document.getElementById('repeatInterval').value),
         assignedHw: document.getElementById('editAssignedHw').value
       });
       closeEditModal();
@@ -2181,40 +2197,105 @@
 
       if (schedId) {
         await deleteDoc(doc(db, "schedule", schedId));
-        await deleteDoc(doc(db, "drafts", schedId));
+        if (draftsMap[schedId]) await deleteDoc(doc(db, "drafts", schedId));
       }
 
       if (repeatDays > 0) {
-        const nextDate = new Date(dateStr);
-        nextDate.setDate(nextDate.getDate() + repeatDays);
+        const nextDate = new Date(new Date(dateStr).getTime() + repeatDays * 24 * 60 * 60 * 1000);
+        const isoString = new Date(nextDate.getTime() - nextDate.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
 
         await addDoc(collection(db, "schedule"), {
           userId: currentUserId,
           studentName: student,
-          dateTime: nextDate.toISOString().slice(0, 16),
+          dateTime: isoString,
           repeatDays: repeatDays,
           assignedHw: nextHw || ''
         });
       }
 
       closeModal();
-      alert("Урок успешно проведен и перенесен в историю! ✅");
-    } catch(err) {
-      alert("Ошибка при завершении урока: " + err.message);
+      alert('Урок успешно проведён и записан в историю! 🎉');
+    } catch (err) {
+      alert("Ошибка завершения урока: " + err.message);
     }
   });
 
-  window.cancelLesson = async (schedId) => {
-    if (confirm("Вы действительно хотите отменить/удалить запланированный урок?")) {
-      try {
-        await deleteDoc(doc(db, "schedule", schedId));
-        await deleteDoc(doc(db, "drafts", schedId));
-      } catch (err) {
-        alert("Ошибка отмены урока: " + err.message);
-      }
+  window.generateLessonReport = (historyId) => {
+    const data = allHistory.find(h => h.id === historyId);
+    if (!data) return;
+
+    document.getElementById('repStudent').innerText = data.studentName;
+    document.getElementById('repDate').innerText = data.date;
+    document.getElementById('repTopic').innerText = data.topic || '—';
+    document.getElementById('repPoll').innerText = data.pollGrade || '—';
+    document.getElementById('repWork').innerText = data.lessonGrade || '—';
+    document.getElementById('repHwGrade').innerText = data.hwGrade || '—';
+    document.getElementById('repTotalGrade').innerText = data.totalGrade || '—';
+    document.getElementById('repComment').innerText = data.comment || 'Нет комментариев';
+
+    const hwDisplay = document.getElementById('repHwDisplay');
+    hwDisplay.innerHTML = '';
+    if (data.hwItems && data.hwItems.length > 0) {
+      data.hwItems.forEach(item => {
+        const div = document.createElement('div');
+        div.className = `hw-item ${item.status === 'done' ? 'done' : (item.status === 'fail' ? 'not-done' : '')}`;
+        div.innerHTML = `<span>${item.status === 'done' ? '✅' : (item.status === 'fail' ? '❌' : '⚪')} ${item.text}</span>`;
+        hwDisplay.appendChild(div);
+      });
+    } else {
+      hwDisplay.innerHTML = '<p style="font-size:12px; color:#6b7280;">Домашнее задание не задавалось</p>';
     }
+
+    const card = document.getElementById('lessonReportCard');
+    card.classList.add('active');
+    card.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  window.generatePeriodReport = () => {
+    const student = document.getElementById('reportStudentSelect').value;
+    const dateFrom = document.getElementById('reportDateFrom').value;
+    const dateTo = document.getElementById('reportDateTo').value;
+    const teacherComment = document.getElementById('reportTeacherComment').value;
+
+    if (!student || !dateFrom || !dateTo) {
+      alert("Заполните все поля формы!");
+      return;
+    }
+
+    const filtered = allHistory.filter(h => {
+      if (h.studentName !== student) return false;
+      const hDate = h.rawDate ? h.rawDate.slice(0, 10) : '';
+      return hDate >= dateFrom && hDate <= dateTo;
+    });
+
+    document.getElementById('pRepStudent').innerText = student;
+    document.getElementById('pRepDates').innerText = `Период: ${new Date(dateFrom).toLocaleDateString('ru-RU')} — ${new Date(dateTo).toLocaleDateString('ru-RU')}`;
+    document.getElementById('pRepLessonsCount').innerText = filtered.length;
+    document.getElementById('pRepComment').innerText = teacherComment || 'Прогресс стабильный.';
+
+    let totalHw = 0, doneHw = 0;
+    const hwGrades = [], totalGrades = [];
+
+    filtered.forEach(h => {
+      if (h.hwItems) {
+        h.hwItems.forEach(i => {
+          totalHw++;
+          if (i.status === 'done') doneHw++;
+        });
+      }
+      if (h.hwGrade) hwGrades.push(h.hwGrade);
+      if (h.totalGrade) totalGrades.push(h.totalGrade);
+    });
+
+    const hwPercent = totalHw > 0 ? Math.round((doneHw / totalHw) * 100) : 100;
+    document.getElementById('pRepHwPercent').innerText = `${hwPercent}%`;
+    document.getElementById('pRepHwGradesList').innerText = hwGrades.length > 0 ? hwGrades.join(', ') : '—';
+    document.getElementById('pRepGradesList').innerText = totalGrades.length > 0 ? totalGrades.join(', ') : '—';
+
+    const card = document.getElementById('periodReportCard');
+    card.classList.add('active');
+    card.scrollIntoView({ behavior: 'smooth' });
   };
 </script>
-
 </body>
 </html>
