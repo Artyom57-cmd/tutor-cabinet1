@@ -4,9 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SaaS Кабинет Репетитора</title>
-  <!-- Библиотека для создания скриншотов HTML-элементов для отправки в TG -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  <!-- Библиотека Chart.js для отрисовки диаграмм успеваемости -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     :root {
@@ -17,6 +15,7 @@
       --text-dark: #1f2937;
       --text-muted: #6b7280;
       --border-color: #e5e7eb;
+      --shop-highlight: #7c3aed;
     }
 
     body.theme-chemistry { --primary: #4f46e5; --primary-dark: #3730a3; }
@@ -85,7 +84,15 @@
     th { background-color: #f8fafc; color: var(--text-muted); font-weight: 600; font-size: 12px; text-transform: uppercase; }
 
     .students-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px; margin-top: 10px; }
-    .student-card { background: #f9fafb; border: 1px solid var(--border-color); border-radius: 10px; padding: 15px; }
+    .student-card {
+      background: #f9fafb; border: 1px solid var(--border-color); border-radius: 10px; padding: 15px;
+      transition: all 0.3s ease;
+    }
+    .student-card.can-afford {
+      background: linear-gradient(135deg, #ede9fe 0%, #f9fafb 100%);
+      border: 2px solid var(--shop-highlight);
+      box-shadow: 0 0 20px rgba(124, 58, 237, 0.2);
+    }
     .student-card h4 { font-size: 16px; color: var(--primary-dark); margin-bottom: 6px; }
     .student-card p { font-size: 13px; color: var(--text-muted); margin-bottom: 4px; }
 
@@ -229,6 +236,63 @@
       background: rgba(254, 243, 199, 0.4);
       box-shadow: 0 0 0 4px rgba(217, 119, 6, 0.1);
     }
+
+    .shop-items-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .shop-item-card {
+      background: #f3f4f6;
+      border-radius: 8px;
+      padding: 12px;
+      border: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .shop-item-card .price {
+      font-weight: bold;
+      color: var(--primary-dark);
+    }
+    .shop-item-card .missing {
+      font-size: 12px;
+      color: #dc2626;
+    }
+    .shop-item-card .can-buy {
+      font-size: 12px;
+      color: #059669;
+      font-weight: bold;
+    }
+    .shop-item-card button {
+      background: var(--primary);
+      color: white;
+      padding: 4px 8px;
+      font-size: 12px;
+      border-radius: 4px;
+      margin-top: 4px;
+    }
+    .shop-item-card button:disabled {
+      background: #9ca3af;
+      cursor: not-allowed;
+    }
+
+    .multiple-rewards {
+      background: #f0fdf4;
+      border: 1px solid #86efac;
+      border-radius: 8px;
+      padding: 12px;
+      margin-top: 10px;
+    }
+    .multiple-rewards .reward-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    .multiple-rewards .reward-row input[type="number"] { width: 80px; }
+    .multiple-rewards .reward-row input[type="text"] { flex: 1; }
   </style>
 </head>
 <body class="theme-chemistry">
@@ -582,6 +646,10 @@
             <button type="button" class="btn-action" style="background:#059669; color:white;" onclick="addHwTemplate()">Добавить шаблон</button>
           </div>
 
+          <hr style="margin: 15px 0;">
+          <h4 style="font-size: 14px; margin-bottom: 8px;">🛍️ Магазин — доступные товары</h4>
+          <div id="studentShopItems" class="shop-items-grid"></div>
+
           <div style="display:flex; gap:8px; margin-top:20px;">
             <button type="submit" class="btn-primary" style="flex:2;">Сохранить профиль 💾</button>
             <button type="button" class="btn-action" style="flex:1; background:#f3f4f6;" onclick="closeStudentCardModal()">Отмена</button>
@@ -672,18 +740,22 @@
                 </div>
               </div>
 
-              <div class="form-group economy-field" style="background: #e0e7ff; padding: 10px; border-radius: 6px; border: 1px solid var(--primary);">
-                <label style="color:var(--primary-dark); font-weight:bold;"><span class="currency-icon">🧪</span> Начисление / Списание баллов:</label>
-                <div style="display:flex; gap: 8px; margin-top: 4px;">
-                  <input type="number" id="mFlasksChange" placeholder="0 (напр: 3, 15 или -10)" style="flex:1;">
-                  <select id="mFlasksReason" style="flex:2;">
-                    <option value="ДЗ вовремя (+3)">ДЗ вовремя (+3)</option>
-                    <option value="Идеальное ДЗ (+15)">Идеальное ДЗ (+15)</option>
-                    <option value="Активность на уроке (+5)">Активность на уроке (+5)</option>
-                    <option value="Просрочка ДЗ (-10)">Просрочка ДЗ (-10)</option>
-                    <option value="Свой вариант">Свой вариант</option>
-                  </select>
+              <!-- Множественные начисления -->
+              <div class="multiple-rewards economy-field">
+                <label style="font-weight:bold; color:var(--primary-dark);">🏆 Начисления за достижения на уроке:</label>
+                <div id="rewardList">
+                  <div class="reward-row">
+                    <input type="number" class="reward-amount" placeholder="+3" step="1" value="3">
+                    <input type="text" class="reward-reason" placeholder="Причина (напр: ДЗ вовремя)" value="ДЗ вовремя">
+                    <button type="button" class="btn-action" style="background:#ef4444; color:white;" onclick="removeRewardRow(this)">✕</button>
+                  </div>
                 </div>
+                <button type="button" class="btn-action" style="background:#059669; color:white; margin-top:6px;" onclick="addRewardRow()">+ Добавить достижение</button>
+              </div>
+
+              <div class="form-group economy-field" style="background: #e0e7ff; padding: 10px; border-radius: 6px; border: 1px solid var(--primary);">
+                <label style="color:var(--primary-dark); font-weight:bold;"><span class="currency-icon">🧪</span> Итого начислено/списано: <span id="totalFlasksDisplay">0</span></label>
+                <input type="hidden" id="mFlasksChange" value="0">
               </div>
 
               <div class="form-group">
@@ -966,6 +1038,19 @@
   let currentCardTemplates = [];
   let periodChartInstance = null;
 
+  async function sendTelegramMessage(text) {
+    if (!userSettings.tgEnabled || !userSettings.tgChatId || !userSettings.tgBotToken) return;
+    try {
+      await fetch(`https://api.telegram.org/bot${userSettings.tgBotToken}/sendMessage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ chat_id: userSettings.tgChatId, text: text, parse_mode: 'HTML' })
+      });
+    } catch(e) { console.error('TG send error:', e); }
+  }
+
+  window.sendTelegramMessage = sendTelegramMessage;
+
   async function sendElementAsPhotoToTelegram(elementId, captionText) {
     if (!userSettings.tgEnabled || !userSettings.tgChatId || !userSettings.tgBotToken) {
       alert('Отправка в Telegram выключена или не введены токены в настройках!');
@@ -1102,13 +1187,7 @@
         const hwPercent = totalHw > 0 ? Math.round((doneHw / totalHw) * 100) : 100;
         const reportText = `📅 <b>Автоматический ежемесячный отчёт</b>\n<b>Ученик:</b> ${student.name}\n<b>Период:</b> ${firstDayLastMonth} — ${lastDayLastMonth}\n<b>Проведено уроков:</b> ${filtered.length}\n<b>Выполнение ДЗ:</b> ${hwPercent}%`;
 
-        try {
-          await fetch(`https://api.telegram.org/bot${userSettings.tgBotToken}/sendMessage`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ chat_id: userSettings.tgChatId, text: reportText, parse_mode: 'HTML' })
-          });
-        } catch(e) { console.error(e); }
+        await sendTelegramMessage(reportText);
       }
     }
 
@@ -1142,6 +1221,7 @@
         if (!data.shopItems) data.shopItems = defaultShopItems;
         userSettings = { ...userSettings, ...data };
         applyThemeUI(userSettings);
+        renderStudentsCards();
       }
     });
   }
@@ -1352,6 +1432,85 @@
     card.scrollIntoView({ behavior: 'smooth' });
   };
 
+  // Функции для множественных начислений
+  window.addRewardRow = () => {
+    const list = document.getElementById('rewardList');
+    const row = document.createElement('div');
+    row.className = 'reward-row';
+    row.innerHTML = `
+      <input type="number" class="reward-amount" placeholder="+3" step="1" value="3">
+      <input type="text" class="reward-reason" placeholder="Причина" value="Достижение">
+      <button type="button" class="btn-action" style="background:#ef4444; color:white;" onclick="removeRewardRow(this)">✕</button>
+    `;
+    list.appendChild(row);
+    updateTotalFlasks();
+  };
+
+  window.removeRewardRow = (btn) => {
+    const row = btn.closest('.reward-row');
+    if (row && document.querySelectorAll('.reward-row').length > 1) {
+      row.remove();
+      updateTotalFlasks();
+    }
+  };
+
+  function updateTotalFlasks() {
+    let total = 0;
+    document.querySelectorAll('.reward-amount').forEach(inp => {
+      total += parseInt(inp.value) || 0;
+    });
+    document.getElementById('totalFlasksDisplay').innerText = total;
+    document.getElementById('mFlasksChange').value = total;
+  }
+
+  document.querySelector('#rewardList').addEventListener('input', updateTotalFlasks);
+
+  // Вывод магазина в карточке ученика
+  function renderStudentShop(studentId) {
+    const container = document.getElementById('studentShopItems');
+    const student = studentsMap[studentId];
+    if (!student || !userSettings.shopItems) {
+      container.innerHTML = '<p>Магазин не настроен</p>';
+      return;
+    }
+
+    const balance = student.flasksBalance || 0;
+    container.innerHTML = '';
+    userSettings.shopItems.forEach(item => {
+      const canAfford = balance >= item.price;
+      const missing = item.price - balance;
+      const div = document.createElement('div');
+      div.className = 'shop-item-card';
+      div.innerHTML = `
+        <div><strong>${item.title}</strong></div>
+        <div class="price">${userSettings.currencyIcon} ${item.price}</div>
+        ${canAfford ? '<div class="can-buy">✅ Можно купить</div>' : `<div class="missing">❌ Не хватает ${missing} ${userSettings.currencyName}</div>`}
+        <button ${canAfford ? '' : 'disabled'} onclick="purchaseShopItem('${studentId}', '${item.title}', ${item.price})">
+          ${canAfford ? '🛒 Купить' : '🔒 Недоступно'}
+        </button>
+      `;
+      container.appendChild(div);
+    });
+  }
+
+  window.purchaseShopItem = async (studentId, itemTitle, price) => {
+    const student = studentsMap[studentId];
+    if (!student) return;
+    if (student.flasksBalance < price) {
+      alert(`Недостаточно ${userSettings.currencyName}!`);
+      return;
+    }
+
+    const newBalance = student.flasksBalance - price;
+    await updateDoc(doc(db, "students", studentId), { flasksBalance: newBalance });
+
+    const msg = `🛍️ <b>Покупка в магазине</b>\n<b>Ученик:</b> ${student.name}\n<b>Товар:</b> ${itemTitle}\n<b>Списано:</b> ${userSettings.currencyIcon} ${price}\n<b>Остаток:</b> ${userSettings.currencyIcon} ${newBalance}`;
+    await sendTelegramMessage(msg);
+
+    renderStudentShop(studentId);
+    renderStudentsCards();
+  };
+
   function initApp() {
     const modalHwList = document.getElementById('modalHwList');
     modalHwList.innerHTML = '';
@@ -1481,6 +1640,14 @@
 
     Object.keys(studentsMap).forEach(sId => {
       const s = studentsMap[sId];
+      const balance = s.flasksBalance || 0;
+
+      // Проверяем, может ли ученик купить хоть что-то
+      let canAffordAny = false;
+      if (userSettings.shopItems) {
+        canAffordAny = userSettings.shopItems.some(item => balance >= item.price);
+      }
+
       const studentHistory = allHistory.filter(h => h.studentName === s.name || h.studentId === sId);
       const totalLessons = studentHistory.length;
       let totalHw = 0, doneHw = 0, hwGradesSum = 0, hwGradesCount = 0;
@@ -1503,11 +1670,11 @@
       const avgHwGrade = hwGradesCount > 0 ? (hwGradesSum / hwGradesCount).toFixed(1) : '—';
 
       const card = document.createElement('div');
-      card.className = 'student-card';
+      card.className = 'student-card' + (canAffordAny ? ' can-afford' : '');
       card.innerHTML = `
         <div style="display:flex; justify-content:space-between; align-items:start;">
           <h4>${s.name} <small>(${s.grade || '—'})</small></h4>
-          <span class="flask-badge economy-field">${userSettings.currencyIcon} ${s.flasksBalance || 0}</span>
+          <span class="flask-badge economy-field">${userSettings.currencyIcon} ${balance}</span>
         </div>
         <p><strong>🎯 Цель:</strong> ${s.goal || '—'}</p>
         <p><strong>📞 Контакты:</strong> ${s.parentContacts || '—'}</p>
@@ -1515,6 +1682,7 @@
         <div style="background: #ffffff; border-radius: 6px; padding: 6px; margin: 8px 0; font-size: 12px; border: 1px solid #e5e7eb;">
           📊 Уроков: <strong>${totalLessons}</strong> | Выполнение ДЗ: <strong>${hwPercent}%</strong> | Ср. оценка ДЗ: <strong>${avgHwGrade}</strong>
         </div>
+        ${canAffordAny ? '<div style="color:#7c3aed; font-weight:bold; font-size:12px;">🛍️ Доступны покупки в магазине!</div>' : ''}
         <div style="display:flex; gap:5px; flex-wrap:wrap; margin-top:8px;">
           <button class="btn-action" onclick="openStudentCardModal('${sId}')">✏️ Редактировать</button>
           <button class="btn-action" style="color:#ef4444; background:#fee2e2;" onclick="deleteStudentCard('${sId}', '${s.name}')">🗑️ Удалить</button>
@@ -1647,6 +1815,11 @@
       document.getElementById('cardFlasksBalance').value = 0;
     }
     renderCardTemplates();
+    if (studentId) {
+      renderStudentShop(studentId);
+    } else {
+      document.getElementById('studentShopItems').innerHTML = '<p>Сначала сохраните ученика</p>';
+    }
     document.getElementById('studentCardModal').classList.add('active');
   };
 
@@ -1823,16 +1996,6 @@
     }
   });
 
-  document.getElementById('mFlasksReason').addEventListener('change', (e) => {
-    const val = e.target.value;
-    const input = document.getElementById('mFlasksChange');
-    if (val.includes('+3')) input.value = 3;
-    else if (val.includes('+15')) input.value = 15;
-    else if (val.includes('+5')) input.value = 5;
-    else if (val.includes('-10')) input.value = -10;
-    else if (val.includes('-5')) input.value = -5;
-  });
-
   window.toggleCompleteModalFields = (type) => {
     const isExam = type === 'exam';
     document.getElementById('completeModalTitle').innerText = isExam ? 'Проведение Зачёта' : 'Проведение урока';
@@ -1850,6 +2013,19 @@
     document.getElementById('mRepeat').value = data.repeatDays;
     document.getElementById('mStudentName').innerText = data.studentName;
     document.getElementById('mFlasksChange').value = '';
+
+    // Сброс списка награждений
+    const rewardList = document.getElementById('rewardList');
+    rewardList.innerHTML = '';
+    const defaultRow = document.createElement('div');
+    defaultRow.className = 'reward-row';
+    defaultRow.innerHTML = `
+      <input type="number" class="reward-amount" placeholder="+3" step="1" value="3">
+      <input type="text" class="reward-reason" placeholder="Причина (напр: ДЗ вовремя)" value="ДЗ вовремя">
+      <button type="button" class="btn-action" style="background:#ef4444; color:white;" onclick="removeRewardRow(this)">✕</button>
+    `;
+    rewardList.appendChild(defaultRow);
+    updateTotalFlasks();
 
     const draft = draftsMap[id];
     const initialType = draft ? (draft.type || 'lesson') : 'lesson';
@@ -1957,14 +2133,32 @@
       if (text.trim() !== '') hwItems.push({ text, status });
     });
 
-    const flasksChange = parseInt(document.getElementById('mFlasksChange').value) || 0;
+    // Собираем все начисления
+    let totalFlasks = 0;
+    const rewardDetails = [];
+    document.querySelectorAll('.reward-row').forEach(row => {
+      const amount = parseInt(row.querySelector('.reward-amount').value) || 0;
+      const reason = row.querySelector('.reward-reason').value.trim() || 'Достижение';
+      totalFlasks += amount;
+      if (amount !== 0) rewardDetails.push(`${amount} (${reason})`);
+    });
+
     const sId = Object.keys(studentsMap).find(id => studentsMap[id].name.toLowerCase() === studentName.toLowerCase());
 
-    if (sId && flasksChange !== 0) {
+    let newBalance = 0;
+    if (sId) {
       const currentBalance = studentsMap[sId].flasksBalance || 0;
-      await updateDoc(doc(db, "students", sId), {
-        flasksBalance: Math.max(0, currentBalance + flasksChange)
-      });
+      newBalance = Math.max(0, currentBalance + totalFlasks);
+      if (totalFlasks !== 0) {
+        await updateDoc(doc(db, "students", sId), { flasksBalance: newBalance });
+      }
+    }
+
+    // Отправка уведомления в Telegram
+    if (totalFlasks !== 0 && sId) {
+      const action = totalFlasks > 0 ? 'начислено' : 'списано';
+      const msg = `💰 <b>Изменение баланса</b>\n<b>Ученик:</b> ${studentName}\n<b>${action}:</b> ${userSettings.currencyIcon} ${totalFlasks}\n<b>Причины:</b> ${rewardDetails.join('; ')}\n<b>Новый баланс:</b> ${userSettings.currencyIcon} ${newBalance}`;
+      await sendTelegramMessage(msg);
     }
 
     const historyData = {
@@ -1982,7 +2176,9 @@
       paidStatus: document.getElementById('mPaidStatus').value,
       comment: document.getElementById('mComment').value,
       examStatus: document.getElementById('mExamStatus').value,
-      hwItems: hwItems
+      hwItems: hwItems,
+      flasksChange: totalFlasks,
+      flasksChangeDetails: rewardDetails
     };
 
     try {
