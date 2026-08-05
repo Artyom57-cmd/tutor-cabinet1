@@ -1099,6 +1099,7 @@
       document.getElementById('guestFlaskBalance').innerText = flasks;
       renderGuestShop(flasks, activeShopItems);
 
+      // Загрузка истории: ищем как по studentId, так и по точному имени ученика для совместимости
       let historyList = [];
       const historyQuery1 = query(collection(db, "history"), where("studentId", "==", studentId));
       const historySnap1 = await getDocs(historyQuery1);
@@ -1128,7 +1129,7 @@
 
         const tr = document.createElement('tr');
         tr.innerHTML = `
-          <td>${data.date || '—'}</td>
+          <td>${data.date}</td>
           <td>${data.topic || '—'}</td>
           <td>${data.type === 'exam' ? (data.examStatus || '-') : (data.totalGrade || '-')}</td>
           <td>${data.hwGrade || '-'}</td>
@@ -1136,7 +1137,7 @@
         `;
         tbody.appendChild(tr);
 
-        chartLabels.push(data.date || 'Урок');
+        chartLabels.push(data.date);
         const lGrade = parseFloat(data.totalGrade);
         const hGrade = parseFloat(data.hwGrade);
         chartLessonGrades.push(!isNaN(lGrade) ? lGrade : null);
@@ -2234,39 +2235,52 @@
       if (text.trim() !== '') hwItems.push({ text, status });
     });
 
-    const draftData = {
-      userId: currentUserId,
-      type: document.getElementById('mLessonTypeSelect').value,
-      topic: document.getElementById('mTopic').value,
-      pollGrade: document.getElementById('mPollGrade').value,
-      lessonGrade: document.getElementById('mLessonGrade').value,
-      hwGrade: document.getElementById('mHwGrade').value,
-      totalGrade: document.getElementById('mTotalGrade').value,
-      paidStatus: document.getElementById('mPaidStatus').value,
-      nextHw: document.getElementById('mNextHw').value,
-      comment: document.getElementById('mComment').value,
-      examStatus: document.getElementById('mExamStatus').value,
-      hwItems: hwItems
-    };
-
     try {
-      await setDoc(doc(db, "drafts", schedId), draftData);
+      await setDoc(doc(db, "drafts", schedId), {
+        userId: currentUserId,
+        type: document.getElementById('mLessonTypeSelect').value,
+        topic: document.getElementById('mTopic').value,
+        examStatus: document.getElementById('mExamStatus').value,
+        pollGrade: document.getElementById('mPollGrade').value,
+        lessonGrade: document.getElementById('mLessonGrade').value,
+        hwGrade: document.getElementById('mHwGrade').value,
+        totalGrade: document.getElementById('mTotalGrade').value,
+        paidStatus: document.getElementById('mPaidStatus').value,
+        nextHw: document.getElementById('mNextHw').value,
+        comment: document.getElementById('mComment').value,
+        hwItems: hwItems,
+        updatedAt: new Date().toISOString()
+      });
+
+      alert('Черновик успешно сохранён! 📝');
       closeModal();
-      alert("Черновик урока успешно сохранен! 📝");
-    } catch(e) {
-      alert("Ошибка сохранения черновика: " + e.message);
+    } catch(err) {
+      alert('Ошибка при сохранении черновика: ' + err.message);
     }
   };
 
+  // ====== ФУНКЦИЯ ЗАВЕРШЕНИЯ УРОКА ======
   document.getElementById('completeLessonForm').addEventListener('submit', async (e) => {
     e.preventDefault();
-    const schedId = document.getElementById('mScheduleId').value;
+    e.stopPropagation();
+    
+    const scheduleId = document.getElementById('mScheduleId').value;
     const studentName = document.getElementById('mStudent').value;
-    const rawDateTime = document.getElementById('mDate').value;
-    const repeatDays = parseInt(document.getElementById('mRepeat').value);
-    const lessonType = document.getElementById('mLessonTypeSelect').value;
-
-    const formattedDate = new Date(rawDateTime).toLocaleString('ru-RU', { dateStyle: 'short', timeStyle: 'short' });
+    const rawDate = document.getElementById('mDate').value;
+    const repeatDays = parseInt(document.getElementById('mRepeat').value) || 0;
+    
+    const type = document.getElementById('mLessonTypeSelect').value;
+    const topic = document.getElementById('mTopic').value;
+    const examStatus = document.getElementById('mExamStatus').value;
+    const pollGrade = document.getElementById('mPollGrade').value;
+    const lessonGrade = document.getElementById('mLessonGrade').value;
+    const hwGrade = document.getElementById('mHwGrade').value;
+    const totalGrade = document.getElementById('mTotalGrade').value;
+    const paidStatus = document.getElementById('mPaidStatus').value;
+    const nextHw = document.getElementById('mNextHw').value;
+    const comment = document.getElementById('mComment').value;
+    const flasksChange = parseInt(document.getElementById('mFlasksChange').value) || 0;
+    const flasksReason = document.getElementById('mFlasksReason').value;
 
     const hwItems = [];
     document.querySelectorAll('#modalHwList .hw-item').forEach(row => {
@@ -2275,67 +2289,89 @@
       if (text.trim() !== '') hwItems.push({ text, status });
     });
 
-    const studentId = Object.keys(studentsMap).find(sId => studentsMap[sId].name.toLowerCase() === studentName.toLowerCase()) || '';
-
-    const historyData = {
-      userId: currentUserId,
-      studentId: studentId,
-      studentName: studentName,
-      type: lessonType,
-      date: formattedDate,
-      rawDate: rawDateTime,
-      topic: document.getElementById('mTopic').value,
-      examStatus: document.getElementById('mExamStatus').value,
-      pollGrade: document.getElementById('mPollGrade').value,
-      lessonGrade: document.getElementById('mLessonGrade').value,
-      hwGrade: document.getElementById('mHwGrade').value,
-      totalGrade: document.getElementById('mTotalGrade').value,
-      paidStatus: document.getElementById('mPaidStatus').value,
-      comment: document.getElementById('mComment').value,
-      hwItems: hwItems
-    };
-
     try {
-      await addDoc(collection(db, "history"), historyData);
+      let studentId = null;
+      for (let sId in studentsMap) {
+        if (studentsMap[sId].name.toLowerCase() === studentName.toLowerCase()) {
+          studentId = sId;
+          break;
+        }
+      }
 
-      const flasksChange = parseInt(document.getElementById('mFlasksChange').value) || 0;
-      if (flasksChange !== 0 && studentId && studentsMap[studentId]) {
-        const currentFlasks = studentsMap[studentId].flasksBalance || 0;
+      if (!studentId) {
+        const newStudentRef = await addDoc(collection(db, "students"), {
+          userId: currentUserId,
+          teacherChatId: userSettings.tgChatId || '',
+          name: studentName,
+          grade: '',
+          parentContacts: '',
+          flasksBalance: 0,
+          goal: '',
+          notes: '',
+          hwTemplates: []
+        });
+        studentId = newStudentRef.id;
+      }
+
+      if (studentId && flasksChange !== 0) {
+        const currentBal = studentsMap[studentId] ? (studentsMap[studentId].flasksBalance || 0) : 0;
         await updateDoc(doc(db, "students", studentId), {
-          flasksBalance: Math.max(0, currentFlasks + flasksChange)
+          flasksBalance: Math.max(0, currentBal + flasksChange)
         });
       }
 
-      const nextHw = document.getElementById('mNextHw').value;
+      const formattedDate = new Date(rawDate).toLocaleDateString('ru-RU');
+
+      await addDoc(collection(db, "history"), {
+        userId: currentUserId,
+        studentId: studentId,
+        studentName: studentName,
+        date: formattedDate,
+        rawDate: rawDate,
+        type: type,
+        topic: topic,
+        examStatus: examStatus,
+        pollGrade: pollGrade,
+        lessonGrade: lessonGrade,
+        hwGrade: hwGrade,
+        totalGrade: totalGrade,
+        paidStatus: paidStatus,
+        comment: comment,
+        hwItems: hwItems,
+        createdAt: new Date().toISOString()
+      });
+
+      if (scheduleId) {
+        await deleteDoc(doc(db, "schedule", scheduleId));
+        if (draftsMap[scheduleId]) {
+          await deleteDoc(doc(db, "drafts", scheduleId));
+        }
+      }
+
       if (repeatDays > 0) {
-        const nextDate = new Date(rawDateTime);
+        const nextDate = new Date(rawDate);
         nextDate.setDate(nextDate.getDate() + repeatDays);
-        
-        await updateDoc(doc(db, "schedule", schedId), {
+        await addDoc(collection(db, "schedule"), {
+          userId: currentUserId,
+          studentName: studentName,
           dateTime: nextDate.toISOString().slice(0, 16),
+          repeatDays: repeatDays,
+          reminderDelay: "0",
           assignedHw: nextHw
         });
-      } else {
-        await deleteDoc(doc(db, "schedule", schedId));
-      }
-
-      if (draftsMap[schedId]) {
-        await deleteDoc(doc(db, "drafts", schedId));
       }
 
       closeModal();
-      generateLessonReportByData(historyData);
+      alert("Урок успешно завершён и сохранён в историю! 🎉");
     } catch(err) {
-      alert("Ошибка при сохранении результата: " + err.message);
+      alert("Ошибка при завершении урока: " + err.message);
     }
   });
 
   window.generateLessonReport = (historyId) => {
-    const item = allHistory.find(l => l.id === historyId);
-    if(item) generateLessonReportByData(item);
-  };
+    const item = allHistory.find(h => h.id === historyId);
+    if (!item) return;
 
-  function generateLessonReportByData(item) {
     document.getElementById('repStudent').innerText = item.studentName;
     document.getElementById('repDate').innerText = item.date;
     document.getElementById('repTopic').innerText = item.topic || '—';
@@ -2347,32 +2383,30 @@
 
     const hwDisplay = document.getElementById('repHwDisplay');
     hwDisplay.innerHTML = '';
-
     if (item.hwItems && item.hwItems.length > 0) {
       item.hwItems.forEach(hw => {
         const div = document.createElement('div');
         div.className = `hw-item ${hw.status === 'done' ? 'done' : (hw.status === 'fail' ? 'not-done' : '')}`;
-        const icon = hw.status === 'done' ? '✅' : (hw.status === 'fail' ? '❌' : '⚪');
-        div.innerHTML = `<span>${icon}</span> <span>${hw.text}</span>`;
+        div.innerHTML = `<span>${hw.status === 'done' ? '✅' : (hw.status === 'fail' ? '❌' : '⚪')}</span> <span>${hw.text}</span>`;
         hwDisplay.appendChild(div);
       });
     } else {
-      hwDisplay.innerHTML = '<p style="font-size:13px; color:var(--text-muted);">ДЗ не задавалось</p>';
+      hwDisplay.innerHTML = '<p style="font-size:12px; color:var(--text-muted);">ДЗ не задавалось</p>';
     }
 
-    const card = document.getElementById('lessonReportCard');
-    card.classList.add('active');
-    card.scrollIntoView({ behavior: 'smooth' });
-  }
+    const reportCard = document.getElementById('lessonReportCard');
+    reportCard.classList.add('active');
+    reportCard.scrollIntoView({ behavior: 'smooth' });
+  };
 
   window.generatePeriodReport = () => {
     const student = document.getElementById('reportStudentSelect').value;
     const dateFrom = document.getElementById('reportDateFrom').value;
     const dateTo = document.getElementById('reportDateTo').value;
-    const comment = document.getElementById('reportTeacherComment').value;
+    const teacherComment = document.getElementById('reportTeacherComment').value;
 
     if (!student || !dateFrom || !dateTo) {
-      alert("Заполните все необходимые поля для отчета!");
+      alert("Пожалуйста, заполните все обязательные поля!");
       return;
     }
 
@@ -2400,12 +2434,12 @@
     const hwPercent = totalHw > 0 ? Math.round((doneHw / totalHw) * 100) : 100;
 
     document.getElementById('pRepStudent').innerText = student;
-    document.getElementById('pRepDates').innerText = `За период: ${new Date(dateFrom).toLocaleDateString('ru-RU')} — ${new Date(dateTo).toLocaleDateString('ru-RU')}`;
+    document.getElementById('pRepDates').innerText = `Период: ${new Date(dateFrom).toLocaleDateString('ru-RU')} — ${new Date(dateTo).toLocaleDateString('ru-RU')}`;
     document.getElementById('pRepLessonsCount').innerText = filtered.length;
     document.getElementById('pRepHwPercent').innerText = `${hwPercent}%`;
     document.getElementById('pRepHwGradesList').innerText = hwGrades.length > 0 ? hwGrades.join(', ') : '—';
     document.getElementById('pRepGradesList').innerText = lessonGrades.length > 0 ? lessonGrades.join(', ') : '—';
-    document.getElementById('pRepComment').innerText = comment || 'Комментарии отсутствуют.';
+    document.getElementById('pRepComment').innerText = teacherComment || 'Обучение проходит в плановом режиме.';
 
     const card = document.getElementById('periodReportCard');
     card.classList.add('active');
