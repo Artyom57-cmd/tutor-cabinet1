@@ -130,21 +130,115 @@
     .shop-edit-row input[type="number"] { flex: 1; }
     .shop-edit-row button { background: #fee2e2; color: #dc2626; border: none; padding: 8px 10px; }
 
-    /* ДИЗАЙН СЕРТИФИКАТА */
+    /* ОБНОВЛЕННЫЙ И КРАСОЧНЫЙ ДИЗАЙН СЕРТИФИКАТА */
     .certificate-card {
-      background: #fffdfa; border: 10px solid #d97706; border-radius: 16px; padding: 40px 30px;
-      text-align: center; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.15); margin: 30px auto;
-      max-width: 680px; display: none; background-image: radial-gradient(#fbbf24 0.75px, transparent 0.75px);
-      background-size: 16px 16px;
+      background: #ffffff;
+      border: 12px double #d97706;
+      border-radius: 20px;
+      padding: 45px 35px;
+      text-align: center;
+      position: relative;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.18);
+      margin: 30px auto;
+      max-width: 720px;
+      display: none;
+      overflow: hidden;
+      box-sizing: border-box;
     }
     .certificate-card.active { display: block; }
-    .certificate-header { font-size: 28px; font-weight: 900; color: #b45309; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px; }
-    .certificate-sub { font-size: 14px; color: #78350f; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 25px; }
-    .certificate-recipient { font-size: 24px; font-weight: 800; color: var(--primary-dark); border-bottom: 2px solid #b45309; display: inline-block; padding: 0 20px 5px; margin-bottom: 15px; }
-    .certificate-body { font-size: 15px; color: #451a03; margin: 15px 0 30px; line-height: 1.6; }
-    .certificate-topic { font-size: 18px; font-weight: 700; color: var(--primary); }
-    .certificate-footer { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 40px; padding: 0 20px; }
-    .certificate-stamp { border: 3px double #b45309; border-radius: 50%; width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #b45309; transform: rotate(-12deg); font-size: 11px; text-transform: uppercase; }
+    
+    /* Декоративные паттерны фона */
+    .cert-bg-overlay {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      opacity: 0.05;
+      font-size: 48px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-around;
+      align-content: space-around;
+      pointer-events: none;
+      user-select: none;
+    }
+
+    .certificate-header {
+      font-size: 32px;
+      font-weight: 900;
+      color: #b45309;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      margin-bottom: 5px;
+      position: relative;
+    }
+
+    .certificate-sub {
+      font-size: 13px;
+      color: #92400e;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      font-weight: 700;
+      margin-bottom: 25px;
+    }
+
+    .cert-icon-center {
+      font-size: 42px;
+      margin: 10px 0;
+      display: inline-block;
+      filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
+    }
+
+    .certificate-recipient {
+      font-size: 26px;
+      font-weight: 800;
+      color: var(--primary-dark);
+      border-bottom: 2px dashed #b45309;
+      display: inline-block;
+      padding: 0 30px 5px;
+      margin: 10px 0 15px;
+    }
+
+    .certificate-body {
+      font-size: 15px;
+      color: #451a03;
+      margin: 15px 0 25px;
+      line-height: 1.7;
+      position: relative;
+    }
+
+    .certificate-topic {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--primary);
+      display: block;
+      margin-top: 5px;
+    }
+
+    .certificate-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-top: 35px;
+      padding: 0 15px;
+      position: relative;
+    }
+
+    .certificate-stamp {
+      border: 3px double #b45309;
+      border-radius: 50%;
+      width: 90px;
+      height: 90px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      color: #b45309;
+      transform: rotate(-10deg);
+      font-size: 10px;
+      text-transform: uppercase;
+      background: rgba(254, 243, 199, 0.4);
+      box-shadow: 0 0 0 4px rgba(217, 119, 6, 0.1);
+    }
   </style>
 </head>
 <body class="theme-chemistry">
@@ -306,7 +400,6 @@
             </div>
           </div>
 
-          <!-- Настройка отложенного сообщения -->
           <div class="form-group" style="background:#f0f4f8; padding:8px; border-radius:6px;">
             <label>⏰ Напомнить ученику через бот за:</label>
             <select id="reminderDelay">
@@ -408,6 +501,10 @@
             <select id="certStudentSelect" required></select>
           </div>
           <div class="form-group">
+            <label>Имя и Отчество преподавателя (для подписи)</label>
+            <input type="text" id="certTeacherName" placeholder="Например: Мария Сергеевна" required>
+          </div>
+          <div class="form-group">
             <label>Наименование темы / модуля</label>
             <input type="text" id="certTopic" placeholder="Например: Органическая химия или Алгебра 9 класс" required>
           </div>
@@ -428,6 +525,11 @@
       <div class="modal-content">
         <h3 style="color:var(--primary-dark); margin-bottom:15px;">⚙️ Настройки кабинета преподавателя</h3>
         <form id="settingsForm">
+          <div class="form-group">
+            <label>ФИО / ИО Преподавателя (отображается в сертификатах и отчетах)</label>
+            <input type="text" id="setTeacherName" placeholder="Например: Анна Ивановна" required>
+          </div>
+
           <div class="form-group">
             <label>Выбор предмета</label>
             <select id="setSubject" onchange="onSubjectChange(this.value)">
@@ -479,7 +581,6 @@
             </div>
           </div>
 
-          <!-- РЕДАКТОР МАГАЗИНА ПЛЮШЕК -->
           <div id="shopSettingsBlock">
             <hr style="margin: 15px 0;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
@@ -505,6 +606,10 @@
         <p style="text-align:center; font-size:13px; color:var(--text-muted); margin-bottom:20px;">Настройте кабинет под свой предмет за 1 шаг:</p>
         <form id="onboardingForm">
           <div class="form-group">
+            <label>Ваше Имя и Отчество (или ФИО)</label>
+            <input type="text" id="onboardTeacherName" placeholder="Екатерина Сергеевна" required style="padding:10px;">
+          </div>
+          <div class="form-group" style="margin-top:10px;">
             <label>Какой предмет вы преподаете?</label>
             <select id="onboardSubject" style="padding:10px;">
               <option value="chemistry">🧪 Химия</option>
@@ -635,7 +740,6 @@
               <input type="text" id="mTopic" placeholder="Тема занятия" required>
             </div>
 
-            <!-- Поля для зачёта -->
             <div id="examFieldsBlock" style="display:none; background:#fffbe3; padding:10px; border-radius:6px; border:1px solid #f59e0b;">
               <div class="form-group">
                 <label style="font-weight:bold; color:#b45309;">Результат зачёта</label>
@@ -658,7 +762,6 @@
                 </div>
               </div>
 
-              <!-- БЛОК НАЧИСЛЕНИЯ/СПИСАНИЯ ВАЛЮТЫ -->
               <div class="form-group economy-field" style="background: #e0e7ff; padding: 10px; border-radius: 6px; border: 1px solid var(--primary);">
                 <label style="color:var(--primary-dark); font-weight:bold;"><span class="currency-icon">🧪</span> Начисление / Списание баллов:</label>
                 <div style="display:flex; gap: 8px; margin-top: 4px;">
@@ -816,6 +919,7 @@
         <p><strong>Итоговая оценка за урок:</strong> <span id="repTotalGrade" style="font-weight:bold; font-size:18px;"></span></p>
         <p style="margin-top:5px;"><strong>Комментарий / Рекомендация:</strong></p>
         <p id="repComment" style="font-style:italic; background:#f0f4f8; padding:8px; border-radius:4px; margin-top:4px;"></p>
+        <p style="margin-top:8px; font-size:12px; color:var(--text-muted);">Преподаватель: <strong class="teacher-fullname-display">Репетитор</strong></p>
       </div>
       
       <div style="display: flex; gap: 10px; margin-top: 10px;">
@@ -841,6 +945,7 @@
       <div class="report-section">
         <div class="report-section-title">Итоговый комментарий преподавателя</div>
         <p id="pRepComment" style="background:#f0f4f8; padding:10px; border-radius:4px; font-style:italic;"></p>
+        <p style="margin-top:8px; font-size:12px; color:var(--text-muted);">Преподаватель: <strong class="teacher-fullname-display">Репетитор</strong></p>
       </div>
 
       <div style="display: flex; gap: 10px; margin-top: 10px;">
@@ -849,24 +954,26 @@
       </div>
     </div>
 
-    <!-- ДИЗАЙН И КАРТОЧКА СЕРТИФИКАТА ОБ ОКОНЧАНИИ МОДУЛЯ -->
+    <!-- ОБНОВЛЕННАЯ КАРТОЧКА СЕРТИФИКАТА С ПРЕДМЕТНОЙ СТИЛИСТИКОЙ -->
     <div class="certificate-card" id="certificateDisplayCard">
+      <div class="cert-bg-overlay" id="certBgPattern">🧪 🔬 🧬 🧪 🔬 🧬</div>
       <div class="certificate-header">СЕРТИФИКАТ</div>
-      <div class="certificate-sub">об успешном прохождении темы / модуля</div>
-      <p style="font-size: 14px; color: #78350f; margin-top: 20px;">Настоящий сертификат подтверждает, что</p>
+      <div class="certificate-sub">об успешном прохождении модуля</div>
+      <div class="cert-icon-center" id="certCenterIcon">🧪</div>
+      <p style="font-size: 14px; color: #78350f; margin-top: 10px;">Настоящий сертификат подтверждает, что</p>
       <div class="certificate-recipient" id="certRenderName">Иван Иванов</div>
       <div class="certificate-body">
         успешно освоил(а) программу курса и сдал(а) контрольный модуль по теме:<br>
         <span class="certificate-topic" id="certRenderTopic">«Органическая химия»</span>
       </div>
       <div class="certificate-footer">
-        <div>
+        <div style="text-align: left;">
           <p style="font-size: 12px; color: #78350f;">Дата выдачи: <strong id="certRenderDate">01.09.2026</strong></p>
-          <p style="font-size: 12px; color: #78350f; margin-top: 4px;">Преподаватель: <strong>Репетитор</strong></p>
+          <p style="font-size: 13px; color: #78350f; margin-top: 6px;">Преподаватель: <strong id="certRenderTeacher">Мария Сергеевна</strong></p>
         </div>
-        <div class="certificate-stamp">ПРОВЕРЕНО<br>И СДАНО</div>
+        <div class="certificate-stamp" id="certStampText">ПРОВЕРЕНО<br>🧪<br>И СДАНО</div>
       </div>
-      <div style="display: flex; gap: 10px; margin-top: 25px;">
+      <div style="display: flex; gap: 10px; margin-top: 25px; position:relative; z-index:10;">
         <button class="btn-action" style="flex:1;" onclick="window.print()">🖨️ Скачать / Печать</button>
         <button class="btn-action tg-btn" style="flex:1; background:#0088cc; color:white;" onclick="sendCertificateToTelegram()">✈️ Отправить в TG</button>
       </div>
@@ -895,12 +1002,12 @@
   const db = getFirestore(app);
 
   const SUBJECT_PRESETS = {
-    chemistry: { title: "Химия", icon: "🧪", theme: "theme-chemistry", currency: "Колбы", currencyIcon: "🧪" },
-    biology: { title: "Биология", icon: "🔬", theme: "theme-biology", currency: "Микроскопы", currencyIcon: "🔬" },
-    math: { title: "Математика", icon: "🧮", theme: "theme-math", currency: "Калькуляторы", currencyIcon: "🧮" },
-    english: { title: "Английский язык", icon: "🇬🇧", theme: "theme-english", currency: "Флаги", currencyIcon: "🇬🇧" },
-    physics: { title: "Физика", icon: "⚙️", theme: "theme-physics", currency: "Атомы", currencyIcon: "⚛️" },
-    russian: { title: "Русский язык", icon: "📚", theme: "theme-russian", currency: "Буквы", currencyIcon: "📚" }
+    chemistry: { title: "Химия", icon: "🧪", theme: "theme-chemistry", currency: "Колбы", currencyIcon: "🧪", bgPattern: "🧪 🔬 🧫 🧬 🧪 🔬 🧫 🧬" },
+    biology: { title: "Биология", icon: "🔬", theme: "theme-biology", currency: "Микроскопы", currencyIcon: "🔬", bgPattern: "🔬 🌿 🧬 🧫 🔬 🌿 🧬 🧫" },
+    math: { title: "Математика", icon: "🧮", theme: "theme-math", currency: "Калькуляторы", currencyIcon: "🧮", bgPattern: "🧮 📐 ♾️ 🔢 🧮 📐 ♾️ 🔢" },
+    english: { title: "Английский язык", icon: "🇬🇧", theme: "theme-english", currency: "Флаги", currencyIcon: "🇬🇧", bgPattern: "🇬🇧 🔤 🗣️ 📚 🇬🇧 🔤 🗣️ 📚" },
+    physics: { title: "Физика", icon: "⚙️", theme: "theme-physics", currency: "Атомы", currencyIcon: "⚛️", bgPattern: "⚛️ ⚙️ 🧲 ⚡ ⚛️ ⚙️ 🧲 ⚡" },
+    russian: { title: "Русский язык", icon: "📚", theme: "theme-russian", currency: "Буквы", currencyIcon: "📚", bgPattern: "📚 ✍️ 📖 🔤 📚 ✍️ 📖 🔤" }
   };
 
   const defaultShopItems = [
@@ -914,6 +1021,7 @@
   ];
 
   let userSettings = {
+    teacherName: "Репетитор",
     subject: "chemistry",
     tgEnabled: true,
     tgBotToken: "",
@@ -1043,7 +1151,6 @@
     }
   }
 
-  // ОБРАБОТКА ВОПРОСА РОДИТЕЛЕЙ ЧЕРЕЗ ГОСТЕВУЮ ССЫЛКУ
   document.getElementById('guestQuestionForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const sender = document.getElementById('guestSenderName').value;
@@ -1162,23 +1269,6 @@
     }
   };
 
-  async function sendFlaskNotificationToTelegram(studentName, amount, reason, newBalance) {
-    if (!userSettings.tgEnabled || !userSettings.tgChatId || !userSettings.tgBotToken) return;
-
-    const actionText = amount > 0 ? `начислено <b>+${amount}</b>` : `списано <b>${amount}</b>`;
-    const message = `${userSettings.currencyIcon} <b>Уведомление о балансе</b>\n\nУченику <b>${studentName}</b> ${actionText} ${userSettings.currencyIcon}\n<b>Причина:</b> ${reason}\n<b>Текущий баланс:</b> ${newBalance} ${userSettings.currencyIcon}`;
-
-    try {
-      await fetch(`https://api.telegram.org/bot${userSettings.tgBotToken}/sendMessage`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ chat_id: userSettings.tgChatId, text: message, parse_mode: 'HTML' })
-      });
-    } catch (e) {
-      console.error(e);
-    }
-  }
-
   async function sendElementAsPhotoToTelegram(elementId, captionText) {
     if (!userSettings.tgEnabled || !userSettings.tgChatId || !userSettings.tgBotToken) {
       alert('Отправка в Telegram выключена или не введены токены в настройках!');
@@ -1283,7 +1373,6 @@
     }
   });
 
-  // АВТОМАТИЧЕСКИЙ ОТЧЁТ 1-ГО ЧИСЛА НОВОГО МЕСЯЦА
   async function checkAndSendMonthlyReports() {
     const today = new Date();
     if (today.getDate() !== 1 || !userSettings.autoMonthlyReport || !userSettings.tgEnabled) return;
@@ -1375,15 +1464,31 @@
 
     const tgBtns = document.querySelectorAll('.tg-btn');
     tgBtns.forEach(el => el.style.display = settings.tgEnabled ? '' : 'none');
+
+    // Настройка ФИО репетитора во всех блоках отчетов
+    const tName = settings.teacherName || "Репетитор";
+    document.querySelectorAll('.teacher-fullname-display').forEach(el => el.innerText = tName);
+
+    // Стилизация и эмодзи сертификата под предмет
+    const certIcon = document.getElementById('certCenterIcon');
+    if (certIcon) certIcon.innerText = preset.icon;
+
+    const certPattern = document.getElementById('certBgPattern');
+    if (certPattern) certPattern.innerText = preset.bgPattern;
+
+    const certStamp = document.getElementById('certStampText');
+    if (certStamp) certStamp.innerHTML = `ПРОВЕРЕНО<br>${preset.icon}<br>И СДАНО`;
   }
 
   document.getElementById('onboardingForm').addEventListener('submit', async (e) => {
     e.preventDefault();
+    const tName = document.getElementById('onboardTeacherName').value.trim();
     const subKey = document.getElementById('onboardSubject').value;
     const econ = document.getElementById('onboardEconomy').checked;
     const preset = SUBJECT_PRESETS[subKey];
 
     const initialData = {
+      teacherName: tName || "Репетитор",
       subject: subKey,
       tgEnabled: true,
       tgBotToken: "",
@@ -1400,6 +1505,7 @@
   });
 
   window.openSettingsModal = (scrollTo = null) => {
+    document.getElementById('setTeacherName').value = userSettings.teacherName || '';
     document.getElementById('setSubject').value = userSettings.subject || 'chemistry';
     document.getElementById('setTgEnabled').checked = userSettings.tgEnabled;
     document.getElementById('setTgBotToken').value = userSettings.tgBotToken || '';
@@ -1434,7 +1540,7 @@
   function renderShopEditRows(items) {
     const list = document.getElementById('shopEditList');
     list.innerHTML = '';
-    items.forEach((item, index) => {
+    items.forEach((item) => {
       const row = document.createElement('div');
       row.className = 'shop-edit-row';
       row.innerHTML = `
@@ -1483,6 +1589,7 @@
     });
 
     const newData = {
+      teacherName: document.getElementById('setTeacherName').value.trim(),
       subject: document.getElementById('setSubject').value,
       tgEnabled: document.getElementById('setTgEnabled').checked,
       tgBotToken: document.getElementById('setTgBotToken').value.trim(),
@@ -1497,7 +1604,7 @@
     try {
       await setDoc(doc(db, "users", currentUserId), newData, { merge: true });
       closeSettingsModal();
-      alert("Настройки кабинета и магазина успешно обновлены! 💾");
+      alert("Настройки кабинета и профиля репетитора успешно обновлены! 💾");
     } catch (err) {
       alert("Ошибка при сохранении настроек: " + err.message);
     }
@@ -1514,7 +1621,7 @@
     }
   };
 
-  // ФУНКЦИОНАЛ СЕРТИФИКАТОВ
+  // ФУНКЦИОНАЛ СЕРТИФИКАТОВ С ПОДДЕРЖКОЙ ИО ПРЕПОДАВАТЕЛЯ
   window.openCertificateModal = () => {
     const select = document.getElementById('certStudentSelect');
     select.innerHTML = '';
@@ -1524,6 +1631,8 @@
       opt.innerText = studentsMap[sId].name;
       select.appendChild(opt);
     });
+    
+    document.getElementById('certTeacherName').value = userSettings.teacherName || '';
     document.getElementById('certDate').value = new Date().toISOString().slice(0, 10);
     document.getElementById('certificateModal').classList.add('active');
   };
@@ -1532,12 +1641,14 @@
 
   window.generateCertificate = () => {
     const name = document.getElementById('certStudentSelect').value;
+    const teacherName = document.getElementById('certTeacherName').value.trim();
     const topic = document.getElementById('certTopic').value;
     const dateStr = document.getElementById('certDate').value;
 
     if (!topic) { alert("Укажите тему сертификата!"); return; }
 
     document.getElementById('certRenderName').innerText = name;
+    document.getElementById('certRenderTeacher').innerText = teacherName || userSettings.teacherName || "Репетитор";
     document.getElementById('certRenderTopic').innerText = `«${topic}»`;
     document.getElementById('certRenderDate').innerText = new Date(dateStr).toLocaleDateString('ru-RU');
 
@@ -2143,158 +2254,6 @@
     } catch(err) {
       alert('Ошибка при сохранении черновика: ' + err.message);
     }
-  };
-
-  document.getElementById('completeLessonForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    
-    const schedId = document.getElementById('mScheduleId').value;
-    const student = document.getElementById('mStudent').value;
-    const dateStr = document.getElementById('mDate').value;
-    const lessonType = document.getElementById('mLessonTypeSelect').value || 'lesson';
-    const repeatDays = parseInt(document.getElementById('mRepeat').value) || 0;
-    const nextHw = document.getElementById('mNextHw').value;
-    const flasksChange = parseInt(document.getElementById('mFlasksChange').value) || 0;
-    const flasksReason = document.getElementById('mFlasksReason').value;
-
-    try {
-      const studentObj = Object.values(studentsMap).find(s => s.name === student);
-      const studentId = studentObj ? Object.keys(studentsMap).find(k => studentsMap[k] === studentObj) : '';
-
-      if (studentId && flasksChange !== 0 && userSettings.economyEnabled && lessonType !== 'exam') {
-        const currentBalance = studentObj.flasksBalance || 0;
-        const newBalance = currentBalance + flasksChange;
-        await updateDoc(doc(db, "students", studentId), { flasksBalance: newBalance });
-        await sendFlaskNotificationToTelegram(student, flasksChange, flasksReason, newBalance);
-      }
-
-      const hwItems = [];
-      document.querySelectorAll('#modalHwList .hw-item').forEach(row => {
-        const text = row.querySelector('.hw-text-input').value;
-        const status = row.querySelector('.status-select').value;
-        if (text.trim() !== '') hwItems.push({ text, status });
-      });
-
-      const formattedDate = new Date(dateStr).toLocaleString('ru-RU', { dateStyle: 'short', timeStyle: 'short' });
-
-      await addDoc(collection(db, "history"), {
-        userId: currentUserId,
-        studentId: studentId,
-        studentName: student,
-        date: formattedDate,
-        rawDate: dateStr,
-        type: lessonType,
-        topic: document.getElementById('mTopic').value,
-        examStatus: document.getElementById('mExamStatus').value,
-        pollGrade: document.getElementById('mPollGrade').value,
-        lessonGrade: document.getElementById('mLessonGrade').value,
-        hwGrade: document.getElementById('mHwGrade').value,
-        totalGrade: document.getElementById('mTotalGrade').value,
-        paidStatus: document.getElementById('mPaidStatus').value,
-        comment: document.getElementById('mComment').value,
-        hwItems: hwItems
-      });
-
-      if (schedId) {
-        await deleteDoc(doc(db, "schedule", schedId));
-        if (draftsMap[schedId]) await deleteDoc(doc(db, "drafts", schedId));
-      }
-
-      if (repeatDays > 0) {
-        const nextDate = new Date(new Date(dateStr).getTime() + repeatDays * 24 * 60 * 60 * 1000);
-        const isoString = new Date(nextDate.getTime() - nextDate.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
-
-        await addDoc(collection(db, "schedule"), {
-          userId: currentUserId,
-          studentName: student,
-          dateTime: isoString,
-          repeatDays: repeatDays,
-          assignedHw: nextHw || ''
-        });
-      }
-
-      closeModal();
-      alert('Урок успешно проведён и записан в историю! 🎉');
-    } catch (err) {
-      alert("Ошибка завершения урока: " + err.message);
-    }
-  });
-
-  window.generateLessonReport = (historyId) => {
-    const data = allHistory.find(h => h.id === historyId);
-    if (!data) return;
-
-    document.getElementById('repStudent').innerText = data.studentName;
-    document.getElementById('repDate').innerText = data.date;
-    document.getElementById('repTopic').innerText = data.topic || '—';
-    document.getElementById('repPoll').innerText = data.pollGrade || '—';
-    document.getElementById('repWork').innerText = data.lessonGrade || '—';
-    document.getElementById('repHwGrade').innerText = data.hwGrade || '—';
-    document.getElementById('repTotalGrade').innerText = data.totalGrade || '—';
-    document.getElementById('repComment').innerText = data.comment || 'Нет комментариев';
-
-    const hwDisplay = document.getElementById('repHwDisplay');
-    hwDisplay.innerHTML = '';
-    if (data.hwItems && data.hwItems.length > 0) {
-      data.hwItems.forEach(item => {
-        const div = document.createElement('div');
-        div.className = `hw-item ${item.status === 'done' ? 'done' : (item.status === 'fail' ? 'not-done' : '')}`;
-        div.innerHTML = `<span>${item.status === 'done' ? '✅' : (item.status === 'fail' ? '❌' : '⚪')} ${item.text}</span>`;
-        hwDisplay.appendChild(div);
-      });
-    } else {
-      hwDisplay.innerHTML = '<p style="font-size:12px; color:#6b7280;">Домашнее задание не задавалось</p>';
-    }
-
-    const card = document.getElementById('lessonReportCard');
-    card.classList.add('active');
-    card.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  window.generatePeriodReport = () => {
-    const student = document.getElementById('reportStudentSelect').value;
-    const dateFrom = document.getElementById('reportDateFrom').value;
-    const dateTo = document.getElementById('reportDateTo').value;
-    const teacherComment = document.getElementById('reportTeacherComment').value;
-
-    if (!student || !dateFrom || !dateTo) {
-      alert("Заполните все поля формы!");
-      return;
-    }
-
-    const filtered = allHistory.filter(h => {
-      if (h.studentName !== student) return false;
-      const hDate = h.rawDate ? h.rawDate.slice(0, 10) : '';
-      return hDate >= dateFrom && hDate <= dateTo;
-    });
-
-    document.getElementById('pRepStudent').innerText = student;
-    document.getElementById('pRepDates').innerText = `Период: ${new Date(dateFrom).toLocaleDateString('ru-RU')} — ${new Date(dateTo).toLocaleDateString('ru-RU')}`;
-    document.getElementById('pRepLessonsCount').innerText = filtered.length;
-    document.getElementById('pRepComment').innerText = teacherComment || 'Прогресс стабильный.';
-
-    let totalHw = 0, doneHw = 0;
-    const hwGrades = [], totalGrades = [];
-
-    filtered.forEach(h => {
-      if (h.hwItems) {
-        h.hwItems.forEach(i => {
-          totalHw++;
-          if (i.status === 'done') doneHw++;
-        });
-      }
-      if (h.hwGrade) hwGrades.push(h.hwGrade);
-      if (h.totalGrade) totalGrades.push(h.totalGrade);
-    });
-
-    const hwPercent = totalHw > 0 ? Math.round((doneHw / totalHw) * 100) : 100;
-    document.getElementById('pRepHwPercent').innerText = `${hwPercent}%`;
-    document.getElementById('pRepHwGradesList').innerText = hwGrades.length > 0 ? hwGrades.join(', ') : '—';
-    document.getElementById('pRepGradesList').innerText = totalGrades.length > 0 ? totalGrades.join(', ') : '—';
-
-    const card = document.getElementById('periodReportCard');
-    card.classList.add('active');
-    card.scrollIntoView({ behavior: 'smooth' });
   };
 </script>
 </body>
