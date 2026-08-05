@@ -1099,7 +1099,6 @@
       document.getElementById('guestFlaskBalance').innerText = flasks;
       renderGuestShop(flasks, activeShopItems);
 
-      // Загрузка истории: ищем как по studentId, так и по точному имени ученика для совместимости
       let historyList = [];
       const historyQuery1 = query(collection(db, "history"), where("studentId", "==", studentId));
       const historySnap1 = await getDocs(historyQuery1);
@@ -1938,9 +1937,11 @@
   window.applyCompleteHwTemplate = (select) => { if (select.value) document.getElementById('mNextHw').value = select.value; };
 
   window.copyGuestLink = (studentId) => {
-    const link = `${window.location.origin}${window.location.pathname}?guestStudentId=${studentId}`;
+    const url = new URL(window.location.href);
+    url.searchParams.set('guestStudentId', studentId);
+    const link = url.toString();
     navigator.clipboard.writeText(link);
-    alert('Ссылка на гостевой отчёт скопирована: ' + link);
+    alert('Автономная ссылка родительского доступа скопирована:\n' + link);
   };
 
   window.openStudentCardModal = (studentId = null) => {
@@ -2280,7 +2281,6 @@
     const nextHw = document.getElementById('mNextHw').value;
     const comment = document.getElementById('mComment').value;
     const flasksChange = parseInt(document.getElementById('mFlasksChange').value) || 0;
-    const flasksReason = document.getElementById('mFlasksReason').value;
 
     const hwItems = [];
     document.querySelectorAll('#modalHwList .hw-item').forEach(row => {
@@ -2320,17 +2320,17 @@
         });
       }
 
-      const formattedDate = new Date(rawDate).toLocaleDateString('ru-RU');
+      const formattedDateStr = new Date(rawDate).toLocaleString('ru-RU', { dateStyle: 'short', timeStyle: 'short' });
 
       await addDoc(collection(db, "history"), {
         userId: currentUserId,
         studentId: studentId,
         studentName: studentName,
-        date: formattedDate,
+        date: formattedDateStr,
         rawDate: rawDate,
         type: type,
         topic: topic,
-        examStatus: examStatus,
+        examStatus: type === 'exam' ? examStatus : null,
         pollGrade: pollGrade,
         lessonGrade: lessonGrade,
         hwGrade: hwGrade,
@@ -2341,30 +2341,29 @@
         createdAt: new Date().toISOString()
       });
 
-      if (scheduleId) {
-        await deleteDoc(doc(db, "schedule", scheduleId));
-        if (draftsMap[scheduleId]) {
-          await deleteDoc(doc(db, "drafts", scheduleId));
-        }
+      await deleteDoc(doc(db, "schedule", scheduleId));
+      if (draftsMap[scheduleId]) {
+        await deleteDoc(doc(db, "drafts", scheduleId));
       }
 
       if (repeatDays > 0) {
-        const nextDate = new Date(rawDate);
-        nextDate.setDate(nextDate.getDate() + repeatDays);
+        const nextDateObj = new Date(rawDate);
+        nextDateObj.setDate(nextDateObj.getDate() + repeatDays);
+        const isoNextDate = new Date(nextDateObj.getTime() - (nextDateObj.getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
+
         await addDoc(collection(db, "schedule"), {
           userId: currentUserId,
           studentName: studentName,
-          dateTime: nextDate.toISOString().slice(0, 16),
+          dateTime: isoNextDate,
           repeatDays: repeatDays,
-          reminderDelay: "0",
-          assignedHw: nextHw
+          assignedHw: nextHw || ''
         });
       }
 
       closeModal();
-      alert("Урок успешно завершён и сохранён в историю! 🎉");
+      alert("Урок успешно завершен и сохранён в истории! 🎉");
     } catch(err) {
-      alert("Ошибка при завершении урока: " + err.message);
+      alert("Ошибка при сохранении проведенного урока: " + err.message);
     }
   });
 
@@ -2379,34 +2378,35 @@
     document.getElementById('repWork').innerText = item.lessonGrade || '—';
     document.getElementById('repHwGrade').innerText = item.hwGrade || '—';
     document.getElementById('repTotalGrade').innerText = item.totalGrade || '—';
-    document.getElementById('repComment').innerText = item.comment || 'Нет комментариев';
+    document.getElementById('repComment').innerText = item.comment || 'Замечаний нет';
 
-    const hwDisplay = document.getElementById('repHwDisplay');
-    hwDisplay.innerHTML = '';
+    const hwContainer = document.getElementById('repHwDisplay');
+    hwContainer.innerHTML = '';
     if (item.hwItems && item.hwItems.length > 0) {
       item.hwItems.forEach(hw => {
+        const icon = hw.status === 'done' ? '✅' : (hw.status === 'fail' ? '❌' : '⚪');
         const div = document.createElement('div');
         div.className = `hw-item ${hw.status === 'done' ? 'done' : (hw.status === 'fail' ? 'not-done' : '')}`;
-        div.innerHTML = `<span>${hw.status === 'done' ? '✅' : (hw.status === 'fail' ? '❌' : '⚪')}</span> <span>${hw.text}</span>`;
-        hwDisplay.appendChild(div);
+        div.innerHTML = `<span>${icon}</span> <span>${hw.text}</span>`;
+        hwContainer.appendChild(div);
       });
     } else {
-      hwDisplay.innerHTML = '<p style="font-size:12px; color:var(--text-muted);">ДЗ не задавалось</p>';
+      hwContainer.innerHTML = '<p style="font-size:12px; color:var(--text-muted);">Домашнее задание не было задано.</p>';
     }
 
-    const reportCard = document.getElementById('lessonReportCard');
-    reportCard.classList.add('active');
-    reportCard.scrollIntoView({ behavior: 'smooth' });
+    const card = document.getElementById('lessonReportCard');
+    card.classList.add('active');
+    card.scrollIntoView({ behavior: 'smooth' });
   };
 
   window.generatePeriodReport = () => {
     const student = document.getElementById('reportStudentSelect').value;
     const dateFrom = document.getElementById('reportDateFrom').value;
     const dateTo = document.getElementById('reportDateTo').value;
-    const teacherComment = document.getElementById('reportTeacherComment').value;
+    const comment = document.getElementById('reportTeacherComment').value;
 
     if (!student || !dateFrom || !dateTo) {
-      alert("Пожалуйста, заполните все обязательные поля!");
+      alert("Заполните все поля формы отчёта за период!");
       return;
     }
 
@@ -2434,12 +2434,12 @@
     const hwPercent = totalHw > 0 ? Math.round((doneHw / totalHw) * 100) : 100;
 
     document.getElementById('pRepStudent').innerText = student;
-    document.getElementById('pRepDates').innerText = `Период: ${new Date(dateFrom).toLocaleDateString('ru-RU')} — ${new Date(dateTo).toLocaleDateString('ru-RU')}`;
+    document.getElementById('pRepDates').innerText = `Период: с ${new Date(dateFrom).toLocaleDateString('ru-RU')} по ${new Date(dateTo).toLocaleDateString('ru-RU')}`;
     document.getElementById('pRepLessonsCount').innerText = filtered.length;
     document.getElementById('pRepHwPercent').innerText = `${hwPercent}%`;
     document.getElementById('pRepHwGradesList').innerText = hwGrades.length > 0 ? hwGrades.join(', ') : '—';
     document.getElementById('pRepGradesList').innerText = lessonGrades.length > 0 ? lessonGrades.join(', ') : '—';
-    document.getElementById('pRepComment').innerText = teacherComment || 'Обучение проходит в плановом режиме.';
+    document.getElementById('pRepComment').innerText = comment || 'Стабильный прогресс в обучении.';
 
     const card = document.getElementById('periodReportCard');
     card.classList.add('active');
