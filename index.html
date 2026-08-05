@@ -2129,7 +2129,7 @@
       await updateDoc(doc(db, "schedule", id), {
         studentName: document.getElementById('editStudentName').value,
         dateTime: document.getElementById('editLessonDate').value,
-        repeatDays: parseInt(document.getElementById('repeatInterval').value),
+        repeatDays: parseInt(document.getElementById('editRepeatInterval').value),
         assignedHw: document.getElementById('editAssignedHw').value
       });
       closeEditModal();
@@ -2254,6 +2254,216 @@
     } catch(err) {
       alert('Ошибка при сохранении черновика: ' + err.message);
     }
+  };
+
+  // ====== ИСПРАВЛЕННАЯ ФУНКЦИЯ ЗАВЕРШЕНИЯ УРОКА ======
+  document.getElementById('completeLessonForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const scheduleId = document.getElementById('mScheduleId').value;
+    const studentName = document.getElementById('mStudent').value;
+    const rawDate = document.getElementById('mDate').value;
+    const repeatDays = parseInt(document.getElementById('mRepeat').value) || 0;
+    
+    const type = document.getElementById('mLessonTypeSelect').value;
+    const topic = document.getElementById('mTopic').value;
+    const examStatus = document.getElementById('mExamStatus').value;
+    const pollGrade = document.getElementById('mPollGrade').value;
+    const lessonGrade = document.getElementById('mLessonGrade').value;
+    const hwGrade = document.getElementById('mHwGrade').value;
+    const totalGrade = document.getElementById('mTotalGrade').value;
+    const paidStatus = document.getElementById('mPaidStatus').value;
+    const nextHw = document.getElementById('mNextHw').value;
+    const comment = document.getElementById('mComment').value;
+    const flasksChange = parseInt(document.getElementById('mFlasksChange').value) || 0;
+    const flasksReason = document.getElementById('mFlasksReason').value;
+
+    const hwItems = [];
+    document.querySelectorAll('#modalHwList .hw-item').forEach(row => {
+      const text = row.querySelector('.hw-text-input').value;
+      const status = row.querySelector('.status-select').value;
+      if (text.trim() !== '') hwItems.push({ text, status });
+    });
+
+    try {
+      // Найти ID ученика по имени
+      let studentId = null;
+      for (let sId in studentsMap) {
+        if (studentsMap[sId].name.toLowerCase() === studentName.toLowerCase()) {
+          studentId = sId;
+          break;
+        }
+      }
+
+      // Если ученик не найден, создать нового
+      if (!studentId) {
+        const newStudentRef = await addDoc(collection(db, "students"), {
+          userId: currentUserId,
+          teacherChatId: userSettings.tgChatId || '',
+          name: studentName,
+          grade: '',
+          parentContacts: '',
+          flasksBalance: 0,
+          goal: '',
+          notes: '',
+          hwTemplates: []
+        });
+        studentId = newStudentRef.id;
+      }
+
+      // Обновить баланс ученика
+      if (flasksChange !== 0 && studentId) {
+        const studentRef = doc(db, "students", studentId);
+        const studentSnap = await getDoc(studentRef);
+        if (studentSnap.exists()) {
+          const currentBalance = studentSnap.data().flasksBalance || 0;
+          await updateDoc(studentRef, { flasksBalance: currentBalance + flasksChange });
+        }
+      }
+
+      // Сохранить в историю
+      await addDoc(collection(db, "history"), {
+        userId: currentUserId,
+        studentId: studentId,
+        studentName: studentName,
+        date: new Date(rawDate).toLocaleString('ru-RU', { dateStyle: 'short', timeStyle: 'short' }),
+        rawDate: rawDate,
+        type: type,
+        topic: topic,
+        examStatus: type === 'exam' ? examStatus : null,
+        pollGrade: pollGrade,
+        lessonGrade: lessonGrade,
+        hwGrade: hwGrade,
+        totalGrade: totalGrade,
+        paidStatus: paidStatus,
+        nextHw: nextHw,
+        comment: comment,
+        hwItems: hwItems,
+        flasksChange: flasksChange,
+        flasksReason: flasksReason
+      });
+
+      // Удалить из расписания и черновиков
+      await deleteDoc(doc(db, "schedule", scheduleId));
+      if (draftsMap[scheduleId]) {
+        await deleteDoc(doc(db, "drafts", scheduleId));
+      }
+
+      // Если занятие с повторением, создать следующее
+      if (repeatDays > 0) {
+        const nextDate = new Date(rawDate);
+        nextDate.setDate(nextDate.getDate() + repeatDays);
+        const nextDateTime = nextDate.toISOString().slice(0, 16);
+        
+        await addDoc(collection(db, "schedule"), {
+          userId: currentUserId,
+          studentName: studentName,
+          dateTime: nextDateTime,
+          repeatDays: repeatDays,
+          reminderDelay: document.querySelector('#reminderDelay')?.value || 0,
+          assignedHw: nextHw || ''
+        });
+      }
+
+      alert('Занятие успешно завершено! ✅');
+      document.getElementById('completeModal').classList.remove('active');
+      document.getElementById('completeLessonForm').reset();
+      
+    } catch(err) {
+      alert('Ошибка при завершении занятия: ' + err.message);
+    }
+  });
+
+  // ====== ИСПРАВЛЕННАЯ ФУНКЦИЯ ГЕНЕРАЦИИ ОТЧЕТА ПО УРОКУ ======
+  window.generateLessonReport = (historyId) => {
+    const item = allHistory.find(l => l.id === historyId);
+    if (!item) return;
+
+    // Заполняем карточку отчета
+    document.getElementById('repStudent').innerText = item.studentName || '';
+    document.getElementById('repDate').innerText = item.date || '';
+    document.getElementById('repTopic').innerText = item.topic || '—';
+    document.getElementById('repPoll').innerText = item.pollGrade || '—';
+    document.getElementById('repWork').innerText = item.lessonGrade || '—';
+    document.getElementById('repHwGrade').innerText = item.hwGrade || '—';
+    document.getElementById('repTotalGrade').innerText = item.totalGrade || '—';
+    document.getElementById('repComment').innerText = item.comment || 'Без комментариев';
+
+    // Заполняем список ДЗ
+    const hwDisplay = document.getElementById('repHwDisplay');
+    hwDisplay.innerHTML = '';
+    if (item.hwItems && item.hwItems.length > 0) {
+      item.hwItems.forEach(hw => {
+        const div = document.createElement('div');
+        div.className = `hw-item ${hw.status === 'done' ? 'done' : (hw.status === 'fail' ? 'not-done' : '')}`;
+        const icon = hw.status === 'done' ? '✅' : (hw.status === 'fail' ? '❌' : '⚪');
+        div.innerHTML = `<span>${icon}</span><span>${hw.text}</span>`;
+        hwDisplay.appendChild(div);
+      });
+    }
+
+    // Показать карточку отчета
+    const card = document.getElementById('lessonReportCard');
+    card.classList.add('active');
+    card.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  // ====== ИСПРАВЛЕННАЯ ФУНКЦИЯ ГЕНЕРАЦИИ ОТЧЕТА ЗА ПЕРИОД ======
+  window.generatePeriodReport = () => {
+    const studentName = document.getElementById('reportStudentSelect').value;
+    const dateFrom = document.getElementById('reportDateFrom').value;
+    const dateTo = document.getElementById('reportDateTo').value;
+    const comment = document.getElementById('reportTeacherComment').value;
+
+    if (!studentName) { alert('Выберите ученика!'); return; }
+    if (!dateFrom || !dateTo) { alert('Укажите период!'); return; }
+
+    const filtered = allHistory.filter(h => {
+      if (h.studentName !== studentName) return false;
+      const hDate = h.rawDate ? h.rawDate.slice(0, 10) : '';
+      return hDate >= dateFrom && hDate <= dateTo;
+    });
+
+    if (filtered.length === 0) {
+      alert('За выбранный период уроков не найдено.');
+      return;
+    }
+
+    let totalHw = 0, doneHw = 0;
+    const hwGrades = [];
+    const grades = [];
+
+    filtered.forEach(h => {
+      if (h.hwItems) {
+        h.hwItems.forEach(i => {
+          totalHw++;
+          if (i.status === 'done') doneHw++;
+        });
+      }
+      if (h.hwGrade && !isNaN(parseFloat(h.hwGrade))) {
+        hwGrades.push(parseFloat(h.hwGrade));
+      }
+      if (h.totalGrade && !isNaN(parseFloat(h.totalGrade))) {
+        grades.push(parseFloat(h.totalGrade));
+      }
+    });
+
+    const hwPercent = totalHw > 0 ? Math.round((doneHw / totalHw) * 100) : 100;
+    const avgHwGrade = hwGrades.length > 0 ? (hwGrades.reduce((a, b) => a + b, 0) / hwGrades.length).toFixed(1) : '—';
+    const avgGrade = grades.length > 0 ? (grades.reduce((a, b) => a + b, 0) / grades.length).toFixed(1) : '—';
+
+    document.getElementById('pRepStudent').innerText = studentName;
+    document.getElementById('pRepDates').innerText = `${new Date(dateFrom).toLocaleDateString('ru-RU')} — ${new Date(dateTo).toLocaleDateString('ru-RU')}`;
+    document.getElementById('pRepLessonsCount').innerText = filtered.length;
+    document.getElementById('pRepHwPercent').innerText = hwPercent + '%';
+    document.getElementById('pRepHwGradesList').innerText = hwGrades.length > 0 ? hwGrades.join(', ') : '—';
+    document.getElementById('pRepGradesList').innerText = grades.length > 0 ? grades.join(', ') : '—';
+    document.getElementById('pRepComment').innerText = comment || 'Без комментариев';
+
+    const card = document.getElementById('periodReportCard');
+    card.classList.add('active');
+    card.scrollIntoView({ behavior: 'smooth' });
   };
 </script>
 </body>
