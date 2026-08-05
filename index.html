@@ -130,41 +130,114 @@
     .shop-edit-row input[type="number"] { flex: 1; }
     .shop-edit-row button { background: #fee2e2; color: #dc2626; border: none; padding: 8px 10px; }
 
-    /* СТИЛИ СЕКЦИИ ОТЧЕТОВ ДЛЯ РОДИТЕЛЯ */
-    .guest-reports-list { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
-    .guest-report-btn {
-      display: flex; justify-content: space-between; align-items: center;
-      background: #f8fafc; border: 1.5px solid var(--primary); color: var(--primary-dark);
-      padding: 12px 16px; border-radius: 10px; font-weight: 700; cursor: pointer;
-      transition: all 0.2s ease; text-align: left;
-    }
-    .guest-report-btn:hover { background: #e0e7ff; transform: translateY(-1px); }
-
-    /* СЕРТИФИКАТ */
+    /* ОБНОВЛЕННЫЙ И КРАСОЧНЫЙ ДИЗАЙН СЕРТИФИКАТА */
     .certificate-card {
-      background: #ffffff; border: 12px double #d97706; border-radius: 20px;
-      padding: 45px 35px; text-align: center; position: relative;
-      box-shadow: 0 20px 50px rgba(0,0,0,0.18); margin: 30px auto; max-width: 720px;
-      display: none; overflow: hidden; box-sizing: border-box;
+      background: #ffffff;
+      border: 12px double #d97706;
+      border-radius: 20px;
+      padding: 45px 35px;
+      text-align: center;
+      position: relative;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.18);
+      margin: 30px auto;
+      max-width: 720px;
+      display: none;
+      overflow: hidden;
+      box-sizing: border-box;
     }
     .certificate-card.active { display: block; }
+    
+    /* Декоративные паттерны фона */
     .cert-bg-overlay {
-      position: absolute; top: 0; left: 0; right: 0; bottom: 0; opacity: 0.05;
-      font-size: 48px; display: flex; flex-wrap: wrap; justify-content: space-around;
-      align-content: space-around; pointer-events: none; user-select: none;
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      opacity: 0.05;
+      font-size: 48px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-around;
+      align-content: space-around;
+      pointer-events: none;
+      user-select: none;
     }
-    .certificate-header { font-size: 32px; font-weight: 900; color: #b45309; letter-spacing: 4px; text-transform: uppercase; margin-bottom: 5px; position: relative; }
-    .certificate-sub { font-size: 13px; color: #92400e; text-transform: uppercase; letter-spacing: 2px; font-weight: 700; margin-bottom: 25px; }
-    .cert-icon-center { font-size: 42px; margin: 10px 0; display: inline-block; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1)); }
-    .certificate-recipient { font-size: 26px; font-weight: 800; color: var(--primary-dark); border-bottom: 2px dashed #b45309; display: inline-block; padding: 0 30px 5px; margin: 10px 0 15px; }
-    .certificate-body { font-size: 15px; color: #451a03; margin: 15px 0 25px; line-height: 1.7; position: relative; }
-    .certificate-topic { font-size: 20px; font-weight: 800; color: var(--primary); display: block; margin-top: 5px; }
-    .certificate-footer { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 35px; padding: 0 15px; position: relative; }
+
+    .certificate-header {
+      font-size: 32px;
+      font-weight: 900;
+      color: #b45309;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      margin-bottom: 5px;
+      position: relative;
+    }
+
+    .certificate-sub {
+      font-size: 13px;
+      color: #92400e;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      font-weight: 700;
+      margin-bottom: 25px;
+    }
+
+    .cert-icon-center {
+      font-size: 42px;
+      margin: 10px 0;
+      display: inline-block;
+      filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
+    }
+
+    .certificate-recipient {
+      font-size: 26px;
+      font-weight: 800;
+      color: var(--primary-dark);
+      border-bottom: 2px dashed #b45309;
+      display: inline-block;
+      padding: 0 30px 5px;
+      margin: 10px 0 15px;
+    }
+
+    .certificate-body {
+      font-size: 15px;
+      color: #451a03;
+      margin: 15px 0 25px;
+      line-height: 1.7;
+      position: relative;
+    }
+
+    .certificate-topic {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--primary);
+      display: block;
+      margin-top: 5px;
+    }
+
+    .certificate-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-top: 35px;
+      padding: 0 15px;
+      position: relative;
+    }
+
     .certificate-stamp {
-      border: 3px double #b45309; border-radius: 50%; width: 90px; height: 90px;
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      font-weight: 800; color: #b45309; transform: rotate(-10deg); font-size: 10px;
-      text-transform: uppercase; background: rgba(254, 243, 199, 0.4); box-shadow: 0 0 0 4px rgba(217, 119, 6, 0.1);
+      border: 3px double #b45309;
+      border-radius: 50%;
+      width: 90px;
+      height: 90px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      color: #b45309;
+      transform: rotate(-10deg);
+      font-size: 10px;
+      text-transform: uppercase;
+      background: rgba(254, 243, 199, 0.4);
+      box-shadow: 0 0 0 4px rgba(217, 119, 6, 0.1);
     }
   </style>
 </head>
@@ -215,15 +288,6 @@
         <span><span id="guestCurrencyIcon">🧪</span> Баланс: <strong id="guestFlaskBalance">0</strong> <span class="currency-name">Колб</span></span>
       </h3>
       <p style="font-size: 13px; opacity: 0.9;">Выполняй ДЗ вовремя и будь активным, чтобы зарабатывать бонусы!</p>
-    </div>
-
-    <!-- ВКТАДКА И СПИСОК ОТЧЕТОВ ДЛЯ РОДИТЕЛЕЙ -->
-    <div class="card" id="guestReportsCard">
-      <h3>📑 Отчёты преподавателя</h3>
-      <p style="font-size:13px; color:var(--text-muted); margin-bottom:12px;">Нажмите на отчет, чтобы просмотреть подробную информацию:</p>
-      <div class="guest-reports-list" id="guestReportsList">
-        <div style="font-size:13px; color:var(--text-muted);">Отчётов пока нет.</div>
-      </div>
     </div>
 
     <div class="card" id="guestShopCard">
@@ -425,17 +489,6 @@
         </thead>
         <tbody id="historyTable"></tbody>
       </table>
-    </div>
-
-    <!-- МОДАЛЬНОЕ ОКНО ПРОСМОТРА ОТЧЕТА В ГОСТЕВОМ ДОСТУПЕ -->
-    <div class="modal" id="guestReportModal">
-      <div class="modal-content" style="max-width: 600px;">
-        <h3 style="color:var(--primary-dark); margin-bottom:15px;" id="guestReportModalTitle">📑 Отчёт преподавателя</h3>
-        <div id="guestReportModalBody"></div>
-        <div style="margin-top:20px; text-align:right;">
-          <button class="btn-primary" onclick="closeGuestReportModal()">Закрыть</button>
-        </div>
-      </div>
     </div>
 
     <!-- МОДАЛЬНОЕ ОКНО ВЫДАЧИ СЕРТИФИКАТА -->
@@ -901,7 +954,7 @@
       </div>
     </div>
 
-    <!-- КАРТОЧКА СЕРТИФИКАТА С ПРЕДМЕТНОЙ СТИЛИСТИКОЙ -->
+    <!-- ОБНОВЛЕННАЯ КАРТОЧКА СЕРТИФИКАТА С ПРЕДМЕТНОЙ СТИЛИСТИКОЙ -->
     <div class="certificate-card" id="certificateDisplayCard">
       <div class="cert-bg-overlay" id="certBgPattern">🧪 🔬 🧬 🧪 🔬 🧬</div>
       <div class="certificate-header">СЕРТИФИКАТ</div>
@@ -948,11 +1001,6 @@
   const auth = getAuth(app);
   const db = getFirestore(app);
 
-  const MONTH_NAMES = [
-    "Январь", "Февраль", "Март", "Апрель", "Май", "Июнь",
-    "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"
-  ];
-
   const SUBJECT_PRESETS = {
     chemistry: { title: "Химия", icon: "🧪", theme: "theme-chemistry", currency: "Колбы", currencyIcon: "🧪", bgPattern: "🧪 🔬 🧫 🧬 🧪 🔬 🧫 🧬" },
     biology: { title: "Биология", icon: "🔬", theme: "theme-biology", currency: "Микроскопы", currencyIcon: "🔬", bgPattern: "🔬 🌿 🧬 🧫 🔬 🌿 🧬 🧫" },
@@ -987,7 +1035,6 @@
 
   let guestChartInstance = null;
   let currentGuestStudentData = { name: '', teacherChatId: '', teacherBotToken: '' };
-  let currentSavedReports = [];
 
   let currentUserId = null;
   let authMode = 'login';
@@ -996,13 +1043,11 @@
   let unsubDrafts = null;
   let unsubStudents = null;
   let unsubSettings = null;
-  let unsubReports = null;
   let allHistory = [];
   let upcomingMap = {};
   let draftsMap = {};
   let studentsMap = {};
   let currentCardTemplates = [];
-  let activeLessonReportId = null;
 
   const urlParams = new URLSearchParams(window.location.search);
   const guestStudentId = urlParams.get('guestStudentId');
@@ -1056,9 +1101,6 @@
       document.getElementById('guestFlaskBalance').innerText = flasks;
       renderGuestShop(flasks, activeShopItems);
 
-      // Загрузка списочка дублированных отчетов для гостя
-      listenGuestReports(studentId, studentName);
-
       const historyQuery = query(collection(db, "history"), where("studentId", "==", studentId));
       const historySnap = await getDocs(historyQuery);
       
@@ -1108,111 +1150,6 @@
       console.error(e);
     }
   }
-
-  function listenGuestReports(studentId, studentName) {
-    const qR = query(collection(db, "reports"), where("studentId", "==", studentId));
-    onSnapshot(qR, (snapshot) => {
-      currentSavedReports = [];
-      snapshot.forEach(docSnap => {
-        currentSavedReports.push({ id: docSnap.id, ...docSnap.data() });
-      });
-      currentSavedReports.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
-      renderGuestReportsList();
-    });
-  }
-
-  function renderGuestReportsList() {
-    const container = document.getElementById('guestReportsList');
-    if (!container) return;
-    container.innerHTML = '';
-
-    if (currentSavedReports.length === 0) {
-      container.innerHTML = '<div style="font-size:13px; color:var(--text-muted);">Сформированных отчётов пока нет.</div>';
-      return;
-    }
-
-    currentSavedReports.forEach(rep => {
-      let buttonTitle = 'Отчёт';
-      if (rep.type === 'lesson') {
-        buttonTitle = `📄 Отчёт после занятия от ${rep.date || ''}`;
-      } else if (rep.type === 'monthly') {
-        const dateObj = rep.createdAt ? new Date(rep.createdAt) : new Date();
-        const monthName = MONTH_NAMES[dateObj.getMonth()];
-        buttonTitle = `📊 Отчёт за ${monthName}`;
-      } else if (rep.type === 'period') {
-        buttonTitle = `📊 Отчёт за период (${rep.dateFrom || ''} — ${rep.dateTo || ''})`;
-      }
-
-      const btn = document.createElement('button');
-      btn.className = 'guest-report-btn';
-      btn.innerHTML = `<span>${buttonTitle}</span> <span>Открыть 🔍</span>`;
-      btn.onclick = () => showGuestReportDetails(rep);
-      container.appendChild(btn);
-    });
-  }
-
-  function showGuestReportDetails(rep) {
-    const body = document.getElementById('guestReportModalBody');
-    const title = document.getElementById('guestReportModalTitle');
-    title.innerText = `📑 ${rep.title || 'Отчёт по успеваемости'}`;
-
-    if (rep.type === 'lesson') {
-      let hwHtml = '';
-      if (rep.hwItems && rep.hwItems.length > 0) {
-        hwHtml = rep.hwItems.map(item => `
-          <div class="hw-item ${item.status === 'done' ? 'done' : (item.status === 'fail' ? 'not-done' : '')}">
-            <span>${item.status === 'done' ? '✅' : (item.status === 'fail' ? '❌' : '⚪')}</span>
-            <span>${item.text}</span>
-          </div>
-        `).join('');
-      }
-
-      body.innerHTML = `
-        <div class="report-section">
-          <p><strong>Ученик:</strong> ${rep.studentName || ''}</p>
-          <p><strong>Дата урока:</strong> ${rep.date || ''}</p>
-          <p><strong>Тема:</strong> ${rep.topic || '—'}</p>
-        </div>
-        <div class="report-section">
-          <div class="report-section-title">1. Работа на уроке и опрос</div>
-          <p><strong>Результат опроса:</strong> ${rep.pollGrade || '—'}</p>
-          <p><strong>Работа на уроке:</strong> ${rep.lessonGrade || '—'}</p>
-        </div>
-        <div class="report-section">
-          <div class="report-section-title">2. Контроль выполнения ДЗ</div>
-          <p style="margin-bottom:6px;"><strong>Оценка за ДЗ:</strong> ${rep.hwGrade || '—'}</p>
-          <div class="hw-list">${hwHtml}</div>
-        </div>
-        <div class="report-section" style="border-top:2px solid var(--primary); padding-top:10px;">
-          <p><strong>Итоговая оценка за урок:</strong> <span style="font-weight:bold; font-size:18px;">${rep.totalGrade || '—'}</span></p>
-          <p style="margin-top:5px;"><strong>Комментарий преподавателя:</strong></p>
-          <p style="font-style:italic; background:#f0f4f8; padding:8px; border-radius:4px; margin-top:4px;">${rep.comment || '—'}</p>
-        </div>
-      `;
-    } else {
-      body.innerHTML = `
-        <div class="report-section">
-          <p><strong>Ученик:</strong> ${rep.studentName || ''}</p>
-          <p><strong>Период:</strong> ${rep.dateFrom || ''} — ${rep.dateTo || ''}</p>
-        </div>
-        <div class="report-section">
-          <div class="report-section-title">Сводка успеваемости</div>
-          <div class="stat-box"><span>Проведено занятий:</span><strong>${rep.lessonsCount || 0}</strong></div>
-          <div class="stat-box"><span>Выполнение ДЗ:</span><strong>${rep.hwPercent || 0}%</strong></div>
-          <div class="stat-box"><span>Оценки за ДЗ:</span><strong>${rep.hwGradesList || '-'}</strong></div>
-          <div class="stat-box"><span>Итоговые оценки:</span><strong>${rep.gradesList || '-'}</strong></div>
-        </div>
-        <div class="report-section">
-          <div class="report-section-title">Комментарий преподавателя</div>
-          <p style="background:#f0f4f8; padding:10px; border-radius:4px; font-style:italic;">${rep.comment || '—'}</p>
-        </div>
-      `;
-    }
-
-    document.getElementById('guestReportModal').classList.add('active');
-  }
-
-  window.closeGuestReportModal = () => document.getElementById('guestReportModal').classList.remove('active');
 
   document.getElementById('guestQuestionForm').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -1355,7 +1292,7 @@
         });
 
         const result = await response.json();
-        if (result.ok) alert('Успешно отправлено в ваш Telegram и дублировано родителям! ✈️');
+        if (result.ok) alert('Успешно отправлено в ваш Telegram! ✈️');
         else alert('Ошибка Telegram API: ' + result.description);
       }, 'image/png');
 
@@ -1364,71 +1301,15 @@
     }
   }
 
-  // Дублирование отчета после занятия в базу Firestore для родителей
-  window.sendLessonReportToTelegram = async () => {
+  window.sendLessonReportToTelegram = () => {
     const student = document.getElementById('repStudent').innerText;
     const date = document.getElementById('repDate').innerText;
-
-    if (activeLessonReportId) {
-      const item = allHistory.find(l => l.id === activeLessonReportId);
-      if (item) {
-        let sId = item.studentId;
-        if (!sId) {
-          const matched = Object.keys(studentsMap).find(id => studentsMap[id].name.toLowerCase() === student.toLowerCase());
-          if (matched) sId = matched;
-        }
-
-        if (sId) {
-          await addDoc(collection(db, "reports"), {
-            userId: currentUserId,
-            studentId: sId,
-            studentName: student,
-            type: "lesson",
-            title: `Отчёт после занятия от ${date}`,
-            date: date,
-            topic: item.topic || '',
-            pollGrade: item.pollGrade || '',
-            lessonGrade: item.lessonGrade || '',
-            hwGrade: item.hwGrade || '',
-            hwItems: item.hwItems || [],
-            totalGrade: item.totalGrade || '',
-            comment: item.comment || '',
-            createdAt: new Date().toISOString()
-          });
-        }
-      }
-    }
-
     sendElementAsPhotoToTelegram('lessonReportCard', `🎓 <b>Отчёт по уроку:</b> ${student} (${date})`);
   };
 
-  // Дублирование отчета за период в базу Firestore для родителей
-  window.sendPeriodReportToTelegram = async () => {
+  window.sendPeriodReportToTelegram = () => {
     const student = document.getElementById('pRepStudent').innerText;
     const dates = document.getElementById('pRepDates').innerText;
-
-    const matchedId = Object.keys(studentsMap).find(id => studentsMap[id].name.toLowerCase() === student.toLowerCase());
-    if (matchedId) {
-      const dateFrom = document.getElementById('reportDateFrom').value;
-      const dateTo = document.getElementById('reportDateTo').value;
-
-      await addDoc(collection(db, "reports"), {
-        userId: currentUserId,
-        studentId: matchedId,
-        studentName: student,
-        type: "period",
-        title: `Отчёт за период (${dateFrom} — ${dateTo})`,
-        dateFrom: dateFrom,
-        dateTo: dateTo,
-        lessonsCount: document.getElementById('pRepLessonsCount').innerText,
-        hwPercent: document.getElementById('pRepHwPercent').innerText,
-        hwGradesList: document.getElementById('pRepHwGradesList').innerText,
-        gradesList: document.getElementById('pRepGradesList').innerText,
-        comment: document.getElementById('pRepComment').innerText,
-        createdAt: new Date().toISOString()
-      });
-    }
-
     sendElementAsPhotoToTelegram('periodReportCard', `📊 <b>Отчёт за период:</b> ${student}\n${dates}`);
   };
 
@@ -1522,23 +1403,7 @@
         });
 
         const hwPercent = totalHw > 0 ? Math.round((doneHw / totalHw) * 100) : 100;
-        const monthName = MONTH_NAMES[new Date(firstDayLastMonth).getMonth()];
-        const reportText = `📅 <b>Автоматический ежемесячный отчёт за ${monthName}</b>\n<b>Ученик:</b> ${student.name}\n<b>Период:</b> ${firstDayLastMonth} — ${lastDayLastMonth}\n<b>Проведено уроков:</b> ${filtered.length}\n<b>Выполнение ДЗ:</b> ${hwPercent}%`;
-
-        // Дублируем автоотчёт за месяц в родительский гостевой раздел
-        await addDoc(collection(db, "reports"), {
-          userId: currentUserId,
-          studentId: sId,
-          studentName: student.name,
-          type: "monthly",
-          title: `Отчёт за ${monthName}`,
-          dateFrom: firstDayLastMonth,
-          dateTo: lastDayLastMonth,
-          lessonsCount: filtered.length,
-          hwPercent: hwPercent,
-          comment: `Автоматический ежемесячный отчёт успеваемости за ${monthName}.`,
-          createdAt: new Date().toISOString()
-        });
+        const reportText = `📅 <b>Автоматический ежемесячный отчёт</b>\n<b>Ученик:</b> ${student.name}\n<b>Период:</b> ${firstDayLastMonth} — ${lastDayLastMonth}\n<b>Проведено уроков:</b> ${filtered.length}\n<b>Выполнение ДЗ:</b> ${hwPercent}%`;
 
         try {
           await fetch(`https://api.telegram.org/bot${userSettings.tgBotToken}/sendMessage`, {
@@ -1600,9 +1465,11 @@
     const tgBtns = document.querySelectorAll('.tg-btn');
     tgBtns.forEach(el => el.style.display = settings.tgEnabled ? '' : 'none');
 
+    // Настройка ФИО репетитора во всех блоках отчетов
     const tName = settings.teacherName || "Репетитор";
     document.querySelectorAll('.teacher-fullname-display').forEach(el => el.innerText = tName);
 
+    // Стилизация и эмодзи сертификата под предмет
     const certIcon = document.getElementById('certCenterIcon');
     if (certIcon) certIcon.innerText = preset.icon;
 
@@ -1754,6 +1621,7 @@
     }
   };
 
+  // ФУНКЦИОНАЛ СЕРТИФИКАТОВ С ПОДДЕРЖКОЙ ИО ПРЕПОДАВАТЕЛЯ
   window.openCertificateModal = () => {
     const select = document.getElementById('certStudentSelect');
     select.innerHTML = '';
@@ -1912,84 +1780,6 @@
       renderStudentsCards();
     });
   }
-
-  window.generateLessonReport = (id) => {
-    const item = allHistory.find(l => l.id === id);
-    if (!item) return;
-
-    activeLessonReportId = id;
-    document.getElementById('repStudent').innerText = item.studentName || 'Ученик';
-    document.getElementById('repDate').innerText = item.date || '—';
-    document.getElementById('repTopic').innerText = item.topic || '—';
-    document.getElementById('repPoll').innerText = item.pollGrade || '—';
-    document.getElementById('repWork').innerText = item.lessonGrade || '—';
-    document.getElementById('repHwGrade').innerText = item.hwGrade || '—';
-    document.getElementById('repTotalGrade').innerText = item.totalGrade || '—';
-    document.getElementById('repComment').innerText = item.comment || '—';
-
-    const hwDisplay = document.getElementById('repHwDisplay');
-    hwDisplay.innerHTML = '';
-    if (item.hwItems && item.hwItems.length > 0) {
-      item.hwItems.forEach(hw => {
-        const div = document.createElement('div');
-        div.className = `hw-item ${hw.status === 'done' ? 'done' : (hw.status === 'fail' ? 'not-done' : '')}`;
-        div.innerHTML = `<span>${hw.status === 'done' ? '✅' : (hw.status === 'fail' ? '❌' : '⚪')}</span> <span>${hw.text}</span>`;
-        hwDisplay.appendChild(div);
-      });
-    } else {
-      hwDisplay.innerHTML = '<p style="font-size:12px; color:var(--text-muted);">ДЗ не задавалось.</p>';
-    }
-
-    const card = document.getElementById('lessonReportCard');
-    card.classList.add('active');
-    card.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  window.generatePeriodReport = () => {
-    const studentName = document.getElementById('reportStudentSelect').value;
-    const dateFrom = document.getElementById('reportDateFrom').value;
-    const dateTo = document.getElementById('reportDateTo').value;
-    const comment = document.getElementById('reportTeacherComment').value;
-
-    if (!studentName || !dateFrom || !dateTo) {
-      alert("Заполните имя ученика и даты С / ПО!");
-      return;
-    }
-
-    const filtered = allHistory.filter(h => {
-      if (h.studentName !== studentName) return false;
-      const d = h.rawDate ? h.rawDate.slice(0, 10) : '';
-      return d >= dateFrom && d <= dateTo;
-    });
-
-    let totalHw = 0, doneHw = 0;
-    const hwGrades = [], totalGrades = [];
-
-    filtered.forEach(h => {
-      if (h.hwItems) {
-        h.hwItems.forEach(i => {
-          totalHw++;
-          if (i.status === 'done') doneHw++;
-        });
-      }
-      if (h.hwGrade) hwGrades.push(h.hwGrade);
-      if (h.totalGrade) totalGrades.push(h.totalGrade);
-    });
-
-    const hwPercent = totalHw > 0 ? Math.round((doneHw / totalHw) * 100) : 100;
-
-    document.getElementById('pRepStudent').innerText = studentName;
-    document.getElementById('pRepDates').innerText = `Период: ${dateFrom} — ${dateTo}`;
-    document.getElementById('pRepLessonsCount').innerText = filtered.length;
-    document.getElementById('pRepHwPercent').innerText = `${hwPercent}%`;
-    document.getElementById('pRepHwGradesList').innerText = hwGrades.length > 0 ? hwGrades.join(', ') : '—';
-    document.getElementById('pRepGradesList').innerText = totalGrades.length > 0 ? totalGrades.join(', ') : '—';
-    document.getElementById('pRepComment').innerText = comment || 'Заметки преподавателя отсутствуют.';
-
-    const card = document.getElementById('periodReportCard');
-    card.classList.add('active');
-    card.scrollIntoView({ behavior: 'smooth' });
-  };
 
   function renderStudentsCards() {
     const container = document.getElementById('studentsCardList');
@@ -2397,8 +2187,9 @@
       document.getElementById('mPaidStatus').value = draft.paidStatus || 'Оплачено';
       document.getElementById('mNextHw').value = draft.nextHw || '';
       document.getElementById('mComment').value = draft.comment || '';
-      
-      if (draft.hwItems) {
+      document.getElementById('mExamStatus').value = draft.examStatus || 'Сдал';
+
+      if (draft.hwItems && draft.hwItems.length > 0) {
         draft.hwItems.forEach((hw, idx) => {
           if (idx < rows.length) {
             rows[idx].querySelector('.hw-text-input').value = hw.text;
@@ -2408,13 +2199,21 @@
         });
       }
     } else {
-      document.getElementById('completeLessonForm').reset();
-      document.getElementById('mScheduleId').value = id;
-      document.getElementById('mStudent').value = data.studentName;
-      document.getElementById('mDate').value = data.dateTime;
-      document.getElementById('mRepeat').value = data.repeatDays;
-      document.getElementById('mLessonTypeSelect').value = 'lesson';
-      toggleCompleteModalFields('lesson');
+      document.getElementById('mTopic').value = '';
+      document.getElementById('mPollGrade').value = '';
+      document.getElementById('mLessonGrade').value = '';
+      document.getElementById('mHwGrade').value = '';
+      document.getElementById('mTotalGrade').value = '';
+      document.getElementById('mPaidStatus').value = 'Оплачено';
+      document.getElementById('mNextHw').value = '';
+      document.getElementById('mComment').value = '';
+
+      if (data.assignedHw) {
+        const parts = data.assignedHw.split(/,|\n/).map(s => s.trim()).filter(s => s !== '');
+        parts.forEach((partText, idx) => {
+          if (idx < rows.length) rows[idx].querySelector('.hw-text-input').value = partText;
+        });
+      }
     }
 
     document.getElementById('completeModal').classList.add('active');
@@ -2423,8 +2222,8 @@
   window.closeModal = () => document.getElementById('completeModal').classList.remove('active');
 
   window.saveDraft = async () => {
-    const scheduleId = document.getElementById('mScheduleId').value;
-    if (!scheduleId) return;
+    const schedId = document.getElementById('mScheduleId').value;
+    if (!schedId) return;
 
     const hwItems = [];
     document.querySelectorAll('#modalHwList .hw-item').forEach(row => {
@@ -2433,110 +2232,29 @@
       if (text.trim() !== '') hwItems.push({ text, status });
     });
 
-    const draftData = {
-      userId: currentUserId,
-      studentName: document.getElementById('mStudent').value,
-      type: document.getElementById('mLessonTypeSelect').value,
-      topic: document.getElementById('mTopic').value,
-      examStatus: document.getElementById('mExamStatus').value,
-      pollGrade: document.getElementById('mPollGrade').value,
-      lessonGrade: document.getElementById('mLessonGrade').value,
-      hwGrade: document.getElementById('mHwGrade').value,
-      totalGrade: document.getElementById('mTotalGrade').value,
-      paidStatus: document.getElementById('mPaidStatus').value,
-      nextHw: document.getElementById('mNextHw').value,
-      comment: document.getElementById('mComment').value,
-      hwItems: hwItems,
-      updatedAt: new Date().toISOString()
-    };
-
     try {
-      await setDoc(doc(db, "drafts", scheduleId), draftData);
+      await setDoc(doc(db, "drafts", schedId), {
+        userId: currentUserId,
+        type: document.getElementById('mLessonTypeSelect').value,
+        topic: document.getElementById('mTopic').value,
+        examStatus: document.getElementById('mExamStatus').value,
+        pollGrade: document.getElementById('mPollGrade').value,
+        lessonGrade: document.getElementById('mLessonGrade').value,
+        hwGrade: document.getElementById('mHwGrade').value,
+        totalGrade: document.getElementById('mTotalGrade').value,
+        paidStatus: document.getElementById('mPaidStatus').value,
+        nextHw: document.getElementById('mNextHw').value,
+        comment: document.getElementById('mComment').value,
+        hwItems: hwItems,
+        updatedAt: new Date().toISOString()
+      });
+
+      alert('Черновик успешно сохранён! 📝');
       closeModal();
-      alert("Черновик урока успешно сохранён! 📝");
-    } catch (e) {
-      alert("Ошибка сохранения черновика: " + e.message);
+    } catch(err) {
+      alert('Ошибка при сохранении черновика: ' + err.message);
     }
   };
-
-  document.getElementById('completeLessonForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const scheduleId = document.getElementById('mScheduleId').value;
-    const studentName = document.getElementById('mStudent').value;
-    const rawDate = document.getElementById('mDate').value;
-    const repeatDays = parseInt(document.getElementById('mRepeat').value);
-    const type = document.getElementById('mLessonTypeSelect').value;
-
-    const formattedDate = new Date(rawDate).toLocaleString('ru-RU', { dateStyle: 'short', timeStyle: 'short' });
-    const isExam = type === 'exam';
-
-    const hwItems = [];
-    document.querySelectorAll('#modalHwList .hw-item').forEach(row => {
-      const text = row.querySelector('.hw-text-input').value;
-      const status = row.querySelector('.status-select').value;
-      if (text.trim() !== '') hwItems.push({ text, status });
-    });
-
-    let studentId = Object.keys(studentsMap).find(id => studentsMap[id].name.toLowerCase() === studentName.toLowerCase()) || '';
-
-    const historyData = {
-      userId: currentUserId,
-      studentId: studentId,
-      studentName: studentName,
-      type: type,
-      date: formattedDate,
-      rawDate: rawDate,
-      topic: document.getElementById('mTopic').value,
-      examStatus: isExam ? document.getElementById('mExamStatus').value : '',
-      pollGrade: isExam ? '' : document.getElementById('mPollGrade').value,
-      lessonGrade: isExam ? '' : document.getElementById('mLessonGrade').value,
-      hwGrade: isExam ? '' : document.getElementById('mHwGrade').value,
-      totalGrade: isExam ? '' : document.getElementById('mTotalGrade').value,
-      paidStatus: document.getElementById('mPaidStatus').value,
-      nextHw: document.getElementById('mNextHw').value,
-      comment: document.getElementById('mComment').value,
-      hwItems: isExam ? [] : hwItems
-    };
-
-    try {
-      // Баланс игровой валюты
-      const flasksDelta = parseInt(document.getElementById('mFlasksChange').value) || 0;
-      if (flasksDelta !== 0 && studentId && studentsMap[studentId]) {
-        const currentBal = studentsMap[studentId].flasksBalance || 0;
-        await updateDoc(doc(db, "students", studentId), {
-          flasksBalance: Math.max(0, currentBal + flasksDelta)
-        });
-      }
-
-      const docRef = await addDoc(collection(db, "history"), historyData);
-      activeLessonReportId = docRef.id;
-
-      if (scheduleId) {
-        await deleteDoc(doc(db, "schedule", scheduleId));
-        if (draftsMap[scheduleId]) await deleteDoc(doc(db, "drafts", scheduleId));
-      }
-
-      // Автоматический перенос урока по расписанию
-      if (repeatDays > 0 && rawDate) {
-        const nextDate = new Date(rawDate);
-        nextDate.setDate(nextDate.getDate() + repeatDays);
-        const nextDateIso = nextDate.toISOString().slice(0, 16);
-
-        await addDoc(collection(db, "schedule"), {
-          userId: currentUserId,
-          studentName: studentName,
-          dateTime: nextDateIso,
-          repeatDays: repeatDays,
-          assignedHw: document.getElementById('mNextHw').value || ''
-        });
-      }
-
-      closeModal();
-      generateLessonReport(docRef.id);
-    } catch (err) {
-      alert("Ошибка завершения урока: " + err.message);
-    }
-  });
 </script>
 </body>
 </html>
