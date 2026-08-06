@@ -16,6 +16,16 @@
     .shop-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee; }
     .status-ok { color: #10b981; font-weight: bold; }
     .status-no { color: #ef4444; font-weight: bold; }
+
+    /* Стили для блока истории уроков */
+    .history-list { margin-top: 10px; }
+    .history-item { border-bottom: 1px solid #e5e7eb; padding: 12px 0; }
+    .history-item:last-child { border-bottom: none; }
+    .history-header { display: flex; justify-content: space-between; align-items: center; font-weight: bold; font-size: 14px; margin-bottom: 4px; }
+    .history-topic { font-size: 14px; color: #4b5563; margin-bottom: 6px; }
+    .history-grades { font-size: 13px; color: #6b7280; display: flex; gap: 15px; }
+    .history-hw { font-size: 12px; color: #6b7280; margin-top: 6px; padding-left: 10px; border-left: 2px solid #e5e7eb; }
+    .badge-grade { background: #f3f4f6; padding: 2px 6px; border-radius: 4px; font-weight: 600; }
   </style>
 </head>
 <body>
@@ -42,9 +52,19 @@
     <div class="card">
       <h3>📊 Успеваемость</h3>
       <p>Проведено уроков: <strong id="totalLessons">0</strong></p>
+      <p>Средняя оценка за урок: <strong id="avgLessonGrade">—</strong></p>
+      <p>Средняя оценка за ДЗ: <strong id="avgHwGrade">—</strong></p>
       <p>Выполнение ДЗ: <strong id="hwPercent">0%</strong></p>
       <div style="height: 200px; margin-top: 15px;">
         <canvas id="progressChart"></canvas>
+      </div>
+    </div>
+
+    <!-- История проведенных уроков -->
+    <div class="card">
+      <h3>📜 История уроков</h3>
+      <div id="historyList" class="history-list">
+        <p style="color: #9ca3af; font-size: 14px;">Загрузка истории уроков...</p>
       </div>
     </div>
 
@@ -73,7 +93,6 @@
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
-  // Получение ID ученика из URL (?id=...)
   const urlParams = new URLSearchParams(window.location.search);
   const studentId = urlParams.get('id');
 
@@ -100,7 +119,6 @@
       const data = studentDoc.data();
       const parentPhoneInDb = (data.parentContacts || '').replace(/\D/g, '');
 
-      // Проверка совпадения номера телефона
       if (inputPhone.length > 5 && parentPhoneInDb.includes(inputPhone)) {
         currentStudentData = data;
         document.getElementById('auth-screen').style.display = 'none';
@@ -121,35 +139,104 @@
     document.getElementById('studentGrade').innerText = student.grade || '';
     document.getElementById('flaskBalance').innerText = student.flasksBalance || 0;
 
-    // Загрузка истории уроков ученика
     const historyQ = query(collection(db, "history"), where("studentName", "==", student.name));
     const historySnap = await getDocs(historyQ);
     
     let totalHw = 0, doneHw = 0, lessonsCount = 0;
-    let labels = [], grades = [];
+    let lessonGradesSum = 0, lessonGradesCount = 0;
+    let hwGradesSum = 0, hwGradesCount = 0;
+
+    let labels = [], chartGrades = [];
+    let historyRecords = [];
 
     historySnap.forEach(docSnap => {
       const h = docSnap.data();
       lessonsCount++;
+      historyRecords.push(h);
+
+      // Сбор данных о ДЗ
       if (h.hwItems) {
         h.hwItems.forEach(i => {
           totalHw++;
           if (i.status === 'done') doneHw++;
         });
       }
+
+      // Оценка за урок (обрабатываем ключи totalGrade и lessonGrade)
+      const lessonGrade = parseFloat(h.totalGrade || h.lessonGrade);
+      if (!isNaN(lessonGrade)) {
+        lessonGradesSum += lessonGrade;
+        lessonGradesCount++;
+      }
+
+      // Оценка за ДЗ (обрабатываем ключи hwGrade и hwRating)
+      const hwGrade = parseFloat(h.hwGrade || h.hwRating);
+      if (!isNaN(hwGrade)) {
+        hwGradesSum += hwGrade;
+        hwGradesCount++;
+      }
+
       labels.push(h.date ? h.date.slice(0, 5) : '');
-      grades.push(parseFloat(h.totalGrade) || null);
+      chartGrades.push(lessonGrade || null);
     });
 
+    // Расчет статистики
     document.getElementById('totalLessons').innerText = lessonsCount;
     document.getElementById('hwPercent').innerText = totalHw > 0 ? Math.round((doneHw / totalHw) * 100) + '%' : '100%';
+    document.getElementById('avgLessonGrade').innerText = lessonGradesCount > 0 
+      ? (lessonGradesSum / lessonGradesCount).toFixed(1) 
+      : '—';
+    document.getElementById('avgHwGrade').innerText = hwGradesCount > 0 
+      ? (hwGradesSum / hwGradesCount).toFixed(1) 
+      : '—';
+
+    // Рендер истории уроков
+    const historyContainer = document.getElementById('historyList');
+    historyContainer.innerHTML = '';
+
+    if (historyRecords.length === 0) {
+      historyContainer.innerHTML = '<p style="color: #9ca3af; font-size: 14px;">Уроки еще не проводились.</p>';
+    } else {
+      // Сортируем от свежих к старым
+      historyRecords.reverse().forEach(h => {
+        const item = document.createElement('div');
+        item.className = 'history-item';
+
+        const lessonGradeVal = h.totalGrade || h.lessonGrade || '—';
+        const hwGradeVal = h.hwGrade || h.hwRating || '—';
+
+        let hwListText = '';
+        if (h.hwItems && h.hwItems.length > 0) {
+          hwListText = h.hwItems
+            .map(i => `${i.status === 'done' ? '✅' : '❌'} ${i.text}`)
+            .join('<br>');
+        } else {
+          hwListText = 'Нет заданий';
+        }
+
+        item.innerHTML = `
+          <div class="history-header">
+            <span>📅 ${h.date || 'Без даты'}</span>
+            <span class="badge-grade">Урок: ⭐ ${lessonGradeVal}</span>
+          </div>
+          <div class="history-topic"><strong>Тема:</strong> ${h.topic || 'Без темы'}</div>
+          <div class="history-grades">
+            <span>Оценка за ДЗ: 📝 <strong>${hwGradeVal}</strong></span>
+          </div>
+          <div class="history-hw">
+            <strong>Домашнее задание:</strong><br>${hwListText}
+          </div>
+        `;
+        historyContainer.appendChild(item);
+      });
+    }
 
     // Рендер графика
     new Chart(document.getElementById('progressChart'), {
       type: 'line',
       data: {
         labels: labels,
-        datasets: [{ label: 'Оценка за урок', data: grades, borderColor: '#4f46e5', tension: 0.3 }]
+        datasets: [{ label: 'Оценка за урок', data: chartGrades, borderColor: '#4f46e5', tension: 0.3 }]
       },
       options: { responsive: true, maintainAspectRatio: false, scales: { y: { min: 2, max: 5 } } }
     });
