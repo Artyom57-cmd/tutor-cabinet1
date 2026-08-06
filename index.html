@@ -966,33 +966,60 @@
   let currentCardTemplates = [];
   let periodChartInstance = null;
 
-  // ФУНКЦИЯ ОТПРАВКИ ОБНОВЛЕННОГО СПИСКА УЧЕНИКОВ В TELEGRAM
-  async function sendStudentsListToTelegram(actionText = 'Обновление картотеки') {
+  // ============ НОВАЯ ФУНКЦИЯ: ОТПРАВКА СПИСКА УЧЕНИКОВ В TELEGRAM ============
+  async function sendStudentsListToTelegram() {
+    // Проверяем, включена ли интеграция
     if (!userSettings.tgEnabled || !userSettings.tgChatId || !userSettings.tgBotToken) {
+      console.log('Telegram интеграция не настроена или выключена');
       return;
     }
 
-    const studentIds = Object.keys(studentsMap);
-    let message = `📋 <b>Спиcок учеников (${actionText})</b>\n`;
-    message += `Всего учеников: <b>${studentIds.length}</b>\n`;
-    message += `---------------------\n\n`;
-
-    if (studentIds.length === 0) {
-      message += `<i>Список учеников пуст.</i>`;
-    } else {
-      studentIds.forEach((sId, index) => {
-        const s = studentsMap[sId];
-        const parentLink = `https://artyom57-cmd.github.io/tutor-cabinet1/parent.html?id=${sId}`;
-        
-        message += `<b>${index + 1}. ${s.name}</b> ${s.grade ? `(${s.grade})` : ''}\n`;
-        message += `📞 <b>Родители:</b> ${s.parentContacts || 'не указаны'}\n`;
-        message += `🔗 <b>Личный кабинет:</b> ${parentLink}\n`;
-        message += `---------------------\n`;
-      });
+    // Если нет учеников - отправляем уведомление
+    if (Object.keys(studentsMap).length === 0) {
+      try {
+        await fetch(`https://api.telegram.org/bot${userSettings.tgBotToken}/sendMessage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            chat_id: userSettings.tgChatId,
+            text: '📋 Список учеников пуст. Пока нет ни одного ученика в картотеке.',
+            parse_mode: 'HTML'
+          })
+        });
+      } catch(e) {
+        console.error('Ошибка отправки в Telegram:', e);
+      }
+      return;
     }
 
+    // Формируем сообщение со списком всех учеников
+    let message = '📋 <b>ПОЛНЫЙ СПИСОК УЧЕНИКОВ</b>\n';
+    message += `📚 Всего учеников: <b>${Object.keys(studentsMap).length}</b>\n\n`;
+    message += '━'.repeat(30) + '\n\n';
+
+    // Сортируем учеников по имени
+    const sortedStudents = Object.entries(studentsMap).sort((a, b) => a[1].name.localeCompare(b[1].name));
+
+    let index = 1;
+    for (const [studentId, student] of sortedStudents) {
+      const parentLink = `https://artyom57-cmd.github.io/tutor-cabinet1/parent.html?id=${studentId}`;
+      
+      message += `<b>${index}. ${student.name}</b>\n`;
+      message += `   👨‍👩‍👦 Родитель: ${student.parentContacts || '❌ Не указан'}\n`;
+      message += `   🎯 Цель: ${student.goal || '❌ Не указана'}\n`;
+      message += `   📚 Класс: ${student.grade || '❌ Не указан'}\n`;
+      message += `   🎓 Баланс: ${student.flasksBalance || 0} ${userSettings.currencyIcon || '💰'}\n`;
+      message += `   🔗 <a href="${parentLink}">Ссылка на кабинет родителя</a>\n`;
+      message += '\n';
+      index++;
+    }
+
+    message += '━'.repeat(30) + '\n';
+    message += `📅 Обновлено: ${new Date().toLocaleString('ru-RU')}`;
+
+    // Отправляем сообщение в Telegram
     try {
-      await fetch(`https://api.telegram.org/bot${userSettings.tgBotToken}/sendMessage`, {
+      const response = await fetch(`https://api.telegram.org/bot${userSettings.tgBotToken}/sendMessage`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -1002,10 +1029,56 @@
           disable_web_page_preview: true
         })
       });
-    } catch (e) {
-      console.error('Ошибка при отправке списка учеников в Telegram:', e);
+
+      const result = await response.json();
+      if (result.ok) {
+        console.log('✅ Список учеников успешно отправлен в Telegram');
+      } else {
+        console.error('❌ Ошибка Telegram API:', result.description);
+      }
+    } catch (error) {
+      console.error('❌ Ошибка при отправке списка в Telegram:', error);
     }
   }
+
+  // ============ ФУНКЦИЯ ДЛЯ ОТПРАВКИ ПРИ ИЗМЕНЕНИИ СПИСКА ============
+  async function onStudentsListChanged(changeType, studentName = '') {
+    // Отправляем список учеников в Telegram
+    await sendStudentsListToTelegram();
+    
+    // Если нужно, можно также отправить отдельное уведомление о добавлении/удалении
+    if (changeType === 'add' && studentName) {
+      try {
+        await fetch(`https://api.telegram.org/bot${userSettings.tgBotToken}/sendMessage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            chat_id: userSettings.tgChatId,
+            text: `✅ <b>Новый ученик добавлен:</b> ${studentName}\n📋 Обновлённый список всех учеников отправлен выше.`,
+            parse_mode: 'HTML'
+          })
+        });
+      } catch(e) {
+        console.error('Ошибка отправки уведомления:', e);
+      }
+    } else if (changeType === 'delete' && studentName) {
+      try {
+        await fetch(`https://api.telegram.org/bot${userSettings.tgBotToken}/sendMessage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            chat_id: userSettings.tgChatId,
+            text: `❌ <b>Ученик удалён:</b> ${studentName}\n📋 Обновлённый список всех учеников отправлен выше.`,
+            parse_mode: 'HTML'
+          })
+        });
+      } catch(e) {
+        console.error('Ошибка отправки уведомления:', e);
+      }
+    }
+  }
+
+  // ============ ОСТАЛЬНОЙ КОД (без изменений, только добавлены вызовы onStudentsListChanged) ============
 
   async function sendElementAsPhotoToTelegram(elementId, captionText) {
     if (!userSettings.tgEnabled || !userSettings.tgChatId || !userSettings.tgBotToken) {
@@ -1431,8 +1504,10 @@
     const qDrafts = query(collection(db, "drafts"), where("userId", "==", currentUserId));
     const qStudents = query(collection(db, "students"), where("userId", "==", currentUserId));
 
+    let previousStudents = {};
+
     unsubStudents = onSnapshot(qStudents, (snapshot) => {
-      studentsMap = {};
+      const newStudents = {};
       const datalist = document.getElementById('studentsDatalist');
       const groupSelect = document.getElementById('addGroupStudents');
       datalist.innerHTML = '';
@@ -1440,7 +1515,7 @@
 
       snapshot.forEach(docSnap => {
         const data = docSnap.data();
-        studentsMap[docSnap.id] = data;
+        newStudents[docSnap.id] = data;
         
         const opt = document.createElement('option');
         opt.value = data.name;
@@ -1451,8 +1526,41 @@
         gOpt.innerText = data.name;
         groupSelect.appendChild(gOpt);
       });
+
+      // Проверяем, изменился ли список учеников
+      const oldIds = Object.keys(previousStudents);
+      const newIds = Object.keys(newStudents);
+      
+      // Определяем, был ли добавлен новый ученик или удалён
+      const addedIds = newIds.filter(id => !oldIds.includes(id));
+      const removedIds = oldIds.filter(id => !newIds.includes(id));
+
+      // Обновляем studentsMap
+      studentsMap = newStudents;
+      
       renderStudentsCards();
       updateHwTemplatesDropdowns();
+
+      // Если есть изменения в списке учеников - отправляем обновлённый список в Telegram
+      if (addedIds.length > 0 || removedIds.length > 0) {
+        // Определяем имя добавленного или удалённого ученика для уведомления
+        let changeType = null;
+        let studentName = '';
+        
+        if (addedIds.length > 0) {
+          changeType = 'add';
+          studentName = newStudents[addedIds[0]]?.name || '';
+        } else if (removedIds.length > 0) {
+          changeType = 'delete';
+          studentName = previousStudents[removedIds[0]]?.name || '';
+        }
+        
+        // Отправляем обновлённый список
+        onStudentsListChanged(changeType, studentName);
+      }
+
+      // Сохраняем текущий список для будущих сравнений
+      previousStudents = { ...newStudents };
     });
 
     unsubDrafts = onSnapshot(qDrafts, (snapshot) => {
@@ -1574,11 +1682,11 @@
   window.deleteStudentCard = async (studentId, studentName) => {
     if (confirm(`Вы уверены, что хотите удалить карточку ученика "${studentName}"?`)) {
       try { 
-        await deleteDoc(doc(db, "students", studentId)); 
-        setTimeout(() => {
-          sendStudentsListToTelegram(`Удален ученик ${studentName}`);
-        }, 800);
-      } catch (err) { alert("Ошибка: " + err.message); }
+        await deleteDoc(doc(db, "students", studentId));
+        // Список обновится автоматически через onSnapshot
+      } catch (err) { 
+        alert("Ошибка: " + err.message); 
+      }
     }
   };
 
@@ -1730,7 +1838,6 @@
   document.getElementById('studentCardForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const id = document.getElementById('cardStudentId').value;
-    const isNew = !id;
     const studentData = {
       userId: currentUserId,
       teacherChatId: userSettings.tgChatId || '',
@@ -1747,12 +1854,6 @@
       if (id) await updateDoc(doc(db, "students", id), studentData);
       else await addDoc(collection(db, "students"), studentData);
       closeStudentCardModal();
-
-      if (isNew) {
-        setTimeout(() => {
-          sendStudentsListToTelegram(`➕ Добавлен новый ученик: ${studentData.name}`);
-        }, 800);
-      }
     } catch(err) {
       alert("Ошибка при сохранении профиля ученика: " + err.message);
     }
@@ -1830,10 +1931,6 @@
             teacherChatId: userSettings.tgChatId || '',
             name: name, grade: '', parentContacts: '', goal: '', notes: '', flasksBalance: 0, hwTemplates: []
           });
-
-          setTimeout(() => {
-            sendStudentsListToTelegram(`➕ Добавлен новый ученик через расписание: ${name}`);
-          }, 800);
         }
       }
 
