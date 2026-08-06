@@ -1501,6 +1501,7 @@
 
       const hwPercent = totalHw > 0 ? Math.round((doneHw / totalHw) * 100) : 100;
       const avgHwGrade = hwGradesCount > 0 ? (hwGradesSum / hwGradesCount).toFixed(1) : '—';
+      const parentLink = `https://artyom57-cmd.github.io/tutor-cabinet1/parent.html?id=${sId}`;
 
       const card = document.createElement('div');
       card.className = 'student-card';
@@ -1512,6 +1513,9 @@
         <p><strong>🎯 Цель:</strong> ${s.goal || '—'}</p>
         <p><strong>📞 Контакты:</strong> ${s.parentContacts || '—'}</p>
         <p><strong>📝 Заметки:</strong> ${s.notes || '—'}</p>
+        <p><strong>🔗 Ссылка для родителя:</strong> 
+           <input type="text" readonly value="${parentLink}" onclick="this.select(); document.execCommand('copy'); alert('Ссылка скопирована!');" style="font-size:11px; cursor:pointer;">
+        </p>
         <div style="background: #ffffff; border-radius: 6px; padding: 6px; margin: 8px 0; font-size: 12px; border: 1px solid #e5e7eb;">
           📊 Уроков: <strong>${totalLessons}</strong> | Выполнение ДЗ: <strong>${hwPercent}%</strong> | Ср. оценка ДЗ: <strong>${avgHwGrade}</strong>
         </div>
