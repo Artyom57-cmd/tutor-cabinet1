@@ -966,6 +966,47 @@
   let currentCardTemplates = [];
   let periodChartInstance = null;
 
+  // ФУНКЦИЯ ОТПРАВКИ ОБНОВЛЕННОГО СПИСКА УЧЕНИКОВ В TELEGRAM
+  async function sendStudentsListToTelegram(actionText = 'Обновление картотеки') {
+    if (!userSettings.tgEnabled || !userSettings.tgChatId || !userSettings.tgBotToken) {
+      return;
+    }
+
+    const studentIds = Object.keys(studentsMap);
+    let message = `📋 <b>Спиcок учеников (${actionText})</b>\n`;
+    message += `Всего учеников: <b>${studentIds.length}</b>\n`;
+    message += `---------------------\n\n`;
+
+    if (studentIds.length === 0) {
+      message += `<i>Список учеников пуст.</i>`;
+    } else {
+      studentIds.forEach((sId, index) => {
+        const s = studentsMap[sId];
+        const parentLink = `https://artyom57-cmd.github.io/tutor-cabinet1/parent.html?id=${sId}`;
+        
+        message += `<b>${index + 1}. ${s.name}</b> ${s.grade ? `(${s.grade})` : ''}\n`;
+        message += `📞 <b>Родители:</b> ${s.parentContacts || 'не указаны'}\n`;
+        message += `🔗 <b>Личный кабинет:</b> ${parentLink}\n`;
+        message += `---------------------\n`;
+      });
+    }
+
+    try {
+      await fetch(`https://api.telegram.org/bot${userSettings.tgBotToken}/sendMessage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id: userSettings.tgChatId,
+          text: message,
+          parse_mode: 'HTML',
+          disable_web_page_preview: true
+        })
+      });
+    } catch (e) {
+      console.error('Ошибка при отправке списка учеников в Telegram:', e);
+    }
+  }
+
   async function sendElementAsPhotoToTelegram(elementId, captionText) {
     if (!userSettings.tgEnabled || !userSettings.tgChatId || !userSettings.tgBotToken) {
       alert('Отправка в Telegram выключена или не введены токены в настройках!');
@@ -1532,7 +1573,12 @@
 
   window.deleteStudentCard = async (studentId, studentName) => {
     if (confirm(`Вы уверены, что хотите удалить карточку ученика "${studentName}"?`)) {
-      try { await deleteDoc(doc(db, "students", studentId)); } catch (err) { alert("Ошибка: " + err.message); }
+      try { 
+        await deleteDoc(doc(db, "students", studentId)); 
+        setTimeout(() => {
+          sendStudentsListToTelegram(`Удален ученик ${studentName}`);
+        }, 800);
+      } catch (err) { alert("Ошибка: " + err.message); }
     }
   };
 
@@ -1684,6 +1730,7 @@
   document.getElementById('studentCardForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const id = document.getElementById('cardStudentId').value;
+    const isNew = !id;
     const studentData = {
       userId: currentUserId,
       teacherChatId: userSettings.tgChatId || '',
@@ -1700,6 +1747,12 @@
       if (id) await updateDoc(doc(db, "students", id), studentData);
       else await addDoc(collection(db, "students"), studentData);
       closeStudentCardModal();
+
+      if (isNew) {
+        setTimeout(() => {
+          sendStudentsListToTelegram(`➕ Добавлен новый ученик: ${studentData.name}`);
+        }, 800);
+      }
     } catch(err) {
       alert("Ошибка при сохранении профиля ученика: " + err.message);
     }
@@ -1777,6 +1830,10 @@
             teacherChatId: userSettings.tgChatId || '',
             name: name, grade: '', parentContacts: '', goal: '', notes: '', flasksBalance: 0, hwTemplates: []
           });
+
+          setTimeout(() => {
+            sendStudentsListToTelegram(`➕ Добавлен новый ученик через расписание: ${name}`);
+          }, 800);
         }
       }
 
