@@ -1501,7 +1501,9 @@
 
       const hwPercent = totalHw > 0 ? Math.round((doneHw / totalHw) * 100) : 100;
       const avgHwGrade = hwGradesCount > 0 ? (hwGradesSum / hwGradesCount).toFixed(1) : '—';
-      const parentLink = `https://artyom57-cmd.github.io/tutor-cabinet1/parent.html?id=${sId}`;
+      
+      // Динамическое построение ссылки для родительского кабинета относительно текущего хоста
+      const parentLink = `${window.location.origin}${window.location.pathname.replace('index.html', '')}parent.html?id=${sId}`;
 
       const card = document.createElement('div');
       card.className = 'student-card';
@@ -1686,6 +1688,7 @@
     const id = document.getElementById('cardStudentId').value;
     const studentData = {
       userId: currentUserId,
+      teacherId: currentUserId, // Привязка преподавателя для доступа из кабинета родителя
       teacherChatId: userSettings.tgChatId || '',
       name: document.getElementById('cardStudentName').value,
       grade: document.getElementById('cardStudentGrade').value,
@@ -1774,6 +1777,7 @@
         if (!existingStudentId) {
           await addDoc(collection(db, "students"), {
             userId: currentUserId,
+            teacherId: currentUserId, // Автоматическое связывание созданного ученика с учителем
             teacherChatId: userSettings.tgChatId || '',
             name: name, grade: '', parentContacts: '', goal: '', notes: '', flasksBalance: 0, hwTemplates: []
           });
