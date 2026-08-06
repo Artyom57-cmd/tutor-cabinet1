@@ -103,210 +103,114 @@
             background-color: var(--primary-hover);
         }
 
-        .btn-outline {
-            background-color: transparent;
-            color: var(--text-secondary);
-            border: 1px solid var(--border);
-            margin-top: 12px;
+        #auth-screen, #dashboard-screen {
+            display: none;
         }
 
-        .btn-outline:hover {
-            background-color: #f9fafb;
+        #auth-screen.active, #dashboard-screen.active {
+            display: block;
         }
 
-        .error-message {
+        .error-msg {
             color: var(--error);
             font-size: 0.875rem;
             margin-top: 8px;
             text-align: center;
-            display: none;
-        }
-
-        .info-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 10px 0;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .info-row:last-child {
-            border-bottom: none;
-        }
-
-        .info-label {
-            color: var(--text-secondary);
-            font-size: 0.875rem;
-        }
-
-        .info-value {
-            font-weight: 600;
-            font-size: 0.875rem;
-        }
-
-        .badge {
-            display: inline-block;
-            padding: 2px 8px;
-            border-radius: 9999px;
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
-
-        .badge-success {
-            background-color: #d1fae5;
-            color: #065f46;
-        }
-
-        .badge-danger {
-            background-color: #fee2e2;
-            color: #991b1b;
-        }
-
-        .hidden {
-            display: none;
         }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <!-- Экран авторизации -->
-    <div id="authScreen" class="card">
-        <h1 class="title">Вход для родителей</h1>
-        <p class="subtitle">Введите номер телефона, указанный в карточке ученика</p>
-        
-        <form id="loginForm">
+    <!-- Окно ввода номера телефона / входа -->
+    <div id="auth-screen" class="card active">
+        <h2 class="title">Вход в кабинет родителя</h2>
+        <p class="subtitle">Введите номер телефона, указанный преподавателем</p>
+        <form id="phoneAuthForm">
             <div class="form-group">
                 <label for="phoneInput">Номер телефона</label>
                 <input type="tel" id="phoneInput" placeholder="+7 (999) 000-00-00" required>
             </div>
-            
             <button type="submit" class="btn">Войти</button>
-            <div id="authError" class="error-message">Ученик с таким номером телефона не найден</div>
+            <div id="authError" class="error-msg"></div>
         </form>
     </div>
 
-    <!-- Экран кабинета -->
-    <div id="dashboardScreen" class="hidden">
-        <div class="card">
-            <h1 class="title" id="studentName">—</h1>
-            <p class="subtitle">Карточка ученика</p>
-
-            <div class="info-row">
-                <span class="info-label">Статус:</span>
-                <span class="info-value"><span id="studentStatus" class="badge badge-success">Активен</span></span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">Группа / Класс:</span>
-                <span class="info-value" id="studentGroup">—</span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">Баланс занятий:</span>
-                <span class="info-value" id="studentBalance">—</span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">Телефон родителя:</span>
-                <span class="info-value" id="studentPhone">—</span>
-            </div>
+    <!-- Панель с информацией ученика (после входа) -->
+    <div id="dashboard-screen" class="card">
+        <h2 class="title" id="studentNameTitle">Успеваемость ученика</h2>
+        <div id="studentDetails">
+            <!-- Данные ученика загрузятся сюда -->
         </div>
-
-        <div class="card">
-            <h2 class="title" style="font-size: 1rem; text-align: left; margin-bottom: 12px;">Последняя активность</h2>
-            <div class="info-row">
-                <span class="info-label">Последнее посещение:</span>
-                <span class="info-value" id="lastAttendance">—</span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">Оплата:</span>
-                <span class="info-value" id="paymentStatus">—</span>
-            </div>
-        </div>
-
-        <button id="logoutBtn" class="btn btn-outline">Выйти</button>
     </div>
 </div>
 
-<script>
-    // Нормализация номера телефона (оставляем только цифры)
-    function cleanPhone(phone) {
-        return phone.replace(/\D/g, '');
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAHxz8YoyHn5QK-ekR9Q1aS9KfatAbe3Go",
+    authDomain: "tutorcabinet-8b2c6.firebaseapp.com",
+    projectId: "tutorcabinet-8b2c6",
+    storageBucket: "tutorcabinet-8b2c6.firebasestorage.app",
+    messagingSenderId: "658054043647",
+    appId: "1:658054043647:web:55fca77b1f31d8dc4679ca",
+    measurementId: "G-F8Q3530MQ5"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  // Получаем ID ученика из параметров URL (?id=...)
+  const urlParams = new URLSearchParams(window.location.search);
+  const studentId = urlParams.get('id');
+
+  const authScreen = document.getElementById('auth-screen');
+  const dashboardScreen = document.getElementById('dashboard-screen');
+  const authError = document.getElementById('authError');
+
+  if (!studentId) {
+    authError.innerText = "Ошибка: неверная ссылка доступа.";
+  }
+
+  document.getElementById('phoneAuthForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    authError.innerText = '';
+    const inputPhone = document.getElementById('phoneInput').value.replace(/\D/g, '');
+
+    if (!studentId) {
+      authError.innerText = "Невалидный ID ученика в ссылке.";
+      return;
     }
 
-    // Получение данных учеников из localStorage (синхронизировано с основной CRM)
-    function getStudents() {
-        const data = localStorage.getItem('crm_students');
-        return data ? JSON.parse(data) : [];
-    }
+    try {
+      const studentDoc = await getDoc(doc(db, "students", studentId));
+      if (studentDoc.exists()) {
+        const studentData = studentDoc.data();
+        const savedPhone = (studentData.parentContacts || '').replace(/\D/g, '');
 
-    // Автоматический вход по URL-параметру ?student_id=...
-    function checkUrlAuth() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const studentId = urlParams.get('student_id');
-
-        if (studentId) {
-            const students = getStudents();
-            const student = students.find(s => String(s.id) === String(studentId));
-            if (student) {
-                renderDashboard(student);
-                return true;
-            }
-        }
-        return false;
-    }
-
-    // Отрисовка данных ученика
-    function renderDashboard(student) {
-        document.getElementById('studentName').textContent = student.name || 'Не указано';
-        document.getElementById('studentGroup').textContent = student.group || 'Не назначена';
-        document.getElementById('studentBalance').textContent = (student.balance !== undefined ? student.balance : 0) + ' занятий';
-        document.getElementById('studentPhone').textContent = student.phone || 'Не указан';
-        document.getElementById('lastAttendance').textContent = student.lastAttendance || 'Нет данных';
-        
-        const paymentEl = document.getElementById('paymentStatus');
-        if (student.paid) {
-            paymentEl.textContent = 'Оплачено';
-            paymentEl.className = 'info-value badge badge-success';
+        // Сверяем введенный номер с контактами родителя в базе
+        if (savedPhone && inputPhone && savedPhone.includes(inputPhone)) {
+          authScreen.classList.remove('active');
+          dashboardScreen.classList.add('active');
+          
+          document.getElementById('studentNameTitle').innerText = `Ученик: ${studentData.name}`;
+          document.getElementById('studentDetails').innerHTML = `
+            <p><strong>Класс:</strong> ${studentData.grade || '—'}</p>
+            <p><strong>Цель:</strong> ${studentData.goal || '—'}</p>
+            <p><strong>Баланс баллов:</strong> ${studentData.flasksBalance || 0}</p>
+          `;
         } else {
-            paymentEl.textContent = 'Задолженность';
-            paymentEl.className = 'info-value badge badge-danger';
+          authError.innerText = "Номер телефона не найден или введен неверно.";
         }
-
-        document.getElementById('authScreen').classList.add('hidden');
-        document.getElementById('dashboardScreen').classList.remove('hidden');
+      } else {
+        authError.innerText = "Ученик не найден в системе.";
+      }
+    } catch (err) {
+      authError.innerText = "Ошибка загрузки данных: " + err.message;
     }
-
-    // Авторизация по номеру телефона
-    document.getElementById('loginForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        const inputPhone = cleanPhone(document.getElementById('phoneInput').value);
-        const errorEl = document.getElementById('authError');
-        errorEl.style.display = 'none';
-
-        if (!inputPhone) return;
-
-        const students = getStudents();
-        const student = students.find(s => cleanPhone(s.phone || '') === inputPhone);
-
-        if (student) {
-            renderDashboard(student);
-        } else {
-            errorEl.style.display = 'block';
-        }
-    });
-
-    // Выход
-    document.getElementById('logoutBtn').addEventListener('click', function() {
-        // Очищаем параметры URL без перезагрузки
-        window.history.pushState({}, document.title, window.location.pathname);
-        document.getElementById('dashboardScreen').classList.add('hidden');
-        document.getElementById('authScreen').classList.remove('hidden');
-        document.getElementById('phoneInput').value = '';
-    });
-
-    // Инициализация при загрузке
-    window.addEventListener('DOMContentLoaded', () => {
-        checkUrlAuth();
-    });
+  });
 </script>
 
 </body>
