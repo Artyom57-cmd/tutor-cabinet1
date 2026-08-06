@@ -1,526 +1,313 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Кабинет родителя</title>
-  <style>
-    :root {
-      --bg-color: #f4f6f8;
-      --card-bg: #ffffff;
-      --text-main: #1f2937;
-      --text-muted: #6b7280;
-      --primary: #3b82f6;
-      --border: #e5e7eb;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Личный кабинет родителя</title>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg: #f3f4f6;
+            --card-bg: #ffffff;
+            --text: #1f2937;
+            --text-secondary: #6b7280;
+            --border: #e5e7eb;
+            --success: #10b981;
+            --error: #ef4444;
+        }
 
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      background-color: var(--bg-color);
-      color: var(--text-main);
-      margin: 0;
-      padding: 20px;
-    }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
 
-    .container {
-      max-width: 900px;
-      margin: 0 auto;
-    }
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 16px;
+        }
 
-    /* Блок входа по номеру телефона */
-    .phone-auth-card {
-      background: var(--card-bg);
-      padding: 30px 25px;
-      border-radius: 12px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-      max-width: 400px;
-      margin: 50px auto;
-      text-align: center;
-    }
+        .container {
+            width: 100%;
+            max-width: 480px;
+        }
 
-    .phone-auth-card h2 {
-      margin-top: 0;
-      font-size: 20px;
-      color: var(--text-main);
-    }
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+            padding: 24px;
+            margin-bottom: 16px;
+        }
 
-    .phone-auth-card p {
-      font-size: 13px;
-      color: var(--text-muted);
-      margin-bottom: 20px;
-    }
+        .title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            text-align: center;
+        }
 
-    .input-phone {
-      width: 100%;
-      padding: 12px;
-      border: 1.5px solid var(--border);
-      border-radius: 8px;
-      font-size: 15px;
-      box-sizing: border-box;
-      margin-bottom: 15px;
-      outline: none;
-    }
+        .subtitle {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            text-align: center;
+            margin-bottom: 20px;
+        }
 
-    .input-phone:focus {
-      border-color: var(--primary);
-    }
+        .form-group {
+            margin-bottom: 16px;
+        }
 
-    .btn-login {
-      width: 100%;
-      background: var(--primary);
-      color: white;
-      border: none;
-      padding: 12px;
-      border-radius: 8px;
-      font-weight: bold;
-      font-size: 15px;
-      cursor: pointer;
-    }
+        label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-bottom: 6px;
+        }
 
-    .btn-login:hover {
-      background: #2563eb;
-    }
+        input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
 
-    .auth-error {
-      color: #ef4444;
-      font-size: 13px;
-      margin-top: 10px;
-      display: none;
-    }
+        input:focus {
+            border-color: var(--primary);
+        }
 
-    /* Основной интерфейс (скрыт до авторизации) */
-    #dashboardContent {
-      display: none;
-    }
+        .btn {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
 
-    .header {
-      background: var(--card-bg);
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-      margin-bottom: 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
+        .btn:hover {
+            background-color: var(--primary-hover);
+        }
 
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 15px;
-      margin-bottom: 20px;
-    }
+        .btn-outline {
+            background-color: transparent;
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+            margin-top: 12px;
+        }
 
-    .stat-card {
-      background: var(--card-bg);
-      padding: 15px 20px;
-      border-radius: 10px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-    }
+        .btn-outline:hover {
+            background-color: #f9fafb;
+        }
 
-    .stat-title {
-      font-size: 14px;
-      color: var(--text-muted);
-      margin-bottom: 5px;
-    }
+        .error-message {
+            color: var(--error);
+            font-size: 0.875rem;
+            margin-top: 8px;
+            text-align: center;
+            display: none;
+        }
 
-    .stat-value {
-      font-size: 24px;
-      font-weight: bold;
-    }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border);
+        }
 
-    .table-card {
-      background: var(--card-bg);
-      border-radius: 12px;
-      padding: 20px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-      overflow-x: auto;
-    }
+        .info-row:last-child {
+            border-bottom: none;
+        }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      text-align: left;
-    }
+        .info-label {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
 
-    th, td {
-      padding: 12px;
-      border-bottom: 1px solid var(--border);
-      font-size: 14px;
-    }
+        .info-value {
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
 
-    th {
-      color: var(--text-muted);
-      font-weight: 600;
-    }
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
 
-    .badge-grade {
-      background: #e0f2fe;
-      color: #0369a1;
-      padding: 4px 8px;
-      border-radius: 6px;
-      font-weight: bold;
-    }
+        .badge-success {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
 
-    .btn-action {
-      background: #f3f4f6;
-      border: none;
-      padding: 6px 12px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 13px;
-    }
+        .badge-danger {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
 
-    .btn-action:hover {
-      background: #e5e7eb;
-    }
-
-    .btn-logout {
-      background: #fee2e2;
-      color: #dc2626;
-      border: 1px solid #fca5a5;
-      padding: 6px 12px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 13px;
-    }
-
-    /* Модальное окно отчета */
-    .modal {
-      display: none;
-      position: fixed;
-      top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.5);
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-    }
-
-    .modal-content {
-      background: #fff;
-      padding: 24px;
-      border-radius: 12px;
-      max-width: 500px;
-      width: 90%;
-      max-height: 80vh;
-      overflow-y: auto;
-    }
-  </style>
+        .hidden {
+            display: none;
+        }
+    </style>
 </head>
 <body>
 
 <div class="container">
-  <!-- Форма авторизации по номеру телефона -->
-  <div id="phoneAuthScreen" class="phone-auth-card">
-    <h2>📱 Вход в кабинет родителя</h2>
-    <p>Введите номер телефона родителя, указанный при регистрации ученика</p>
-    <form id="phoneAuthForm">
-      <input type="tel" id="parentPhoneInput" class="input-phone" placeholder="+7 (999) 000-00-00" required>
-      <button type="submit" class="btn-login">Войти</button>
-      <div id="phoneAuthError" class="auth-error">Ученик с таким номером телефона не найден</div>
-    </form>
-  </div>
-
-  <!-- Основной Кабинет -->
-  <div id="dashboardContent">
-    <div class="header">
-      <div>
-        <h1 id="studentNameHeader" style="margin: 0; font-size: 24px;">Загрузка данных...</h1>
-        <p style="margin: 5px 0 0; color: var(--text-muted);">Успеваемость и история занятий</p>
-      </div>
-      <button class="btn-logout" onclick="logoutParent()">Сменить номер 🚪</button>
+    <!-- Экран авторизации -->
+    <div id="authScreen" class="card">
+        <h1 class="title">Вход для родителей</h1>
+        <p class="subtitle">Введите номер телефона, указанный в карточке ученика</p>
+        
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="phoneInput">Номер телефона</label>
+                <input type="tel" id="phoneInput" placeholder="+7 (999) 000-00-00" required>
+            </div>
+            
+            <button type="submit" class="btn">Войти</button>
+            <div id="authError" class="error-message">Ученик с таким номером телефона не найден</div>
+        </form>
     </div>
 
-    <div class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-title">Баланс колб 🧪</div>
-        <div class="stat-value" id="parentBalance">—</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-title">Средний балл</div>
-        <div class="stat-value" id="parentAvgGrade">—</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-title">Пройдено уроков</div>
-        <div class="stat-value" id="parentTotalLessons">0</div>
-      </div>
-    </div>
+    <!-- Экран кабинета -->
+    <div id="dashboardScreen" class="hidden">
+        <div class="card">
+            <h1 class="title" id="studentName">—</h1>
+            <p class="subtitle">Карточка ученика</p>
 
-    <div class="table-card">
-      <h2 style="font-size: 18px; margin-top: 0; margin-bottom: 15px;">История уроков</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Дата</th>
-            <th>Тема</th>
-            <th>Оценки</th>
-            <th>Итог</th>
-            <th>ДЗ</th>
-            <th>Действия</th>
-          </tr>
-        </thead>
-        <tbody id="parentHistoryTable">
-          <tr>
-            <td colspan="6" style="text-align: center; color: var(--text-muted);">Загрузка истории...</td>
-          </tr>
-        </tbody>
-      </table>
+            <div class="info-row">
+                <span class="info-label">Статус:</span>
+                <span class="info-value"><span id="studentStatus" class="badge badge-success">Активен</span></span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Группа / Класс:</span>
+                <span class="info-value" id="studentGroup">—</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Баланс занятий:</span>
+                <span class="info-value" id="studentBalance">—</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Телефон родителя:</span>
+                <span class="info-value" id="studentPhone">—</span>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2 class="title" style="font-size: 1rem; text-align: left; margin-bottom: 12px;">Последняя активность</h2>
+            <div class="info-row">
+                <span class="info-label">Последнее посещение:</span>
+                <span class="info-value" id="lastAttendance">—</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Оплата:</span>
+                <span class="info-value" id="paymentStatus">—</span>
+            </div>
+        </div>
+
+        <button id="logoutBtn" class="btn btn-outline">Выйти</button>
     </div>
-  </div>
 </div>
 
-<!-- Модальное окно просмотра отчета -->
-<div id="reportModal" class="modal">
-  <div class="modal-content">
-    <h3 id="modalTitle" style="margin-top:0;">Детали отчета</h3>
-    <div id="modalBody" style="line-height: 1.6; font-size: 14px;"></div>
-    <br>
-    <button class="btn-action" onclick="closeReportModal()">Закрыть</button>
-  </div>
-</div>
-
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import { 
-    getFirestore, 
-    collection, 
-    doc, 
-    getDocs,
-    getDoc,
-    onSnapshot 
-  } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-  // Конфигурация Firebase
-  const firebaseConfig = {
-    apiKey: "AIzaSyAHxz8YoyHn5QK-ekR9Q1aS9KfatAbe3Go",
-    authDomain: "tutorcabinet-8b2c6.firebaseapp.com",
-    projectId: "tutorcabinet-8b2c6",
-    storageBucket: "tutorcabinet-8b2c6.firebasestorage.app",
-    messagingSenderId: "658054043647",
-    appId: "1:658054043647:web:55fca77b1f31d8dc4679ca"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-
-  const historyCache = {};
-  let currentStudentId = null;
-
-  // Функция очистки телефона от спецсимволов для точного поиска
-  function cleanPhone(phoneStr) {
-    if (!phoneStr) return "";
-    return String(phoneStr).replace(/\D/g, '');
-  }
-
-  // Проверяем URL при загрузке страницы
-  window.addEventListener('DOMContentLoaded', () => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const rawStudentId = urlParams.get('studentId') || urlParams.get('id');
-
-    // Открываем кабинет только если ID передан явно через ссылку
-    if (rawStudentId) {
-      initDashboard(rawStudentId.trim());
-    } else {
-      // В остальных случаях всегда просим ввести номер телефона
-      showAuthScreen();
+<script>
+    // Нормализация номера телефона (оставляем только цифры)
+    function cleanPhone(phone) {
+        return phone.replace(/\D/g, '');
     }
-  });
 
-  function showAuthScreen() {
-    document.getElementById('phoneAuthScreen').style.display = 'block';
-    document.getElementById('dashboardContent').style.display = 'none';
-  }
-
-  function initDashboard(studentId) {
-    currentStudentId = studentId;
-    localStorage.setItem('parent_student_id', studentId);
-
-    document.getElementById('phoneAuthScreen').style.display = 'none';
-    document.getElementById('dashboardContent').style.display = 'block';
-
-    loadParentDashboard(studentId);
-  }
-
-  // Обработка формы входа по телефону
-  document.getElementById('phoneAuthForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const inputPhone = document.getElementById('parentPhoneInput').value;
-    const cleanedInputPhone = cleanPhone(inputPhone);
-    const errorEl = document.getElementById('phoneAuthError');
-    errorEl.style.display = 'none';
-
-    if (!cleanedInputPhone) return;
-
-    try {
-      const studentsSnapshot = await getDocs(collection(db, "students"));
-      let matchedStudentId = null;
-
-      studentsSnapshot.forEach((docSnap) => {
-        const student = docSnap.data();
-        const parentContactsClean = cleanPhone(student.parentContacts);
-        
-        // Сверяем цифры номера телефона
-        if (parentContactsClean && parentContactsClean.includes(cleanedInputPhone)) {
-          matchedStudentId = docSnap.id;
-        }
-      });
-
-      if (matchedStudentId) {
-        initDashboard(matchedStudentId);
-      } else {
-        errorEl.innerText = "Ученик с таким номером не найден. Уточните у преподавателя.";
-        errorEl.style.display = 'block';
-      }
-    } catch (err) {
-      console.error("Ошибка поиска ученика:", err);
-      errorEl.innerText = "Ошибка соединения. Попробуйте позже.";
-      errorEl.style.display = 'block';
+    // Получение данных учеников из localStorage (синхронизировано с основной CRM)
+    function getStudents() {
+        const data = localStorage.getItem('crm_students');
+        return data ? JSON.parse(data) : [];
     }
-  });
 
-  window.logoutParent = () => {
-    localStorage.removeItem('parent_student_id');
-    location.href = location.pathname; // Сброс URL
-  };
+    // Автоматический вход по URL-параметру ?student_id=...
+    function checkUrlAuth() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const studentId = urlParams.get('student_id');
 
-  function loadParentDashboard(studentId) {
-    // Подписка на профиль ученика
-    const studentDocRef = doc(db, "students", studentId);
-    onSnapshot(studentDocRef, (docSnap) => {
-      if (docSnap.exists()) {
-        const studentData = docSnap.data();
-        
-        const nameHeader = document.getElementById('studentNameHeader');
-        if (nameHeader) nameHeader.innerText = studentData.name || studentData.studentName || 'Ученик';
-
-        const balanceEl = document.getElementById('parentBalance');
-        if (balanceEl) {
-          const balance = studentData.flasksBalance !== undefined ? studentData.flasksBalance : (studentData.balance || 0);
-          balanceEl.innerText = `${balance} колб 🧪`;
-          balanceEl.style.color = balance <= 1 ? '#ef4444' : '#10b981';
+        if (studentId) {
+            const students = getStudents();
+            const student = students.find(s => String(s.id) === String(studentId));
+            if (student) {
+                renderDashboard(student);
+                return true;
+            }
         }
-      } else {
-        document.getElementById('studentNameHeader').innerText = "Ученик не найден";
-      }
-    }, (error) => {
-      console.error("Ошибка загрузки данных ученика:", error);
+        return false;
+    }
+
+    // Отрисовка данных ученика
+    function renderDashboard(student) {
+        document.getElementById('studentName').textContent = student.name || 'Не указано';
+        document.getElementById('studentGroup').textContent = student.group || 'Не назначена';
+        document.getElementById('studentBalance').textContent = (student.balance !== undefined ? student.balance : 0) + ' занятий';
+        document.getElementById('studentPhone').textContent = student.phone || 'Не указан';
+        document.getElementById('lastAttendance').textContent = student.lastAttendance || 'Нет данных';
+        
+        const paymentEl = document.getElementById('paymentStatus');
+        if (student.paid) {
+            paymentEl.textContent = 'Оплачено';
+            paymentEl.className = 'info-value badge badge-success';
+        } else {
+            paymentEl.textContent = 'Задолженность';
+            paymentEl.className = 'info-value badge badge-danger';
+        }
+
+        document.getElementById('authScreen').classList.add('hidden');
+        document.getElementById('dashboardScreen').classList.remove('hidden');
+    }
+
+    // Авторизация по номеру телефона
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const inputPhone = cleanPhone(document.getElementById('phoneInput').value);
+        const errorEl = document.getElementById('authError');
+        errorEl.style.display = 'none';
+
+        if (!inputPhone) return;
+
+        const students = getStudents();
+        const student = students.find(s => cleanPhone(s.phone || '') === inputPhone);
+
+        if (student) {
+            renderDashboard(student);
+        } else {
+            errorEl.style.display = 'block';
+        }
     });
 
-    // Подписка на историю уроков
-    const historyRef = collection(db, "history");
-    onSnapshot(historyRef, (snapshot) => {
-      const tbody = document.getElementById('parentHistoryTable');
-      if (!tbody) return;
-
-      tbody.innerHTML = '';
-      let completedLessonsCount = 0;
-      let totalGradesSum = 0;
-      let gradesCount = 0;
-
-      snapshot.forEach((docSnap) => {
-        const data = docSnap.data();
-        const docId = docSnap.id;
-        historyCache[docId] = data;
-
-        const isCurrentStudent = 
-          String(data.studentId) === String(studentId) || 
-          String(data.student_id) === String(studentId);
-
-        if (isCurrentStudent) {
-          completedLessonsCount++;
-
-          const displayDate = data.date || data.dateTime || data.formattedDate || 
-            (data.rawDate ? new Date(data.rawDate).toLocaleDateString('ru-RU') : '—');
-          
-          const lessonTopic = data.topic || data.lessonTopic || 'Тема не указана';
-          const totalGrade = data.totalGrade || data.grade || '—';
-          const pollGrade = data.pollGrade || '—';
-          const hwGrade = data.hwGrade || '—';
-
-          const parsedGrade = parseFloat(totalGrade);
-          if (!isNaN(parsedGrade)) {
-            totalGradesSum += parsedGrade;
-            gradesCount++;
-          }
-
-          const filledHw = Array.isArray(data.hwItems) 
-            ? data.hwItems.filter(i => i && i.text && String(i.text).trim() !== '') 
-            : [];
-          const doneHw = filledHw.filter(i => i.status === 'done').length;
-          const hwStatusText = filledHw.length > 0 ? `${doneHw} из ${filledHw.length}` : 'Без ДЗ';
-
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td>${displayDate}</td>
-            <td><strong>${lessonTopic}</strong></td>
-            <td>Опрос: ${pollGrade} | ДЗ: ${hwGrade}</td>
-            <td><span class="badge-grade">${totalGrade}</span></td>
-            <td>${hwStatusText}</td>
-            <td>
-              <button class="btn-action" onclick="openParentReportModal('${docId}')">📋 Отчёт</button>
-            </td>
-          `;
-          tbody.appendChild(tr);
-        }
-      });
-
-      if (completedLessonsCount === 0) {
-        tbody.innerHTML = `
-          <tr><td colspan="6" style="text-align: center; color: var(--text-muted);">История проведенных уроков пока пуста.</td></tr>
-        `;
-      }
-
-      const avgGradeEl = document.getElementById('parentAvgGrade');
-      if (avgGradeEl) {
-        avgGradeEl.innerText = gradesCount > 0 ? (totalGradesSum / gradesCount).toFixed(1) : '—';
-      }
-
-      const totalLessonsEl = document.getElementById('parentTotalLessons');
-      if (totalLessonsEl) {
-        totalLessonsEl.innerText = completedLessonsCount;
-      }
-    }, (error) => {
-      console.error("Ошибка загрузки истории:", error);
+    // Выход
+    document.getElementById('logoutBtn').addEventListener('click', function() {
+        // Очищаем параметры URL без перезагрузки
+        window.history.pushState({}, document.title, window.location.pathname);
+        document.getElementById('dashboardScreen').classList.add('hidden');
+        document.getElementById('authScreen').classList.remove('hidden');
+        document.getElementById('phoneInput').value = '';
     });
-  }
 
-  window.openParentReportModal = function(docId) {
-    const data = historyCache[docId];
-    if (!data) return;
-
-    const modal = document.getElementById('reportModal');
-    const title = document.getElementById('modalTitle');
-    const body = document.getElementById('modalBody');
-
-    const displayDate = data.date || data.dateTime || data.formattedDate || '—';
-    const topic = data.topic || data.lessonTopic || 'Без темы';
-
-    title.innerText = `Отчёт по уроку: ${displayDate}`;
-    
-    let hwDetails = '';
-    if (Array.isArray(data.hwItems) && data.hwItems.length > 0) {
-      hwDetails = '<ul>' + data.hwItems.map(item => 
-        `<li>${item.text || ''} — <strong>${item.status === 'done' ? '✅ Выполнено' : '❌ Не сделано'}</strong></li>`
-      ).join('') + '</ul>';
-    } else {
-      hwDetails = '<p>Домашнее задание не задавалось.</p>';
-    }
-
-    body.innerHTML = `
-      <p><strong>Тема:</strong> ${topic}</p>
-      <p><strong>Оценки:</strong> Опрос: ${data.pollGrade || '-'}, ДЗ: ${data.hwGrade || '-'}, Итог: <strong>${data.totalGrade || '-'}</strong></p>
-      <p><strong>Комментарий преподавателя:</strong><br>${data.comment || data.notes || 'Комментарий отсутствует.'}</p>
-      <hr style="border: none; border-top: 1px solid var(--border); margin: 10px 0;">
-      <p><strong>Домашнее задание:</strong></p>
-      ${hwDetails}
-    `;
-
-    modal.style.display = 'flex';
-  };
-
-  window.closeReportModal = function() {
-    document.getElementById('reportModal').style.display = 'none';
-  };
+    // Инициализация при загрузке
+    window.addEventListener('DOMContentLoaded', () => {
+        checkUrlAuth();
+    });
 </script>
+
 </body>
 </html>
