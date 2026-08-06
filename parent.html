@@ -3,263 +3,371 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Кабинет Родителя</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <title>Кабинет родителя</title>
   <style>
-    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f3f4f6; margin: 0; padding: 20px; color: #1f2937; }
-    .container { max-width: 600px; margin: 0 auto; }
-    .card { background: #fff; border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-    .login-box { text-align: center; margin-top: 50px; }
-    input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
-    button { width: 100%; padding: 12px; background: #4f46e5; color: #fff; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
-    .balance-badge { background: #e0e7ff; color: #3730a3; padding: 8px 12px; border-radius: 20px; font-weight: bold; display: inline-block; margin-bottom: 10px; }
-    .shop-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee; }
-    .status-ok { color: #10b981; font-weight: bold; }
-    .status-no { color: #ef4444; font-weight: bold; }
+    :root {
+      --bg-color: #f4f6f8;
+      --card-bg: #ffffff;
+      --text-main: #1f2937;
+      --text-muted: #6b7280;
+      --primary: #3b82f6;
+      --border: #e5e7eb;
+    }
 
-    /* Стили для блока истории уроков */
-    .history-list { margin-top: 10px; }
-    .history-item { border-bottom: 1px solid #e5e7eb; padding: 12px 0; }
-    .history-item:last-child { border-bottom: none; }
-    .history-header { display: flex; justify-content: space-between; align-items: center; font-weight: bold; font-size: 14px; margin-bottom: 4px; }
-    .history-topic { font-size: 14px; color: #4b5563; margin-bottom: 6px; }
-    .history-grades { font-size: 13px; color: #6b7280; display: flex; gap: 15px; }
-    .history-hw { font-size: 12px; color: #6b7280; margin-top: 6px; padding-left: 10px; border-left: 2px solid #e5e7eb; }
-    .badge-grade { background: #f3f4f6; padding: 2px 6px; border-radius: 4px; font-weight: 600; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      margin: 0;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .header {
+      background: var(--card-bg);
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .stat-card {
+      background: var(--card-bg);
+      padding: 15px 20px;
+      border-radius: 10px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    .stat-title {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-bottom: 5px;
+    }
+
+    .stat-value {
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    .table-card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    th, td {
+      padding: 12px;
+      border-bottom: 1px solid var(--border);
+      font-size: 14px;
+    }
+
+    th {
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .badge-grade {
+      background: #e0f2fe;
+      color: #0369a1;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-weight: bold;
+    }
+
+    .btn-action {
+      background: #f3f4f6;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    .btn-action:hover {
+      background: #e5e7eb;
+    }
+
+    /* Модальное окно отчета */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .modal-content {
+      background: #fff;
+      padding: 24px;
+      border-radius: 12px;
+      max-width: 500px;
+      width: 90%;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
   </style>
 </head>
 <body>
 
 <div class="container">
-  <!-- Экран входа по номеру телефона -->
-  <div id="auth-screen" class="card login-box">
-    <h2>🎓 Вход в кабинет родителя</h2>
-    <p>Введите номер телефона, указанный при регистрации ученика</p>
-    <input type="tel" id="parentPhone" placeholder="+7 (999) 000-00-00">
-    <button onclick="loginParent()">Войти</button>
-    <p id="errorMsg" style="color: red; display: none; margin-top: 10px;"></p>
+  <div class="header">
+    <h1 id="studentNameHeader" style="margin: 0; font-size: 24px;">Загрузка данных...</h1>
+    <p style="margin: 5px 0 0; color: var(--text-muted);">Успеваемость и история занятий</p>
   </div>
 
-  <!-- Главный экран статистики -->
-  <div id="dashboard" style="display: none;">
-    <div class="card">
-      <h2 id="studentName">Ученик</h2>
-      <p id="studentGrade" style="color: #6b7280;"></p>
-      <div class="balance-badge">Баланс: <span id="flaskBalance">0</span> 🧪</div>
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-title">Остаток уроков (Баланс)</div>
+      <div class="stat-value" id="parentBalance">—</div>
     </div>
+    <div class="stat-card">
+      <div class="stat-title">Средний балл</div>
+      <div class="stat-value" id="parentAvgGrade">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-title">Пройдено уроков</div>
+      <div class="stat-value" id="parentTotalLessons">0</div>
+    </div>
+  </div>
 
-    <!-- Статистика -->
-    <div class="card">
-      <h3>📊 Успеваемость</h3>
-      <p>Проведено уроков: <strong id="totalLessons">0</strong></p>
-      <p>Средняя оценка за урок: <strong id="avgLessonGrade">—</strong></p>
-      <p>Средняя оценка за ДЗ: <strong id="avgHwGrade">—</strong></p>
-      <p>Выполнение ДЗ: <strong id="hwPercent">0%</strong></p>
-      <div style="height: 200px; margin-top: 15px;">
-        <canvas id="progressChart"></canvas>
-      </div>
-    </div>
+  <div class="table-card">
+    <h2 style="font-size: 18px; margin-top: 0; margin-bottom: 15px;">История уроков</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Дата</th>
+          <th>Тема</th>
+          <th>Оценки</th>
+          <th>Итог</th>
+          <th>ДЗ</th>
+          <th>Действия</th>
+        </tr>
+      </thead>
+      <tbody id="parentHistoryTable">
+        <tr>
+          <td colspan="6" style="text-align: center; color: var(--text-muted);">Загрузка истории...</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
 
-    <!-- История проведенных уроков -->
-    <div class="card">
-      <h3>📜 История уроков</h3>
-      <div id="historyList" class="history-list">
-        <p style="color: #9ca3af; font-size: 14px;">Загрузка истории уроков...</p>
-      </div>
-    </div>
-
-    <!-- Магазин и баланс колб -->
-    <div class="card">
-      <h3>🛍️ Магазин бонусов</h3>
-      <p style="font-size: 12px; color: #6b7280; margin-bottom: 10px;">Доступность бонусов за набранные колбы:</p>
-      <div id="shopList"></div>
-    </div>
+<!-- Модальное окно просмотра отчета -->
+<div id="reportModal" class="modal">
+  <div class="modal-content">
+    <h3 id="modalTitle" style="margin-top:0;">Детали отчета</h3>
+    <div id="modalBody" style="line-height: 1.6; font-size: 14px;"></div>
+    <br>
+    <button class="btn-action" onclick="closeReportModal()">Закрыть</button>
   </div>
 </div>
 
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-  import { getFirestore, doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+  // Импорт Firebase SDK (убедитесь, что версии совпадают с вашим проектом)
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+  import { 
+    getFirestore, 
+    collection, 
+    doc, 
+    onSnapshot 
+  } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+  // ВСТАВЬТЕ СЮДА ВАШУ КОНФИГУРАЦИЮ FIREBASE
   const firebaseConfig = {
-    apiKey: "AIzaSyAHxz8YoyHn5QK-ekR9Q1aS9KfatAbe3Go",
-    authDomain: "tutorcabinet-8b2c6.firebaseapp.com",
-    projectId: "tutorcabinet-8b2c6",
-    storageBucket: "tutorcabinet-8b2c6.firebasestorage.app",
-    messagingSenderId: "658054043647",
-    appId: "1:658054043647:web:55fca77b1f31d8dc4679ca"
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+    projectId: "YOUR_PROJECT_ID",
+    storageBucket: "YOUR_PROJECT_ID.appspot.com",
+    messagingSenderId: "YOUR_SENDER_ID",
+    appId: "YOUR_APP_ID"
   };
 
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
+  // Хранилище загруженной истории для быстрого показа отчетов в модальном окне
+  const historyCache = {};
+
+  // 1. Получаем ID ученика из параметров URL
   const urlParams = new URLSearchParams(window.location.search);
-  const studentId = urlParams.get('id');
+  const rawStudentId = urlParams.get('studentId') || urlParams.get('id');
+  const targetStudentId = rawStudentId ? rawStudentId.trim() : null;
 
-  let currentStudentData = null;
+  if (!targetStudentId) {
+    document.getElementById('studentNameHeader').innerText = "Ошибка: Ученик не найден в ссылке";
+    document.getElementById('parentHistoryTable').innerHTML = `
+      <tr><td colspan="6" style="text-align: center; color: #ef4444;">Ссылка не содержит ID ученика. Обратитесь к преподавателю.</td></tr>
+    `;
+  } else {
+    loadParentDashboard(targetStudentId);
+  }
 
-  window.loginParent = async () => {
-    const inputPhone = document.getElementById('parentPhone').value.replace(/\D/g, '');
-    const errorEl = document.getElementById('errorMsg');
-    
-    if (!studentId) {
-      errorEl.innerText = "Неверная ссылка доступа.";
-      errorEl.style.display = "block";
-      return;
-    }
+  function loadParentDashboard(studentId) {
+    // A. Подписка на профиль ученика (Имя и Баланс)
+    const studentDocRef = doc(db, "students", studentId);
+    onSnapshot(studentDocRef, (docSnap) => {
+      if (docSnap.exists()) {
+        const studentData = docSnap.data();
+        
+        const nameHeader = document.getElementById('studentNameHeader');
+        if (nameHeader) nameHeader.innerText = studentData.name || studentData.studentName || 'Ученик';
 
-    try {
-      const studentDoc = await getDoc(doc(db, "students", studentId));
-      if (!studentDoc.exists()) {
-        errorEl.innerText = "Ученик не найден.";
-        errorEl.style.display = "block";
-        return;
-      }
-
-      const data = studentDoc.data();
-      const parentPhoneInDb = (data.parentContacts || '').replace(/\D/g, '');
-
-      if (inputPhone.length > 5 && parentPhoneInDb.includes(inputPhone)) {
-        currentStudentData = data;
-        document.getElementById('auth-screen').style.display = 'none';
-        document.getElementById('dashboard').style.display = 'block';
-        loadDashboard(data);
+        const balanceEl = document.getElementById('parentBalance');
+        if (balanceEl) {
+          const balance = studentData.balance !== undefined ? studentData.balance : 0;
+          balanceEl.innerText = `${balance} уроков`;
+          balanceEl.style.color = balance <= 1 ? '#ef4444' : '#10b981';
+        }
       } else {
-        errorEl.innerText = "Номер телефона не совпадает с данными в системе.";
-        errorEl.style.display = "block";
+        document.getElementById('studentNameHeader').innerText = "Ученик не найден";
       }
-    } catch (e) {
-      errorEl.innerText = "Ошибка входа: " + e.message;
-      errorEl.style.display = "block";
+    }, (error) => {
+      console.error("Ошибка загрузки данных ученика:", error);
+    });
+
+    // B. Подписка на коллекцию истории уроков
+    const historyRef = collection(db, "history");
+    onSnapshot(historyRef, (snapshot) => {
+      const tbody = document.getElementById('parentHistoryTable');
+      if (!tbody) return;
+
+      tbody.innerHTML = '';
+      let completedLessonsCount = 0;
+      let totalGradesSum = 0;
+      let gradesCount = 0;
+
+      snapshot.forEach((docSnap) => {
+        const data = docSnap.data();
+        const docId = docSnap.id;
+        historyCache[docId] = data; // Кэшируем для модального окна
+
+        // Гибкое сравнение ID (и как строки, и как числа)
+        const isCurrentStudent = 
+          String(data.studentId) === String(studentId) || 
+          String(data.student_id) === String(studentId);
+
+        if (isCurrentStudent) {
+          completedLessonsCount++;
+
+          // Унификация названий полей с фоллбэками
+          const displayDate = data.date || data.dateTime || data.formattedDate || 
+            (data.rawDate ? new Date(data.rawDate).toLocaleDateString('ru-RU') : '—');
+          
+          const lessonTopic = data.topic || data.lessonTopic || 'Тема не указана';
+          const totalGrade = data.totalGrade || data.grade || '—';
+          const pollGrade = data.pollGrade || '—';
+          const hwGrade = data.hwGrade || '—';
+
+          // Подсчет среднего балла
+          const parsedGrade = parseFloat(totalGrade);
+          if (!isNaN(parsedGrade)) {
+            totalGradesSum += parsedGrade;
+            gradesCount++;
+          }
+
+          // Безопасный подсчет выполнения домашнего задания
+          const filledHw = Array.isArray(data.hwItems) 
+            ? data.hwItems.filter(i => i && i.text && String(i.text).trim() !== '') 
+            : [];
+          const doneHw = filledHw.filter(i => i.status === 'done').length;
+          const hwStatusText = filledHw.length > 0 ? `${doneHw} из ${filledHw.length}` : 'Без ДЗ';
+
+          // Создание строки таблицы
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${displayDate}</td>
+            <td><strong>${lessonTopic}</strong></td>
+            <td>Опрос: ${pollGrade} | ДЗ: ${hwGrade}</td>
+            <td><span class="badge-grade">${totalGrade}</span></td>
+            <td>${hwStatusText}</td>
+            <td>
+              <button class="btn-action" onclick="openParentReportModal('${docId}')">📋 Отчёт</button>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        }
+      });
+
+      if (completedLessonsCount === 0) {
+        tbody.innerHTML = `
+          <tr><td colspan="6" style="text-align: center; color: var(--text-muted);">История проведенных уроков пока пуста.</td></tr>
+        `;
+      }
+
+      // Обновление карточек статистики
+      const avgGradeEl = document.getElementById('parentAvgGrade');
+      if (avgGradeEl) {
+        avgGradeEl.innerText = gradesCount > 0 ? (totalGradesSum / gradesCount).toFixed(1) : '—';
+      }
+
+      const totalLessonsEl = document.getElementById('parentTotalLessons');
+      if (totalLessonsEl) {
+        totalLessonsEl.innerText = completedLessonsCount;
+      }
+    }, (error) => {
+      console.error("Ошибка загрузки истории:", error);
+    });
+  }
+
+  // Глобальные функции для работы модального окна отчета
+  window.openParentReportModal = function(docId) {
+    const data = historyCache[docId];
+    if (!data) return;
+
+    const modal = document.getElementById('reportModal');
+    const title = document.getElementById('modalTitle');
+    const body = document.getElementById('modalBody');
+
+    const displayDate = data.date || data.dateTime || data.formattedDate || '—';
+    const topic = data.topic || data.lessonTopic || 'Без темы';
+
+    title.innerText = `Отчёт по уроку: ${displayDate}`;
+    
+    let hwDetails = '';
+    if (Array.isArray(data.hwItems) && data.hwItems.length > 0) {
+      hwDetails = '<ul>' + data.hwItems.map(item => 
+        `<li>${item.text || ''} — <strong>${item.status === 'done' ? '✅ Выполнено' : '❌ Не сделано'}</strong></li>`
+      ).join('') + '</ul>';
+    } else {
+      hwDetails = '<p>Домашнее задание не задавалось.</p>';
     }
+
+    body.innerHTML = `
+      <p><strong>Тема:</strong> ${topic}</p>
+      <p><strong>Оценки:</strong> Опрос: ${data.pollGrade || '-'}, ДЗ: ${data.hwGrade || '-'}, Итог: <strong>${data.totalGrade || '-'}</strong></p>
+      <p><strong>Комментарий преподавателя:</strong><br>${data.comment || data.notes || 'Комментарий отсутствует.'}</p>
+      <hr style="border: none; border-top: 1px solid var(--border); margin: 10px 0;">
+      <p><strong>Домашнее задание:</strong></p>
+      ${hwDetails}
+    `;
+
+    modal.style.display = 'flex';
   };
 
-  async function loadDashboard(student) {
-    document.getElementById('studentName').innerText = student.name;
-    document.getElementById('studentGrade').innerText = student.grade || '';
-    document.getElementById('flaskBalance').innerText = student.flasksBalance || 0;
-
-    // Ищем записи по studentName или studentId для надежности
-    let historySnap = await getDocs(query(collection(db, "history"), where("studentName", "==", student.name)));
-    if (historySnap.empty && studentId) {
-      historySnap = await getDocs(query(collection(db, "history"), where("studentId", "==", studentId)));
-    }
-    
-    let totalHw = 0, doneHw = 0, lessonsCount = 0;
-    let lessonGradesSum = 0, lessonGradesCount = 0;
-    let hwGradesSum = 0, hwGradesCount = 0;
-
-    let labels = [], chartGrades = [];
-    let historyRecords = [];
-
-    historySnap.forEach(docSnap => {
-      const h = docSnap.data();
-      lessonsCount++;
-      historyRecords.push(h);
-
-      if (h.hwItems) {
-        h.hwItems.forEach(i => {
-          totalHw++;
-          if (i.status === 'done') doneHw++;
-        });
-      }
-
-      const lessonGrade = parseFloat(h.totalGrade || h.lessonGrade);
-      if (!isNaN(lessonGrade)) {
-        lessonGradesSum += lessonGrade;
-        lessonGradesCount++;
-      }
-
-      const hwGrade = parseFloat(h.hwGrade || h.hwRating);
-      if (!isNaN(hwGrade)) {
-        hwGradesSum += hwGrade;
-        hwGradesCount++;
-      }
-
-      labels.push(h.date ? h.date.slice(0, 5) : '');
-      chartGrades.push(lessonGrade || null);
-    });
-
-    document.getElementById('totalLessons').innerText = lessonsCount;
-    document.getElementById('hwPercent').innerText = totalHw > 0 ? Math.round((doneHw / totalHw) * 100) + '%' : '100%';
-    document.getElementById('avgLessonGrade').innerText = lessonGradesCount > 0 
-      ? (lessonGradesSum / lessonGradesCount).toFixed(1) 
-      : '—';
-    document.getElementById('avgHwGrade').innerText = hwGradesCount > 0 
-      ? (hwGradesSum / hwGradesCount).toFixed(1) 
-      : '—';
-
-    // Рендер истории уроков
-    const historyContainer = document.getElementById('historyList');
-    historyContainer.innerHTML = '';
-
-    if (historyRecords.length === 0) {
-      historyContainer.innerHTML = '<p style="color: #9ca3af; font-size: 14px;">Уроки еще не проводились.</p>';
-    } else {
-      historyRecords.reverse().forEach(h => {
-        const item = document.createElement('div');
-        item.className = 'history-item';
-
-        const lessonGradeVal = h.totalGrade || h.lessonGrade || '—';
-        const hwGradeVal = h.hwGrade || h.hwRating || '—';
-
-        let hwListText = '';
-        if (h.hwItems && h.hwItems.length > 0) {
-          hwListText = h.hwItems
-            .map(i => `${i.status === 'done' ? '✅' : '❌'} ${i.text}`)
-            .join('<br>');
-        } else {
-          hwListText = 'Нет заданий';
-        }
-
-        item.innerHTML = `
-          <div class="history-header">
-            <span>📅 ${h.date || 'Без даты'}</span>
-            <span class="badge-grade">Урок: ⭐ ${lessonGradeVal}</span>
-          </div>
-          <div class="history-topic"><strong>Тема:</strong> ${h.topic || 'Без темы'}</div>
-          <div class="history-grades">
-            <span>Оценка за ДЗ: 📝 <strong>${hwGradeVal}</strong></span>
-          </div>
-          <div class="history-hw">
-            <strong>Домашнее задание:</strong><br>${hwListText}
-          </div>
-        `;
-        historyContainer.appendChild(item);
-      });
-    }
-
-    // Рендер графика
-    new Chart(document.getElementById('progressChart'), {
-      type: 'line',
-      data: {
-        labels: labels,
-        datasets: [{ label: 'Оценка за урок', data: chartGrades, borderColor: '#4f46e5', tension: 0.3 }]
-      },
-      options: { responsive: true, maintainAspectRatio: false, scales: { y: { min: 2, max: 5 } } }
-    });
-
-    // Загрузка магазина
-    if (student.userId) {
-      const userDoc = await getDoc(doc(db, "users", student.userId));
-      if (userDoc.exists()) {
-        const shopItems = userDoc.data().shopItems || [];
-        const shopContainer = document.getElementById('shopList');
-        shopContainer.innerHTML = '';
-
-        shopItems.forEach(item => {
-          const canAfford = (student.flasksBalance || 0) >= item.price;
-          const div = document.createElement('div');
-          div.className = 'shop-item';
-          div.innerHTML = `
-            <span>${item.title} (<strong>${item.price} 🧪</strong>)</span>
-            <span class="${canAfford ? 'status-ok' : 'status-no'}">${canAfford ? 'Хватает ✅' : 'Не хватает ❌'}</span>
-          `;
-          shopContainer.appendChild(div);
-        });
-      }
-    }
-  }
+  window.closeReportModal = function() {
+    document.getElementById('reportModal').style.display = 'none';
+  };
 </script>
 </body>
 </html>
