@@ -4,9 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SaaS Кабинет Репетитора</title>
-  <!-- Библиотека для создания скриншотов HTML-элементов для отправки в TG -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  <!-- Библиотека Chart.js для отрисовки диаграмм успеваемости -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     :root {
@@ -228,6 +226,17 @@
       text-transform: uppercase;
       background: rgba(254, 243, 199, 0.4);
       box-shadow: 0 0 0 4px rgba(217, 119, 6, 0.1);
+    }
+
+    .student-stat-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 4px 0;
+      font-size: 13px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .student-stat-item:last-child {
+      border-bottom: none;
     }
   </style>
 </head>
@@ -873,7 +882,7 @@
       </div>
     </div>
 
-    <!-- ОБНОВЛЕННАЯ КАРТОЧКА СЕРТИФИКАТА С ПРЕДМЕТНОЙ СТИЛИСТИКОЙ -->
+    <!-- КАРТОЧКА СЕРТИФИКАТА -->
     <div class="certificate-card" id="certificateDisplayCard">
       <div class="cert-bg-overlay" id="certBgPattern">🧪 🔬 🧬 🧪 🔬 🧬</div>
       <div class="certificate-header">СЕРТИФИКАТ</div>
@@ -1501,9 +1510,6 @@
 
       const hwPercent = totalHw > 0 ? Math.round((doneHw / totalHw) * 100) : 100;
       const avgHwGrade = hwGradesCount > 0 ? (hwGradesSum / hwGradesCount).toFixed(1) : '—';
-      
-      // Динамическое построение ссылки для родительского кабинета относительно текущего хоста
-      const parentLink = `${window.location.origin}${window.location.pathname.replace('index.html', '')}parent.html?id=${sId}`;
 
       const card = document.createElement('div');
       card.className = 'student-card';
@@ -1515,11 +1521,10 @@
         <p><strong>🎯 Цель:</strong> ${s.goal || '—'}</p>
         <p><strong>📞 Контакты:</strong> ${s.parentContacts || '—'}</p>
         <p><strong>📝 Заметки:</strong> ${s.notes || '—'}</p>
-        <p><strong>🔗 Ссылка для родителя:</strong> 
-           <input type="text" readonly value="${parentLink}" onclick="this.select(); document.execCommand('copy'); alert('Ссылка скопирована!');" style="font-size:11px; cursor:pointer;">
-        </p>
         <div style="background: #ffffff; border-radius: 6px; padding: 6px; margin: 8px 0; font-size: 12px; border: 1px solid #e5e7eb;">
-          📊 Уроков: <strong>${totalLessons}</strong> | Выполнение ДЗ: <strong>${hwPercent}%</strong> | Ср. оценка ДЗ: <strong>${avgHwGrade}</strong>
+          <div class="student-stat-item">📊 Уроков: <strong>${totalLessons}</strong></div>
+          <div class="student-stat-item">✅ Выполнение ДЗ: <strong>${hwPercent}%</strong></div>
+          <div class="student-stat-item">📝 Ср. оценка ДЗ: <strong>${avgHwGrade}</strong></div>
         </div>
         <div style="display:flex; gap:5px; flex-wrap:wrap; margin-top:8px;">
           <button class="btn-action" onclick="openStudentCardModal('${sId}')">✏️ Редактировать</button>
@@ -1688,7 +1693,6 @@
     const id = document.getElementById('cardStudentId').value;
     const studentData = {
       userId: currentUserId,
-      teacherId: currentUserId, // Привязка преподавателя для доступа из кабинета родителя
       teacherChatId: userSettings.tgChatId || '',
       name: document.getElementById('cardStudentName').value,
       grade: document.getElementById('cardStudentGrade').value,
@@ -1777,7 +1781,6 @@
         if (!existingStudentId) {
           await addDoc(collection(db, "students"), {
             userId: currentUserId,
-            teacherId: currentUserId, // Автоматическое связывание созданного ученика с учителем
             teacherChatId: userSettings.tgChatId || '',
             name: name, grade: '', parentContacts: '', goal: '', notes: '', flasksBalance: 0, hwTemplates: []
           });
