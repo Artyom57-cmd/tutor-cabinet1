@@ -1501,7 +1501,6 @@
 
       const hwPercent = totalHw > 0 ? Math.round((doneHw / totalHw) * 100) : 100;
       const avgHwGrade = hwGradesCount > 0 ? (hwGradesSum / hwGradesCount).toFixed(1) : '—';
-      const parentLink = `https://artyom57-cmd.github.io/tutor-cabinet1/parent.html?id=${sId}`;
 
       const card = document.createElement('div');
       card.className = 'student-card';
@@ -1513,9 +1512,6 @@
         <p><strong>🎯 Цель:</strong> ${s.goal || '—'}</p>
         <p><strong>📞 Контакты:</strong> ${s.parentContacts || '—'}</p>
         <p><strong>📝 Заметки:</strong> ${s.notes || '—'}</p>
-        <p><strong>🔗 Ссылка для родителя:</strong> 
-           <input type="text" readonly value="${parentLink}" onclick="this.select(); document.execCommand('copy'); alert('Ссылка скопирована!');" style="font-size:11px; cursor:pointer;">
-        </p>
         <div style="background: #ffffff; border-radius: 6px; padding: 6px; margin: 8px 0; font-size: 12px; border: 1px solid #e5e7eb;">
           📊 Уроков: <strong>${totalLessons}</strong> | Выполнение ДЗ: <strong>${hwPercent}%</strong> | Ср. оценка ДЗ: <strong>${avgHwGrade}</strong>
         </div>
@@ -2113,12 +2109,9 @@
     card.scrollIntoView({ behavior: 'smooth' });
   };
 
-  function renderPeriodChart(labels, grades, hwPercents) {
+  function renderPeriodChart(labels, gradesData, hwPercentData) {
     const ctx = document.getElementById('periodReportChart').getContext('2d');
-    
-    if (periodChartInstance) {
-      periodChartInstance.destroy();
-    }
+    if (periodChartInstance) periodChartInstance.destroy();
 
     periodChartInstance = new Chart(ctx, {
       type: 'line',
@@ -2126,22 +2119,21 @@
         labels: labels,
         datasets: [
           {
-            label: 'Итоговая оценка',
-            data: grades,
+            label: 'Итоговая оценка за урок',
+            data: gradesData,
             borderColor: '#4f46e5',
             backgroundColor: 'rgba(79, 70, 229, 0.1)',
             borderWidth: 2,
-            tension: 0.3,
+            tension: 0.2,
             yAxisID: 'y'
           },
           {
             label: 'Выполнение ДЗ (%)',
-            data: hwPercents,
-            borderColor: '#10b981',
-            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+            data: hwPercentData,
+            borderColor: '#059669',
+            backgroundColor: 'rgba(5, 150, 105, 0.1)',
             borderWidth: 2,
-            borderDash: [5, 5],
-            tension: 0.3,
+            tension: 0.2,
             yAxisID: 'y1'
           }
         ]
@@ -2154,9 +2146,9 @@
             type: 'linear',
             display: true,
             position: 'left',
-            min: 0,
+            min: 1,
             max: 5,
-            title: { display: true, text: 'Оценка (1-5)' }
+            ticks: { stepSize: 1 }
           },
           y1: {
             type: 'linear',
@@ -2164,8 +2156,7 @@
             position: 'right',
             min: 0,
             max: 100,
-            grid: { drawOnChartArea: false },
-            title: { display: true, text: 'ДЗ (%)' }
+            grid: { drawOnChartArea: false }
           }
         }
       }
