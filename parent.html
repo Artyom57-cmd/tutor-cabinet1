@@ -233,7 +233,7 @@
 
     <div class="stats-grid">
       <div class="stat-card">
-        <div class="stat-title">Остаток уроков (Баланс)</div>
+        <div class="stat-title">Баланс колб 🧪</div>
         <div class="stat-value" id="parentBalance">—</div>
       </div>
       <div class="stat-card">
@@ -290,7 +290,7 @@
     onSnapshot 
   } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-  // Конфигурация Firebase (из tutor-cabinet)
+  // Конфигурация Firebase
   const firebaseConfig = {
     apiKey: "AIzaSyAHxz8YoyHn5QK-ekR9Q1aS9KfatAbe3Go",
     authDomain: "tutorcabinet-8b2c6.firebaseapp.com",
@@ -312,17 +312,16 @@
     return String(phoneStr).replace(/\D/g, '');
   }
 
-  // Проверяем URL и сохраненные сессии при загрузке
+  // Проверяем URL при загрузке страницы
   window.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
     const rawStudentId = urlParams.get('studentId') || urlParams.get('id');
-    const savedStudentId = localStorage.getItem('parent_student_id');
 
+    // Открываем кабинет только если ID передан явно через ссылку
     if (rawStudentId) {
       initDashboard(rawStudentId.trim());
-    } else if (savedStudentId) {
-      initDashboard(savedStudentId);
     } else {
+      // В остальных случаях всегда просим ввести номер телефона
       showAuthScreen();
     }
   });
@@ -397,7 +396,7 @@
         const balanceEl = document.getElementById('parentBalance');
         if (balanceEl) {
           const balance = studentData.flasksBalance !== undefined ? studentData.flasksBalance : (studentData.balance || 0);
-          balanceEl.innerText = `${balance} уроков`;
+          balanceEl.innerText = `${balance} колб 🧪`;
           balanceEl.style.color = balance <= 1 ? '#ef4444' : '#10b981';
         }
       } else {
