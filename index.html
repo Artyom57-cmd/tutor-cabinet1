@@ -2109,9 +2109,12 @@
     card.scrollIntoView({ behavior: 'smooth' });
   };
 
-  function renderPeriodChart(labels, gradesData, hwPercentData) {
+  function renderPeriodChart(labels, grades, hwPercents) {
     const ctx = document.getElementById('periodReportChart').getContext('2d');
-    if (periodChartInstance) periodChartInstance.destroy();
+    
+    if (periodChartInstance) {
+      periodChartInstance.destroy();
+    }
 
     periodChartInstance = new Chart(ctx, {
       type: 'line',
@@ -2119,21 +2122,22 @@
         labels: labels,
         datasets: [
           {
-            label: 'Итоговая оценка за урок',
-            data: gradesData,
+            label: 'Итоговая оценка',
+            data: grades,
             borderColor: '#4f46e5',
             backgroundColor: 'rgba(79, 70, 229, 0.1)',
             borderWidth: 2,
-            tension: 0.2,
+            tension: 0.3,
             yAxisID: 'y'
           },
           {
             label: 'Выполнение ДЗ (%)',
-            data: hwPercentData,
-            borderColor: '#059669',
-            backgroundColor: 'rgba(5, 150, 105, 0.1)',
+            data: hwPercents,
+            borderColor: '#10b981',
+            backgroundColor: 'rgba(16, 185, 129, 0.1)',
             borderWidth: 2,
-            tension: 0.2,
+            borderDash: [5, 5],
+            tension: 0.3,
             yAxisID: 'y1'
           }
         ]
@@ -2146,9 +2150,9 @@
             type: 'linear',
             display: true,
             position: 'left',
-            min: 1,
+            min: 0,
             max: 5,
-            ticks: { stepSize: 1 }
+            title: { display: true, text: 'Оценка (1-5)' }
           },
           y1: {
             type: 'linear',
@@ -2156,7 +2160,8 @@
             position: 'right',
             min: 0,
             max: 100,
-            grid: { drawOnChartArea: false }
+            grid: { drawOnChartArea: false },
+            title: { display: true, text: 'ДЗ (%)' }
           }
         }
       }
