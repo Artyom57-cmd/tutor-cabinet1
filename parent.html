@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Кабинет Родителя</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f3f4f6; margin: 0; padding: 20px; color: #1f2937; }
+    .container { max-width: 600px; margin: 0 auto; }
+    .card { background: #fff; border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+    .login-box { text-align: center; margin-top: 50px; }
+    input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
+    button { width: 100%; padding: 12px; background: #4f46e5; color: #fff; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
+    .balance-badge { background: #e0e7ff; color: #3730a3; padding: 8px 12px; border-radius: 20px; font-weight: bold; display: inline-block; margin-bottom: 10px; }
+    .shop-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee; }
+    .status-ok { color: #10b981; font-weight: bold; }
+    .status-no { color: #ef4444; font-weight: bold; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <!-- Экран входа по номеру телефона -->
+  <div id="auth-screen" class="card login-box">
+    <h2>🎓 Вход в кабинет родителя</h2>
+    <p>Введите номер телефона, указанный при регистрации ученика</p>
+    <input type="tel" id="parentPhone" placeholder="+7 (999) 000-00-00">
+    <button onclick="loginParent()">Войти</button>
+    <p id="errorMsg" style="color: red; display: none; margin-top: 10px;"></p>
+  </div>
+
+  <!-- Главный экран статистики -->
+  <div id="dashboard" style="display: none;">
+    <div class="card">
+      <h2 id="studentName">Ученик</h2>
+      <p id="studentGrade" style="color: #6b7280;"></p>
+      <div class="balance-badge">Баланс: <span id="flaskBalance">0</span> 🧪</div>
+    </div>
+
+    <!-- Статистика -->
+    <div class="card">
+      <h3>📊 Успеваемость</h3>
+      <p>Проведено уроков: <strong id="totalLessons">0</strong></p>
+      <p>Выполнение ДЗ: <strong id="hwPercent">0%</strong></p>
+      <div style="height: 200px; margin-top: 15px;">
+        <canvas id="progressChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Магазин и баланс колб -->
+    <div class="card">
+      <h3>🛍️ Магазин бонусов</h3>
+      <p style="font-size: 12px; color: #6b7280; margin-bottom: 10px;">Доступность бонусов за набранные колбы:</p>
+      <div id="shopList"></div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { getFirestore, doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAHxz8YoyHn5QK-ekR9Q1aS9KfatAbe3Go",
+    authDomain: "tutorcabinet-8b2c6.firebaseapp.com",
+    projectId: "tutorcabinet-8b2c6",
+    storageBucket: "tutorcabinet-8b2c6.firebasestorage.app",
+    messagingSenderId: "658054043647",
+    appId: "1:658054043647:web:55fca77b1f31d8dc4679ca"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  // Получение ID ученика из URL (?id=...)
+  const urlParams = new URLSearchParams(window.location.search);
+  const studentId = urlParams.get('id');
+
+  let currentStudentData = null;
+
+  window.loginParent = async () => {
+    const inputPhone = document.getElementById('parentPhone').value.replace(/\D/g, '');
+    const errorEl = document.getElementById('errorMsg');
+    
+    if (!studentId) {
+      errorEl.innerText = "Неверная ссылка доступа.";
+      errorEl.style.display = "block";
+      return;
+    }
+
+    try {
+      const studentDoc = await getDoc(doc(db, "students", studentId));
+      if (!studentDoc.exists()) {
+        errorEl.innerText = "Ученик не найден.";
+        errorEl.style.display = "block";
+        return;
+      }
+
+      const data = studentDoc.data();
+      const parentPhoneInDb = (data.parentContacts || '').replace(/\D/g, '');
+
+      // Проверка совпадения номера телефона
+      if (inputPhone.length > 5 && parentPhoneInDb.includes(inputPhone)) {
+        currentStudentData = data;
+        document.getElementById('auth-screen').style.display = 'none';
+        document.getElementById('dashboard').style.display = 'block';
+        loadDashboard(data);
+      } else {
+        errorEl.innerText = "Номер телефона не совпадает с данными в системе.";
+        errorEl.style.display = "block";
+      }
+    } catch (e) {
+      errorEl.innerText = "Ошибка входа: " + e.message;
+      errorEl.style.display = "block";
+    }
+  };
+
+  async function loadDashboard(student) {
+    document.getElementById('studentName').innerText = student.name;
+    document.getElementById('studentGrade').innerText = student.grade || '';
+    document.getElementById('flaskBalance').innerText = student.flasksBalance || 0;
+
+    // Загрузка истории уроков ученика
+    const historyQ = query(collection(db, "history"), where("studentName", "==", student.name));
+    const historySnap = await getDocs(historyQ);
+    
+    let totalHw = 0, doneHw = 0, lessonsCount = 0;
+    let labels = [], grades = [];
+
+    historySnap.forEach(docSnap => {
+      const h = docSnap.data();
+      lessonsCount++;
+      if (h.hwItems) {
+        h.hwItems.forEach(i => {
+          totalHw++;
+          if (i.status === 'done') doneHw++;
+        });
+      }
+      labels.push(h.date ? h.date.slice(0, 5) : '');
+      grades.push(parseFloat(h.totalGrade) || null);
+    });
+
+    document.getElementById('totalLessons').innerText = lessonsCount;
+    document.getElementById('hwPercent').innerText = totalHw > 0 ? Math.round((doneHw / totalHw) * 100) + '%' : '100%';
+
+    // Рендер графика
+    new Chart(document.getElementById('progressChart'), {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{ label: 'Оценка за урок', data: grades, borderColor: '#4f46e5', tension: 0.3 }]
+      },
+      options: { responsive: true, maintainAspectRatio: false, scales: { y: { min: 2, max: 5 } } }
+    });
+
+    // Загрузка настроек магазина преподавателя
+    const userDoc = await getDoc(doc(db, "users", student.userId));
+    if (userDoc.exists()) {
+      const shopItems = userDoc.data().shopItems || [];
+      const shopContainer = document.getElementById('shopList');
+      shopContainer.innerHTML = '';
+
+      shopItems.forEach(item => {
+        const canAfford = (student.flasksBalance || 0) >= item.price;
+        const div = document.createElement('div');
+        div.className = 'shop-item';
+        div.innerHTML = `
+          <span>${item.title} (<strong>${item.price} 🧪</strong>)</span>
+          <span class="${canAfford ? 'status-ok' : 'status-no'}">${canAfford ? 'Хватает ✅' : 'Не хватает ❌'}</span>
+        `;
+        shopContainer.appendChild(div);
+      });
+    }
+  }
+</script>
+</body>
+</html>
