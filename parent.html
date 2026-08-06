@@ -27,12 +27,81 @@
       margin: 0 auto;
     }
 
+    /* Блок входа по номеру телефона */
+    .phone-auth-card {
+      background: var(--card-bg);
+      padding: 30px 25px;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+      max-width: 400px;
+      margin: 50px auto;
+      text-align: center;
+    }
+
+    .phone-auth-card h2 {
+      margin-top: 0;
+      font-size: 20px;
+      color: var(--text-main);
+    }
+
+    .phone-auth-card p {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+    }
+
+    .input-phone {
+      width: 100%;
+      padding: 12px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-size: 15px;
+      box-sizing: border-box;
+      margin-bottom: 15px;
+      outline: none;
+    }
+
+    .input-phone:focus {
+      border-color: var(--primary);
+    }
+
+    .btn-login {
+      width: 100%;
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 12px;
+      border-radius: 8px;
+      font-weight: bold;
+      font-size: 15px;
+      cursor: pointer;
+    }
+
+    .btn-login:hover {
+      background: #2563eb;
+    }
+
+    .auth-error {
+      color: #ef4444;
+      font-size: 13px;
+      margin-top: 10px;
+      display: none;
+    }
+
+    /* Основной интерфейс (скрыт до авторизации) */
+    #dashboardContent {
+      display: none;
+    }
+
     .header {
       background: var(--card-bg);
       padding: 20px;
       border-radius: 12px;
       box-shadow: 0 1px 3px rgba(0,0,0,0.1);
       margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
 
     .stats-grid {
@@ -106,6 +175,16 @@
       background: #e5e7eb;
     }
 
+    .btn-logout {
+      background: #fee2e2;
+      color: #dc2626;
+      border: 1px solid #fca5a5;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+
     /* Модальное окно отчета */
     .modal {
       display: none;
@@ -131,45 +210,62 @@
 <body>
 
 <div class="container">
-  <div class="header">
-    <h1 id="studentNameHeader" style="margin: 0; font-size: 24px;">Загрузка данных...</h1>
-    <p style="margin: 5px 0 0; color: var(--text-muted);">Успеваемость и история занятий</p>
+  <!-- Форма авторизации по номеру телефона -->
+  <div id="phoneAuthScreen" class="phone-auth-card">
+    <h2>📱 Вход в кабинет родителя</h2>
+    <p>Введите номер телефона родителя, указанный при регистрации ученика</p>
+    <form id="phoneAuthForm">
+      <input type="tel" id="parentPhoneInput" class="input-phone" placeholder="+7 (999) 000-00-00" required>
+      <button type="submit" class="btn-login">Войти</button>
+      <div id="phoneAuthError" class="auth-error">Ученик с таким номером телефона не найден</div>
+    </form>
   </div>
 
-  <div class="stats-grid">
-    <div class="stat-card">
-      <div class="stat-title">Остаток уроков (Баланс)</div>
-      <div class="stat-value" id="parentBalance">—</div>
+  <!-- Основной Кабинет -->
+  <div id="dashboardContent">
+    <div class="header">
+      <div>
+        <h1 id="studentNameHeader" style="margin: 0; font-size: 24px;">Загрузка данных...</h1>
+        <p style="margin: 5px 0 0; color: var(--text-muted);">Успеваемость и история занятий</p>
+      </div>
+      <button class="btn-logout" onclick="logoutParent()">Сменить номер 🚪</button>
     </div>
-    <div class="stat-card">
-      <div class="stat-title">Средний балл</div>
-      <div class="stat-value" id="parentAvgGrade">—</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-title">Пройдено уроков</div>
-      <div class="stat-value" id="parentTotalLessons">0</div>
-    </div>
-  </div>
 
-  <div class="table-card">
-    <h2 style="font-size: 18px; margin-top: 0; margin-bottom: 15px;">История уроков</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>Дата</th>
-          <th>Тема</th>
-          <th>Оценки</th>
-          <th>Итог</th>
-          <th>ДЗ</th>
-          <th>Действия</th>
-        </tr>
-      </thead>
-      <tbody id="parentHistoryTable">
-        <tr>
-          <td colspan="6" style="text-align: center; color: var(--text-muted);">Загрузка истории...</td>
-        </tr>
-      </tbody>
-    </table>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-title">Остаток уроков (Баланс)</div>
+        <div class="stat-value" id="parentBalance">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-title">Средний балл</div>
+        <div class="stat-value" id="parentAvgGrade">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-title">Пройдено уроков</div>
+        <div class="stat-value" id="parentTotalLessons">0</div>
+      </div>
+    </div>
+
+    <div class="table-card">
+      <h2 style="font-size: 18px; margin-top: 0; margin-bottom: 15px;">История уроков</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Дата</th>
+            <th>Тема</th>
+            <th>Оценки</th>
+            <th>Итог</th>
+            <th>ДЗ</th>
+            <th>Действия</th>
+          </tr>
+        </thead>
+        <tbody id="parentHistoryTable">
+          <tr>
+            <td colspan="6" style="text-align: center; color: var(--text-muted);">Загрузка истории...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>
 
@@ -184,47 +280,112 @@
 </div>
 
 <script type="module">
-  // Импорт Firebase SDK (убедитесь, что версии совпадают с вашим проектом)
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
   import { 
     getFirestore, 
     collection, 
     doc, 
+    getDocs,
+    getDoc,
     onSnapshot 
   } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-  // ВСТАВЬТЕ СЮДА ВАШУ КОНФИГУРАЦИЮ FIREBASE
+  // Конфигурация Firebase (из tutor-cabinet)
   const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_PROJECT_ID.appspot.com",
-    messagingSenderId: "YOUR_SENDER_ID",
-    appId: "YOUR_APP_ID"
+    apiKey: "AIzaSyAHxz8YoyHn5QK-ekR9Q1aS9KfatAbe3Go",
+    authDomain: "tutorcabinet-8b2c6.firebaseapp.com",
+    projectId: "tutorcabinet-8b2c6",
+    storageBucket: "tutorcabinet-8b2c6.firebasestorage.app",
+    messagingSenderId: "658054043647",
+    appId: "1:658054043647:web:55fca77b1f31d8dc4679ca"
   };
 
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
-  // Хранилище загруженной истории для быстрого показа отчетов в модальном окне
   const historyCache = {};
+  let currentStudentId = null;
 
-  // 1. Получаем ID ученика из параметров URL
-  const urlParams = new URLSearchParams(window.location.search);
-  const rawStudentId = urlParams.get('studentId') || urlParams.get('id');
-  const targetStudentId = rawStudentId ? rawStudentId.trim() : null;
-
-  if (!targetStudentId) {
-    document.getElementById('studentNameHeader').innerText = "Ошибка: Ученик не найден в ссылке";
-    document.getElementById('parentHistoryTable').innerHTML = `
-      <tr><td colspan="6" style="text-align: center; color: #ef4444;">Ссылка не содержит ID ученика. Обратитесь к преподавателю.</td></tr>
-    `;
-  } else {
-    loadParentDashboard(targetStudentId);
+  // Функция очистки телефона от спецсимволов для точного поиска
+  function cleanPhone(phoneStr) {
+    if (!phoneStr) return "";
+    return String(phoneStr).replace(/\D/g, '');
   }
 
+  // Проверяем URL и сохраненные сессии при загрузке
+  window.addEventListener('DOMContentLoaded', () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const rawStudentId = urlParams.get('studentId') || urlParams.get('id');
+    const savedStudentId = localStorage.getItem('parent_student_id');
+
+    if (rawStudentId) {
+      initDashboard(rawStudentId.trim());
+    } else if (savedStudentId) {
+      initDashboard(savedStudentId);
+    } else {
+      showAuthScreen();
+    }
+  });
+
+  function showAuthScreen() {
+    document.getElementById('phoneAuthScreen').style.display = 'block';
+    document.getElementById('dashboardContent').style.display = 'none';
+  }
+
+  function initDashboard(studentId) {
+    currentStudentId = studentId;
+    localStorage.setItem('parent_student_id', studentId);
+
+    document.getElementById('phoneAuthScreen').style.display = 'none';
+    document.getElementById('dashboardContent').style.display = 'block';
+
+    loadParentDashboard(studentId);
+  }
+
+  // Обработка формы входа по телефону
+  document.getElementById('phoneAuthForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const inputPhone = document.getElementById('parentPhoneInput').value;
+    const cleanedInputPhone = cleanPhone(inputPhone);
+    const errorEl = document.getElementById('phoneAuthError');
+    errorEl.style.display = 'none';
+
+    if (!cleanedInputPhone) return;
+
+    try {
+      const studentsSnapshot = await getDocs(collection(db, "students"));
+      let matchedStudentId = null;
+
+      studentsSnapshot.forEach((docSnap) => {
+        const student = docSnap.data();
+        const parentContactsClean = cleanPhone(student.parentContacts);
+        
+        // Сверяем цифры номера телефона
+        if (parentContactsClean && parentContactsClean.includes(cleanedInputPhone)) {
+          matchedStudentId = docSnap.id;
+        }
+      });
+
+      if (matchedStudentId) {
+        initDashboard(matchedStudentId);
+      } else {
+        errorEl.innerText = "Ученик с таким номером не найден. Уточните у преподавателя.";
+        errorEl.style.display = 'block';
+      }
+    } catch (err) {
+      console.error("Ошибка поиска ученика:", err);
+      errorEl.innerText = "Ошибка соединения. Попробуйте позже.";
+      errorEl.style.display = 'block';
+    }
+  });
+
+  window.logoutParent = () => {
+    localStorage.removeItem('parent_student_id');
+    location.href = location.pathname; // Сброс URL
+  };
+
   function loadParentDashboard(studentId) {
-    // A. Подписка на профиль ученика (Имя и Баланс)
+    // Подписка на профиль ученика
     const studentDocRef = doc(db, "students", studentId);
     onSnapshot(studentDocRef, (docSnap) => {
       if (docSnap.exists()) {
@@ -235,7 +396,7 @@
 
         const balanceEl = document.getElementById('parentBalance');
         if (balanceEl) {
-          const balance = studentData.balance !== undefined ? studentData.balance : 0;
+          const balance = studentData.flasksBalance !== undefined ? studentData.flasksBalance : (studentData.balance || 0);
           balanceEl.innerText = `${balance} уроков`;
           balanceEl.style.color = balance <= 1 ? '#ef4444' : '#10b981';
         }
@@ -246,7 +407,7 @@
       console.error("Ошибка загрузки данных ученика:", error);
     });
 
-    // B. Подписка на коллекцию истории уроков
+    // Подписка на историю уроков
     const historyRef = collection(db, "history");
     onSnapshot(historyRef, (snapshot) => {
       const tbody = document.getElementById('parentHistoryTable');
@@ -260,9 +421,8 @@
       snapshot.forEach((docSnap) => {
         const data = docSnap.data();
         const docId = docSnap.id;
-        historyCache[docId] = data; // Кэшируем для модального окна
+        historyCache[docId] = data;
 
-        // Гибкое сравнение ID (и как строки, и как числа)
         const isCurrentStudent = 
           String(data.studentId) === String(studentId) || 
           String(data.student_id) === String(studentId);
@@ -270,7 +430,6 @@
         if (isCurrentStudent) {
           completedLessonsCount++;
 
-          // Унификация названий полей с фоллбэками
           const displayDate = data.date || data.dateTime || data.formattedDate || 
             (data.rawDate ? new Date(data.rawDate).toLocaleDateString('ru-RU') : '—');
           
@@ -279,21 +438,18 @@
           const pollGrade = data.pollGrade || '—';
           const hwGrade = data.hwGrade || '—';
 
-          // Подсчет среднего балла
           const parsedGrade = parseFloat(totalGrade);
           if (!isNaN(parsedGrade)) {
             totalGradesSum += parsedGrade;
             gradesCount++;
           }
 
-          // Безопасный подсчет выполнения домашнего задания
           const filledHw = Array.isArray(data.hwItems) 
             ? data.hwItems.filter(i => i && i.text && String(i.text).trim() !== '') 
             : [];
           const doneHw = filledHw.filter(i => i.status === 'done').length;
           const hwStatusText = filledHw.length > 0 ? `${doneHw} из ${filledHw.length}` : 'Без ДЗ';
 
-          // Создание строки таблицы
           const tr = document.createElement('tr');
           tr.innerHTML = `
             <td>${displayDate}</td>
@@ -315,7 +471,6 @@
         `;
       }
 
-      // Обновление карточек статистики
       const avgGradeEl = document.getElementById('parentAvgGrade');
       if (avgGradeEl) {
         avgGradeEl.innerText = gradesCount > 0 ? (totalGradesSum / gradesCount).toFixed(1) : '—';
@@ -330,7 +485,6 @@
     });
   }
 
-  // Глобальные функции для работы модального окна отчета
   window.openParentReportModal = function(docId) {
     const data = historyCache[docId];
     if (!data) return;
