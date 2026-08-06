@@ -139,8 +139,11 @@
     document.getElementById('studentGrade').innerText = student.grade || '';
     document.getElementById('flaskBalance').innerText = student.flasksBalance || 0;
 
-    const historyQ = query(collection(db, "history"), where("studentName", "==", student.name));
-    const historySnap = await getDocs(historyQ);
+    // Ищем записи по studentName или studentId для надежности
+    let historySnap = await getDocs(query(collection(db, "history"), where("studentName", "==", student.name)));
+    if (historySnap.empty && studentId) {
+      historySnap = await getDocs(query(collection(db, "history"), where("studentId", "==", studentId)));
+    }
     
     let totalHw = 0, doneHw = 0, lessonsCount = 0;
     let lessonGradesSum = 0, lessonGradesCount = 0;
@@ -154,7 +157,6 @@
       lessonsCount++;
       historyRecords.push(h);
 
-      // Сбор данных о ДЗ
       if (h.hwItems) {
         h.hwItems.forEach(i => {
           totalHw++;
@@ -162,14 +164,12 @@
         });
       }
 
-      // Оценка за урок (обрабатываем ключи totalGrade и lessonGrade)
       const lessonGrade = parseFloat(h.totalGrade || h.lessonGrade);
       if (!isNaN(lessonGrade)) {
         lessonGradesSum += lessonGrade;
         lessonGradesCount++;
       }
 
-      // Оценка за ДЗ (обрабатываем ключи hwGrade и hwRating)
       const hwGrade = parseFloat(h.hwGrade || h.hwRating);
       if (!isNaN(hwGrade)) {
         hwGradesSum += hwGrade;
@@ -180,7 +180,6 @@
       chartGrades.push(lessonGrade || null);
     });
 
-    // Расчет статистики
     document.getElementById('totalLessons').innerText = lessonsCount;
     document.getElementById('hwPercent').innerText = totalHw > 0 ? Math.round((doneHw / totalHw) * 100) + '%' : '100%';
     document.getElementById('avgLessonGrade').innerText = lessonGradesCount > 0 
@@ -197,7 +196,6 @@
     if (historyRecords.length === 0) {
       historyContainer.innerHTML = '<p style="color: #9ca3af; font-size: 14px;">Уроки еще не проводились.</p>';
     } else {
-      // Сортируем от свежих к старым
       historyRecords.reverse().forEach(h => {
         const item = document.createElement('div');
         item.className = 'history-item';
@@ -241,23 +239,25 @@
       options: { responsive: true, maintainAspectRatio: false, scales: { y: { min: 2, max: 5 } } }
     });
 
-    // Загрузка настроек магазина преподавателя
-    const userDoc = await getDoc(doc(db, "users", student.userId));
-    if (userDoc.exists()) {
-      const shopItems = userDoc.data().shopItems || [];
-      const shopContainer = document.getElementById('shopList');
-      shopContainer.innerHTML = '';
+    // Загрузка магазина
+    if (student.userId) {
+      const userDoc = await getDoc(doc(db, "users", student.userId));
+      if (userDoc.exists()) {
+        const shopItems = userDoc.data().shopItems || [];
+        const shopContainer = document.getElementById('shopList');
+        shopContainer.innerHTML = '';
 
-      shopItems.forEach(item => {
-        const canAfford = (student.flasksBalance || 0) >= item.price;
-        const div = document.createElement('div');
-        div.className = 'shop-item';
-        div.innerHTML = `
-          <span>${item.title} (<strong>${item.price} 🧪</strong>)</span>
-          <span class="${canAfford ? 'status-ok' : 'status-no'}">${canAfford ? 'Хватает ✅' : 'Не хватает ❌'}</span>
-        `;
-        shopContainer.appendChild(div);
-      });
+        shopItems.forEach(item => {
+          const canAfford = (student.flasksBalance || 0) >= item.price;
+          const div = document.createElement('div');
+          div.className = 'shop-item';
+          div.innerHTML = `
+            <span>${item.title} (<strong>${item.price} 🧪</strong>)</span>
+            <span class="${canAfford ? 'status-ok' : 'status-no'}">${canAfford ? 'Хватает ✅' : 'Не хватает ❌'}</span>
+          `;
+          shopContainer.appendChild(div);
+        });
+      }
     }
   }
 </script>
